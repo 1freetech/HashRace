@@ -25,7 +25,12 @@ func _run() -> void:
     await process_frame
     await process_frame
 
-    for method_name in ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_player_company", "_open_entity", "_end_quarter"]:
+    var required_methods: Array = [
+        "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_player_company",
+        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_player_rep_name",
+        "_open_entity", "_end_quarter"
+    ]
+    for method_name in required_methods:
         if not scene.has_method(method_name):
             _fail("missing overworld method: %s" % method_name)
             return
@@ -33,14 +38,26 @@ func _run() -> void:
     if not bool(scene.call("debug_world_ready")):
         _fail("overworld did not initialize player/entities/camera")
         return
-    if int(scene.call("debug_entity_count")) < 20:
-        _fail("expected at least 20 interactable companies/buildings")
+    if int(scene.call("debug_entity_count")) < 38:
+        _fail("expected company buildings plus mining and partner representatives")
+        return
+    if int(scene.call("debug_company_rep_count")) != 10:
+        _fail("each of the ten mining companies must have a representative")
+        return
+    if int(scene.call("debug_partner_rep_count")) != 9:
+        _fail("each partner company must have a representative")
+        return
+    if int(scene.call("debug_town_count")) != 10:
+        _fail("each mining company must have its own named town zone")
         return
     if not bool(scene.call("debug_has_dialogue_ui")):
-        _fail("Pokemon-style dialogue/action interface is missing")
+        _fail("RPG dialogue/action interface is missing")
         return
     if String(scene.call("debug_player_company")) != "ArcCurrent Systems":
         _fail("campaign company selection did not reach the overworld")
+        return
+    if String(scene.call("debug_player_rep_name")) != "Imani Vale":
+        _fail("selected company representative identity did not load")
         return
 
     scene.call("_open_entity", 1)
@@ -52,5 +69,5 @@ func _run() -> void:
         _fail("quarter settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: selected company, visible world, 20+ interactable companies, dialogue actions, camera, and quarter settlement verified.")
+    print("HASH RACE OVERWORLD PASS: ten company towns, ten mining reps, nine partner reps, techwear scanner-visors, dialogue actions, selected company, camera, and quarter settlement verified.")
     quit(0)
