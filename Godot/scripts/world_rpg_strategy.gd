@@ -17,6 +17,7 @@ var scanner_cells: Array[Vector2i] = []
 var scanner_button: Button
 var phase_label: Label
 var last_scanner_cell: Vector2i = Vector2i(-999, -999)
+var live_quarter_confirmation_pending: bool = false
 
 func _ready() -> void:
     super._ready()
@@ -33,7 +34,6 @@ func _install_rpg_strategy_ui() -> void:
     layer.name = "RPGStrategyLayer"
     layer.layer = 10
     add_child(layer)
-
     scanner_button = Button.new()
     scanner_button.position = Vector2(218.0, 88.0)
     scanner_button.size = Vector2(190.0, 42.0)
@@ -41,7 +41,6 @@ func _install_rpg_strategy_ui() -> void:
     scanner_button.add_theme_font_size_override("font_size", 12)
     scanner_button.pressed.connect(_toggle_scanner_overlay)
     layer.add_child(scanner_button)
-
     phase_label = Label.new()
     phase_label.position = Vector2(418.0, 92.0)
     phase_label.size = Vector2(330.0, 34.0)
@@ -54,7 +53,6 @@ func _process(delta: float) -> void:
     var before: Vector2 = rep_pos
     super._process(delta)
     var requested_motion: Vector2 = rep_pos - before
-
     if RPGMovement.is_moving(requested_motion):
         var corrected: Vector2 = RPGMovement.resolve_axis_motion(grid_nav, before, requested_motion)
         if corrected != rep_pos:
@@ -72,13 +70,16 @@ func _process(delta: float) -> void:
             rep_animation_state = RPGMovement.animation_state(rep_facing, false)
     else:
         rep_animation_state = RPGMovement.animation_state(rep_facing, false)
-
     _refresh_scanner_cells(false)
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey:
         var key_event: InputEventKey = event as InputEventKey
         if key_event.pressed and not key_event.echo:
+            if key_event.keycode == KEY_ESCAPE and live_quarter_confirmation_pending:
+                _cancel_live_quarter_confirmation()
+                get_viewport().set_input_as_handled()
+                return
             if key_event.keycode == KEY_R:
                 _toggle_scanner_overlay()
                 get_viewport().set_input_as_handled()
@@ -90,6 +91,41 @@ func _unhandled_input(event: InputEvent) -> void:
                     rep_facing = RPGMovement.face_target(rep_pos, entity["pos"], rep_facing)
                     rep_animation_state = RPGMovement.animation_state(rep_facing, false)
     super._unhandled_input(event)
+
+func _project_live_quarter_profit() -> float:
+    var mined_btc: float = _btc_per_day() * QUARTER_DAYS
+    var sold_btc: float = mined_btc * (1.0 - float(player["treasury_hold"]))
+    var revenue: float = sold_btc * btc_price + float(player["recurring_income"])
+    var power_cost: float = _machine_load_kw() * 24.0 * QUARTER_DAYS * _effective_power_cost() * _uptime()
+    var ops_cost: float = float(player["machines"]) * 0.38 * QUARTER_DAYS
+    var debt_cost: float = float(player["debt"]) * float(player["debt_rate"]) * (QUARTER_DAYS / 365.0)
+    return revenue - power_cost - ops_cost - debt_cost
+
+func _end_quarter() -> void:
+    if campaign_complete:
+        super._end_quarter()
+        return
+    if not live_quarter_confirmation_pending:
+        live_quarter_confirmation_pending = true
+        var projected_profit: float = _project_live_quarter_profit()
+        var projected_cash: float = float(player["cash"]) + projected_profit
+        quarter_button.text = "CONFIRM END QUARTER"
+        var risk: String = ""
+        if projected_cash < 0.0:
+            risk = " DANGER: projected cash falls below $0."
+        elif projected_profit < 0.0:
+            risk = " Warning: this quarter is projected to lose cash."
+        _feedback("QUARTER PREVIEW: projected cash result $%d • projected ending cash $%d.%s Click CONFIRM END QUARTER to settle about 91 days, or press Esc to cancel." % [int(projected_profit), int(projected_cash), risk])
+        return
+    live_quarter_confirmation_pending = false
+    quarter_button.text = "END QUARTER"
+    super._end_quarter()
+
+func _cancel_live_quarter_confirmation() -> void:
+    live_quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button) and not campaign_complete:
+        quarter_button.text = "END QUARTER"
+    _feedback("Quarter settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _toggle_scanner_overlay() -> void:
     scanner_overlay_enabled = not scanner_overlay_enabled
@@ -127,31 +163,18 @@ func _draw_scanner_overlay() -> void:
         var rect: Rect2 = Rect2(center - Vector2(20.0, 20.0), Vector2(40.0, 40.0))
         draw_rect(rect, Color("55efff12"), true)
         draw_rect(rect, Color("55efff3f"), false, 1.0)
-    draw_string(
-        ThemeDB.fallback_font,
-        rep_pos + Vector2(-54.0, -72.0),
-        "VISOR R%d" % SCANNER_RANGE_CELLS,
-        HORIZONTAL_ALIGNMENT_LEFT,
-        -1,
-        11,
-        Color("75f6ff")
-    )
+    draw_string(ThemeDB.fallback_font, rep_pos + Vector2(-54.0, -72.0), "VISOR R%d" % SCANNER_RANGE_CELLS, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("75f6ff"))
 
 func _draw_direction_state() -> void:
     var direction: Vector2 = Vector2.DOWN
     match rep_facing:
-        "up":
-            direction = Vector2.UP
-        "left":
-            direction = Vector2.LEFT
-        "right":
-            direction = Vector2.RIGHT
-        _:
-            direction = Vector2.DOWN
+        "up": direction = Vector2.UP
+        "left": direction = Vector2.LEFT
+        "right": direction = Vector2.RIGHT
+        _: direction = Vector2.DOWN
     var tip: Vector2 = rep_pos + direction * 30.0
     draw_line(rep_pos + direction * 17.0, tip, Color("8affbd"), 3.0)
     draw_circle(tip, 3.0, Color("d7fff0"))
-
     if not rep_animation_state.ends_with("_idle"):
         var bob: float = sin(rep_step_phase) * 3.0
         draw_rect(Rect2(rep_pos + Vector2(-10.0, 21.0 + bob), Vector2(7.0, 4.0)), Color("071014"), true)
@@ -159,12 +182,10 @@ func _draw_direction_state() -> void:
 
 func _draw_nearby_notice() -> void:
     var idx: int = _nearest_entity()
-    if idx < 0:
-        return
+    if idx < 0: return
     var entity: Dictionary = entities[idx]
     var kind: String = String(entity["kind"])
-    if kind != "rival_rep" and kind != "partner_rep":
-        return
+    if kind != "rival_rep" and kind != "partner_rep": return
     var pos: Vector2 = entity["pos"]
     var bubble: Rect2 = Rect2(pos + Vector2(-12.0, -76.0), Vector2(24.0, 24.0))
     draw_rect(bubble, Color("f4ffed"), true)
@@ -172,8 +193,7 @@ func _draw_nearby_notice() -> void:
     draw_string(ThemeDB.fallback_font, pos + Vector2(-4.0, -58.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("071014"))
 
 func debug_rpg_collision_ready() -> bool:
-    if grid_nav == null:
-        return false
+    if grid_nav == null: return false
     return not grid_nav.world_is_walkable(Vector2(100.0, 1800.0))
 
 func debug_scanner_reachable_count() -> int:
@@ -183,12 +203,10 @@ func debug_rep_animation_state() -> String:
     return rep_animation_state
 
 func debug_range_limited_path_exists() -> bool:
-    if grid_nav == null:
-        return false
+    if grid_nav == null: return false
     var start: Vector2 = rep_pos
     var reachable: Array[Vector2i] = grid_nav.reachable_cells(start, 5)
-    if reachable.size() < 2:
-        return false
+    if reachable.size() < 2: return false
     var destination: Vector2 = grid_nav.cell_to_world(reachable[reachable.size() - 1])
     var path: Array[Vector2] = grid_nav.find_path_in_range(start, destination, reachable)
     return not path.is_empty()
