@@ -1,18 +1,21 @@
 # Hash Race
 
-**Hash Race** is a 2D Bitcoin mining strategy simulation centered on competition between fictional Bitcoin mining companies. The game combines hardware development, facility management, financial strategy, acquisitions, external partnerships, long-term company growth, seasonal competition, and progression through increasingly powerful generations of mining hardware.
+**Hash Race** is a 2D Bitcoin mining strategy simulation centered on competition between fictional Bitcoin mining companies. The game combines hardware development, facility management, financial strategy, acquisitions, external partnerships, long-term company growth, quarterly competition, and progression through increasingly powerful generations of mining hardware.
 
 The project is designed around the development of a Bitcoin mining company from a smaller operator into a large-scale industrial mining organization. Players manage hashrate, energy efficiency, electricity costs, infrastructure, research, company value, and strategic relationships while competing against rival mining companies.
 
 ## Play Hash Race
 
-The current public desktop version is **v0.002**.
+The current public desktop version is **v0.006**.
 
-- [Download Hash Race v0.002 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.002/HashRace-v0.002-windows-x64.zip)
-- [Download Hash Race v0.002 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.002/HashRace-v0.002-linux-x64.tar.gz)
+- **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
+- [Download Hash Race v0.006 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-windows-x64.zip)
+- [Download Hash Race v0.006 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-linux-x64.tar.gz)
 - [View all Hash Race releases](https://github.com/1freetech/HashRace/releases)
 
-The downloadable desktop version currently remains a self-contained C# prototype so that a playable build is available during the engine migration. The primary visual and gameplay client is being developed in **Godot 4.7.2 using GDScript**. Existing C# simulation systems are retained where they remain useful.
+The primary **latest release** link above always points to GitHub's `/releases/latest` page, so it automatically follows the newest public playable build. Whenever a new public version is published, the explicit version number and platform-specific links in this section should also be updated.
+
+The current downloadable desktop game is built in **Godot 4.7.2 using GDScript**. Windows and Linux builds are exported from the same live Godot project that contains the current company-world gameplay. Earlier C# and Unity prototypes remain in the repository only as migration and reference material where useful.
 
 ## Game concept
 
@@ -27,30 +30,30 @@ External partners can provide strategic advantages such as improved technology, 
 A typical Hash Race campaign includes the following activities:
 
 1. Selecting one of ten fictional Bitcoin mining companies with a distinct operating strategy.
-2. Operating mining hardware and generating simulated Bitcoin mining revenue.
-3. Paying electricity and operating expenses.
-4. Purchasing ASIC miners while remaining within facility power limits.
-5. Expanding mining-site capacity as infrastructure requirements increase.
-6. Funding research and development to improve mining hardware performance and efficiency.
-7. Forming partnerships with external organizations in technology, energy, finance, infrastructure, real estate, telecommunications, retail, and sports.
-8. Tracking seasonal standings, prestige, company value, mining efficiency, and total hashrate.
-9. Acquiring weaker rival mining companies and incorporating their infrastructure and capacity.
-10. Progressing from TH/s-scale operations toward PH/s and EH/s-scale mining while developing increasingly efficient hardware.
+2. Choosing a fixed campaign clock from 1 year / 4 turns through 20 years / 80 turns.
+3. Walking a top-down company-world map as a company representative and visiting rival firms, banks, markets, utilities, and partner organizations.
+4. Operating mining hardware and generating simulated Bitcoin mining revenue.
+5. Paying electricity and operating expenses.
+6. Purchasing ASIC miners while remaining within facility power limits.
+7. Buying land and expanding mining-site capacity as infrastructure requirements increase.
+8. Forming partnerships with external organizations in technology, energy, finance, infrastructure, real estate, telecommunications, retail, and sports.
+9. Managing financing, debt, energy contracts, cooling, chips, treasury policy, and market conditions.
+10. Competing with rival mining companies, with one merger available during a campaign.
 
 ## Mining companies
 
 Hash Race currently includes ten fictional Bitcoin mining companies. Their names use broader compute, energy, infrastructure, and technology branding rather than directly imitating real-world Bitcoin mining companies.
 
-- **Emberline Compute** — low-cost fleet operator with a larger opening fleet
-- **Helix Circuit Labs** — research-first mining operator
-- **ArcCurrent Systems** — grid-responsive mining and power-optimization specialist
-- **StoneGrid Infrastructure** — land and site expansion specialist
-- **Meridian Node Group** — acquisition-focused mining consolidator
-- **BlueLoop Compute** — cooling, uptime, and efficiency specialist
-- **SignalPeak Systems** — reliability-focused mining operator
-- **Parallax Digital Works** — balanced industrial miner
-- **Lattice Energy Labs** — efficiency-focused fleet manager
-- **Epoch Harbor Holdings** — capital-intensive mining and expansion company
+- **VantaGrid Mining** — power-cost and profitability strength
+- **NeonForge Mining** — machines and opening cash strength
+- **ArcShift Mining** — MW capacity and power-cost strength
+- **IronVector Mining** — land and MW infrastructure strength
+- **Meridian Zero Mining** — cash and financing strength
+- **BlueNova Mining** — energy and profitability strength
+- **SignalFlux Mining** — machines and energy strength
+- **Parallax Core Mining** — machines and MW capacity strength
+- **LatticeX Mining** — power-cost and machine strength
+- **Epoch Vector Mining** — cash and land strength
 
 Each company represents a different strategic approach to mining operations, capital allocation, infrastructure growth, energy use, or hardware development.
 
@@ -58,32 +61,32 @@ Each company represents a different strategic approach to mining operations, cap
 
 Non-player organizations can influence the development of a mining company through partnerships and commercial agreements.
 
-- **Artificial intelligence** — research acceleration and compute-related revenue
-- **Robotics** — higher uptime and reduced operating costs
-- **Semiconductors** — improved J/TH and faster ASIC development
-- **Energy** — lower electricity costs
-- **Telecommunications** — improved network reliability and uptime
-- **Real estate** — land acquisition and site expansion
-- **Finance** — improved acquisition and capital economics
-- **Infrastructure** — larger facilities and lower expansion costs
-- **Quick service and retail** — recurring non-mining commercial revenue
-- **Sports** — sponsorship revenue and company prestige
+- **Utility and energy** — cheaper electricity, PPAs, hydro access, and clean-power advantages
+- **Real estate** — additional land and lower future land costs
+- **Infrastructure** — more MW capacity and cheaper future interconnect work
+- **Semiconductors** — additional machines, fleet-efficiency gains, and machine discounts
+- **Finance** — more cash and improved borrowing terms
+- **Food and services** — recurring commercial income
+- **Sports** — sponsorship and recurring income
+- **Digital finance** — treasury and sats-related advantages
 
 These organizations are part of the broader business environment and are not selectable mining competitors.
 
 ## Technology
 
-Hash Race is transitioning to **[Godot](https://godotengine.org/)** as its primary game engine. The current development target is **Godot 4.7.2**.
+Hash Race uses **[Godot](https://godotengine.org/)** as its primary game engine. The current development target is **Godot 4.7.2**.
 
 Godot is a free and open-source game engine distributed under the [MIT License](https://github.com/godotengine/godot). It includes dedicated 2D development tools and officially supports [GDScript, C#, and C++ through GDExtension](https://docs.godotengine.org/en/stable/getting_started/step_by_step/scripting_languages.html).
 
 The project uses a hybrid language structure:
 
-- **GDScript** is used for most gameplay systems, user interface logic, maps, events, and simulation orchestration.
-- **C#** is used for existing simulation systems and the transitional downloadable desktop prototype.
-- **C++ and GDExtension** are reserved for systems that demonstrate a measurable need for native performance.
+- **GDScript** is used for the live gameplay systems, user interface logic, maps, events, navigation, and simulation orchestration.
+- **C#** is retained for older simulation/prototype systems that remain useful as reference material.
+- **C++** is used for selected mining-core logic and native-performance experiments.
+- **Rust** is used for deterministic/offline balance simulation work.
+- **TypeScript** is used for content and data validation tooling.
 
-Additional information is available in the [engine-direction document](docs/GODOT_DIRECTION.md). Academic and technical references examined during the engine evaluation include [Holfeld 2023/2024](https://arxiv.org/abs/2401.01909) and the [JamSet/JamBench 2026](https://arxiv.org/abs/2606.19830) research project.
+Additional information is available in the [engine-direction document](docs/GODOT_DIRECTION.md).
 
 ## Simulation model
 
@@ -94,16 +97,23 @@ Hash Race models Bitcoin mining operations using a combination of technical and 
 - Kilowatts (kW)
 - Kilowatt-hours (kWh)
 - Electricity price
+- MW capacity
+- Machines
+- Land / acres
+- Energy source
 - Uptime
 - Network hashrate
 - Block subsidy
-- Simulated BTC per day
+- Simulated BTC and sats
+- BTC market price
+- Land market price
+- Federal rate
 - Revenue
 - Power cost
 - Cash
-- Company value
-- Research and development
-- Hardware generation
+- Debt
+- Company assets
+- Partner boosts
 
 The basic mining power relationship is represented as:
 
@@ -111,7 +121,7 @@ The basic mining power relationship is represented as:
 
 Simulated Bitcoin production is represented as:
 
-`BTC/day = company hashrate ÷ network hashrate × blocks/day × block subsidy × uptime`
+`BTC/day = company hashrate ÷ network hashrate × blocks/day × (block subsidy + fees) × uptime`
 
 Protocol background is available through the [Bitcoin Developer Guide](https://developer.bitcoin.org/devguide/) and the [Bitcoin Developer Reference](https://developer.bitcoin.org/reference/).
 
@@ -120,22 +130,23 @@ Protocol background is available through the [Bitcoin Developer Guide](https://d
 The repository contains the current game client, earlier prototypes, development tools, and supporting documentation.
 
 - `Godot/` — primary Godot 4 game client
-- `desktop/HashRace.Desktop/` — self-contained C# transitional desktop build
+- `desktop/HashRace.Desktop/` — earlier C# desktop prototype retained for reference
 - `Assets/` — earlier Unity prototype retained as migration and reference code
-- `tools/` — automated smoke tests and concept checks
+- `native/` — C++ and Rust simulation experiments
+- `tools/` — automated smoke tests and content checks
 - `.github/workflows/` — automated testing and Windows/Linux desktop release workflows
 - `GAME_DESIGN.md` — canonical gameplay design document
-- `docs/GODOT_DIRECTION.md` — engine and language decision documentation
+- `docs/` — engine, economy, language, and design documentation
 - `VERSION` — current public downloadable version
 
 ## Development status
 
-Hash Race is under active development. The current public desktop build represents an early playable version while the main gameplay client is being migrated and expanded in Godot.
+Hash Race is under active development. The current public build uses the live Godot client and includes the company-selection screen, fixed quarterly campaign clock, top-down company world, rival and partner representatives, machine/land/power markets, financing, energy choices, mergers, market movement, and verified Windows/Linux exports.
 
-Development currently focuses on preserving a playable simulation loop while expanding the visual interface, mining-company competition, hardware progression, facility management, partner systems, and long-term strategy mechanics.
+Current development is focused heavily on improving the world presentation: replacing debug-style procedural geometry with stronger tile/sprite-based towns, better map composition, clearer company identity, richer NPC behavior, collision/pathfinding, and a more polished RPG-style interface.
 
 ## Versioning
 
 Public playable versions begin at **v0.001** and increase by **0.001** for each completed public game update.
 
-A Windows or Linux version is considered publicly available only after its GitHub release asset has been built and verified.
+A Windows or Linux version is considered publicly available only after its GitHub release asset has been built and verified. The README's primary download link must always remain the stable **latest release** URL so players are not sent to an outdated build.
