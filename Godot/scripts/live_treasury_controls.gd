@@ -6,10 +6,12 @@ extends Node
 
 const SATS_PER_BTC: float = 100000000.0
 const OPERATING_RESERVE: float = 10000.0
+const HOLD_POLICIES: Array[float] = [0.0, 0.25, 0.50, 0.75, 1.0]
 
 var world: Node
 var sell_button: Button
 var auto_fund_button: Button
+var hold_policy_button: Button
 var status_label: Label
 
 func _ready() -> void:
@@ -25,8 +27,8 @@ func _install_controls() -> void:
     world.add_child(layer)
 
     var panel := Panel.new()
-    panel.position = Vector2(1038.0, 632.0)
-    panel.size = Vector2(390.0, 256.0)
+    panel.position = Vector2(1038.0, 576.0)
+    panel.size = Vector2(390.0, 312.0)
     var style := StyleBoxFlat.new()
     style.bg_color = Color("071018f2")
     style.border_width_left = 2
@@ -57,8 +59,15 @@ func _install_controls() -> void:
     status_label.add_theme_color_override("font_color", Color("d7eef3"))
     panel.add_child(status_label)
 
+    hold_policy_button = Button.new()
+    hold_policy_button.position = Vector2(16.0, 116.0)
+    hold_policy_button.size = Vector2(355.0, 46.0)
+    hold_policy_button.tooltip_text = "Choose how much newly mined Bitcoin stays in treasury each quarter. The rest is sold for operating cash."
+    hold_policy_button.pressed.connect(cycle_hold_policy)
+    panel.add_child(hold_policy_button)
+
     sell_button = Button.new()
-    sell_button.position = Vector2(16.0, 124.0)
+    sell_button.position = Vector2(16.0, 172.0)
     sell_button.size = Vector2(355.0, 46.0)
     sell_button.text = "SELL 25% BTC TREASURY"
     sell_button.tooltip_text = "Sell one quarter of held sats at the current simulated Bitcoin price."
@@ -66,7 +75,7 @@ func _install_controls() -> void:
     panel.add_child(sell_button)
 
     auto_fund_button = Button.new()
-    auto_fund_button.position = Vector2(16.0, 180.0)
+    auto_fund_button.position = Vector2(16.0, 228.0)
     auto_fund_button.size = Vector2(355.0, 46.0)
     auto_fund_button.text = "AUTO-FUND SAFE QUARTER"
     auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to target $10,000 cash after the projected quarter."
@@ -83,6 +92,24 @@ func _btc_price() -> float:
 func _projected_end_cash() -> float:
     var player := _player()
     return float(player.get("cash", 0.0)) + float(world.call("_project_live_quarter_profit"))
+
+func cycle_hold_policy() -> void:
+    var player := _player()
+    var current := float(player.get("treasury_hold", 0.30))
+    var closest_index: int = 0
+    var closest_distance: float = INF
+    for i in range(HOLD_POLICIES.size()):
+        var distance: float = absf(HOLD_POLICIES[i] - current)
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_index = i
+    var next_index: int = (closest_index + 1) % HOLD_POLICIES.size()
+    player["treasury_hold"] = HOLD_POLICIES[next_index]
+    _reset_quarter_preview()
+    if world.has_method("_refresh_ui"):
+        world.call("_refresh_ui")
+    _refresh_status()
+    _feedback("BTC hold policy set to %d%%. The remaining %d%% of newly mined Bitcoin will be sold for operating cash this quarter." % [int(HOLD_POLICIES[next_index] * 100.0), int((1.0 - HOLD_POLICIES[next_index]) * 100.0)])
 
 func _sell_sats(sats_to_sell: float) -> float:
     var player := _player()
@@ -146,7 +173,9 @@ func _refresh_status() -> void:
         return
     var player := _player()
     var held_sats := float(player.get("sats", 0.0))
+    var hold_percent: int = int(float(player.get("treasury_hold", 0.30)) * 100.0)
+    hold_policy_button.text = "BTC HOLD POLICY: %d%%" % hold_percent
     status_label.text = "Held: %d sats  •  BTC $%d\nProjected quarter-end cash: $%d  •  reserve target $%d" % [int(held_sats), int(_btc_price()), int(_projected_end_cash()), int(OPERATING_RESERVE)]
 
 func debug_live_treasury_ready() -> bool:
-    return is_instance_valid(sell_button) and is_instance_valid(auto_fund_button)
+    return is_instance_valid(hold_policy_button) and is_instance_valid(sell_button) and is_instance_valid(auto_fund_button)
