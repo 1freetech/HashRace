@@ -5,6 +5,7 @@ extends "res://scripts/world_campaign.gd"
 # current cash projection before committing the turn.
 var quarter_confirmation_pending := false
 var quarter_button: Button
+var treasury_button: Button
 
 func configure_campaign_buttons() -> void:
     super.configure_campaign_buttons()
@@ -15,6 +16,30 @@ func configure_campaign_buttons() -> void:
             disconnect_button(button)
             button.pressed.connect(request_end_quarter)
             break
+    if is_instance_valid(quarter_button):
+        treasury_button = Button.new()
+        treasury_button.text = "SELL 25% BTC TREASURY"
+        treasury_button.tooltip_text = "Convert 25% of your held sats to cash at the current simulated BTC price."
+        quarter_button.get_parent().add_child(treasury_button)
+        treasury_button.pressed.connect(sell_quarter_treasury)
+
+func sell_quarter_treasury() -> void:
+    if towns.is_empty() or campaign_complete:
+        return
+    var player := towns[player_town_idx]
+    var held_sats := float(player["sats"])
+    if held_sats < 1.0:
+        update_hud("No Bitcoin treasury to sell yet. Mine and hold sats before using treasury liquidity.")
+        return
+    var sats_to_sell := max(1.0, floor(held_sats * 0.25))
+    var btc_to_sell := sats_to_sell / SATS_PER_BTC
+    var cash_raised := btc_to_sell * btc_price
+    player["sats"] = held_sats - sats_to_sell
+    player["cash"] = float(player["cash"]) + cash_raised
+    quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button):
+        quarter_button.text = "END QUARTER"
+    update_hud("Treasury sale: sold %d sats (%.6f BTC) at BTC $%d and raised $%d cash. %d sats remain." % [sats_to_sell, btc_to_sell, int(btc_price), int(cash_raised), int(player["sats"])])
 
 func projected_quarter_cash_result() -> float:
     if towns.is_empty():
@@ -41,7 +66,7 @@ func quarter_risk_message() -> String:
     var daily_cost := max(1.0, operating_cost_per_day(player))
     var runway_days := max(0, int(end_cash / daily_cost))
     if end_cash < 0.0:
-        return " DANGER: this projection puts cash below $0. Consider financing, selling BTC, cutting costs, or delaying expansion."
+        return " DANGER: this projection puts cash below $0. Use SELL 25% BTC TREASURY, financing, cost cuts, or delay expansion."
     if projection < 0.0 and runway_days < 120:
         return " WARNING: only about %d days of operating-cost runway remain after this quarter." % runway_days
     if projection < 0.0:
@@ -66,8 +91,6 @@ func request_end_quarter() -> void:
     super.advance_turn()
 
 func advance_turn() -> void:
-    # Keep keyboard/script calls safe too: the visible button is the intended
-    # player path, while inherited systems may still call advance_turn directly.
     quarter_confirmation_pending = false
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END QUARTER"
