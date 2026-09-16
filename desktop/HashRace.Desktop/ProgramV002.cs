@@ -19,16 +19,16 @@ internal static class Program
     private const string Version = "v0.002";
     private static readonly List<Company> Companies = new()
     {
-        new("BlockForge Mining", 9000, 5, .90, 1.00, .000, 1.00, 1.00, 1.00, "low-cost operator + bigger opening fleet"),
-        new("Northstar Hash", 9500, 3, 1.00, 1.25, .000, 1.00, 1.00, .98, "research-first mining team"),
-        new("VoltHash Mining", 8500, 4, .84, 1.00, .000, 1.00, 1.00, 1.00, "grid-optimization specialist"),
-        new("TerraHash Industries", 10000, 3, 1.00, 1.00, .000, 1.00, 1.25, 1.00, "land and site expansion specialist"),
-        new("Frontier Mining Co.", 15000, 2, 1.00, .95, .000, .82, 1.00, 1.02, "deal-focused mining consolidator"),
-        new("HydroBlock Mining", 9000, 3, 1.00, 1.00, .025, 1.00, 1.05, .94, "cooling, uptime, and efficiency"),
-        new("IronPeak Digital Mining", 9000, 4, .98, 1.00, .018, 1.00, 1.00, 1.00, "reliability-first fleet operator"),
-        new("Atlas Hashworks", 10500, 3, .95, 1.08, .005, .96, 1.08, .97, "balanced industrial miner"),
-        new("Cascade Mining Systems", 8000, 3, 1.00, 1.10, .000, 1.00, 1.00, .88, "best opening J/TH profile"),
-        new("DeepCore Bitcoin Mining", 13500, 3, 1.00, .95, .000, .92, 1.20, 1.04, "capital-heavy expansion miner")
+        new("Emberline Compute", 9000, 5, .90, 1.00, .000, 1.00, 1.00, 1.00, "low-cost operator + bigger opening fleet"),
+        new("Helix Circuit Labs", 9500, 3, 1.00, 1.25, .000, 1.00, 1.00, .98, "research-first mining team"),
+        new("ArcCurrent Systems", 8500, 4, .84, 1.00, .000, 1.00, 1.00, 1.00, "grid-optimization specialist"),
+        new("StoneGrid Infrastructure", 10000, 3, 1.00, 1.00, .000, 1.00, 1.25, 1.00, "land and site expansion specialist"),
+        new("Meridian Node Group", 15000, 2, 1.00, .95, .000, .82, 1.00, 1.02, "deal-focused mining consolidator"),
+        new("BlueLoop Compute", 9000, 3, 1.00, 1.00, .025, 1.00, 1.05, .94, "cooling, uptime, and efficiency"),
+        new("SignalPeak Systems", 9000, 4, .98, 1.00, .018, 1.00, 1.00, 1.00, "reliability-first fleet operator"),
+        new("Parallax Digital Works", 10500, 3, .95, 1.08, .005, .96, 1.08, .97, "balanced industrial miner"),
+        new("Lattice Energy Labs", 8000, 3, 1.00, 1.10, .000, 1.00, 1.00, .88, "best opening J/TH profile"),
+        new("Epoch Harbor Holdings", 13500, 3, 1.00, .95, .000, .92, 1.20, 1.04, "capital-heavy expansion miner")
     };
 
     private static readonly List<Partner> Partners = new()
