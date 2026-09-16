@@ -6,6 +6,8 @@ extends "res://scripts/world_campaign.gd"
 var quarter_confirmation_pending := false
 var quarter_button: Button
 var treasury_button: Button
+var treasury_policy_button: Button
+const TREASURY_HOLD_LEVELS := [0.0, 0.25, 0.50, 0.75, 1.0]
 
 func configure_campaign_buttons() -> void:
     super.configure_campaign_buttons()
@@ -17,11 +19,47 @@ func configure_campaign_buttons() -> void:
             button.pressed.connect(request_end_quarter)
             break
     if is_instance_valid(quarter_button):
+        treasury_policy_button = Button.new()
+        treasury_policy_button.tooltip_text = "Choose how much newly mined Bitcoin to keep instead of selling for operating cash each quarter."
+        quarter_button.get_parent().add_child(treasury_policy_button)
+        treasury_policy_button.pressed.connect(cycle_treasury_hold)
+        refresh_treasury_policy_button()
+
         treasury_button = Button.new()
         treasury_button.text = "SELL 25% BTC TREASURY"
         treasury_button.tooltip_text = "Convert 25% of your held sats to cash at the current simulated BTC price."
         quarter_button.get_parent().add_child(treasury_button)
         treasury_button.pressed.connect(sell_quarter_treasury)
+
+func refresh_treasury_policy_button() -> void:
+    if not is_instance_valid(treasury_policy_button) or towns.is_empty():
+        return
+    var hold_rate := float(towns[player_town_idx]["treasury_hold"])
+    treasury_policy_button.text = "BTC HOLD POLICY: %d%%" % int(round(hold_rate * 100.0))
+
+func cycle_treasury_hold() -> void:
+    if towns.is_empty() or campaign_complete:
+        return
+    var player := towns[player_town_idx]
+    var current := float(player["treasury_hold"])
+    var next_index := 0
+    var best_distance := 999.0
+    for i in range(TREASURY_HOLD_LEVELS.size()):
+        var distance := abs(current - float(TREASURY_HOLD_LEVELS[i]))
+        if distance < best_distance:
+            best_distance = distance
+            next_index = (i + 1) % TREASURY_HOLD_LEVELS.size()
+    player["treasury_hold"] = float(TREASURY_HOLD_LEVELS[next_index])
+    quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button):
+        quarter_button.text = "END QUARTER"
+    refresh_treasury_policy_button()
+    var projection := projected_quarter_cash_result()
+    update_hud("Treasury policy changed: hold %d%% of newly mined BTC and sell %d%% for cash. Projected quarter cash result is now $%d." % [
+        int(float(player["treasury_hold"]) * 100.0),
+        int((1.0 - float(player["treasury_hold"])) * 100.0),
+        int(projection)
+    ])
 
 func sell_quarter_treasury() -> void:
     if towns.is_empty() or campaign_complete:
@@ -66,7 +104,7 @@ func quarter_risk_message() -> String:
     var daily_cost := max(1.0, operating_cost_per_day(player))
     var runway_days := max(0, int(end_cash / daily_cost))
     if end_cash < 0.0:
-        return " DANGER: this projection puts cash below $0. Use SELL 25% BTC TREASURY, financing, cost cuts, or delay expansion."
+        return " DANGER: this projection puts cash below $0. Lower BTC HOLD POLICY, use SELL 25% BTC TREASURY, financing, cost cuts, or delay expansion."
     if projection < 0.0 and runway_days < 120:
         return " WARNING: only about %d days of operating-cost runway remain after this quarter." % runway_days
     if projection < 0.0:
