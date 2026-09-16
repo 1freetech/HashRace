@@ -6,6 +6,7 @@ on:
     paths:
       - 'VERSION'
       - '.github/workflows/desktop-release.yml'
+      - 'Godot/**'
   workflow_dispatch:
 
 permissions:
@@ -41,9 +42,21 @@ jobs:
         shell: bash
         run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Verify current Godot game boots
+      - name: Strictly verify source game and overworld
         shell: bash
-        run: godot --headless --path Godot --quit-after 3
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-release-source.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-release-source.log; then
+            echo "Source game emitted a Godot script error."
+            exit 1
+          fi
+          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-release-world.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-release-world.log; then
+            echo "Overworld emitted a Godot script error."
+            exit 1
+          fi
+          godot --headless --path Godot --script res://scripts/validate_overworld.gd
 
       - name: Export current Godot game
         shell: bash
@@ -56,8 +69,13 @@ jobs:
         if: matrix.platform == 'linux-x64'
         shell: bash
         run: |
+          set -euo pipefail
           chmod +x build/linux/HashRace.x86_64
-          build/linux/HashRace.x86_64 --headless --quit-after 3
+          build/linux/HashRace.x86_64 --headless --quit-after 3 2>&1 | tee /tmp/hashrace-exported-linux.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-exported-linux.log; then
+            echo "Exported Linux build emitted a Godot script error."
+            exit 1
+          fi
 
       - name: Package Windows build
         if: matrix.platform == 'windows-x64'
@@ -122,7 +140,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Current Godot Hash Race v0.003 build from main. Includes the interactive Bitcoin mining tech-town world, selectable 1-20 year quarterly campaign clock, 16-turn halvings, company starting strengths, Local Joker Bank through federal infrastructure financing, Fed-sensitive BTC and land markets, rare dot-com/COVID-style crashes, one merger per mining company campaign, partner-specific boosts, hosting, energy advantages/disadvantages, clean/off-grid energy rewards, machines/MW/land/cooling/chip progression, debt repayment, and final standings."
+          NOTES="Hash Race $VERSION replaces the broken blank-world build with a verified playable 2D company overworld. Choose a mining company and campaign clock, then walk a company representative around a tech district, enter named companies, strike partner deals, buy miners, add MW, change energy, finance growth from Local Joker Bank through government programs, buy land, manage cooling/chips/treasury, attempt one merger, and end quarters to move the Bitcoin/Fed/land/energy market. The build is gated against Godot script/parse errors and the Linux export is boot-tested before release."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
