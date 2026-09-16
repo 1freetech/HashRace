@@ -1,13 +1,16 @@
 extends "res://scripts/world_league_standings.gd"
 
-# v0.024: life/operations ratings now have material gameplay consequences.
-# Low energy/focus/social reduce uptime, research effectiveness and deal execution;
-# healthy operator management earns small bounded bonuses. All ratings stay 0-100.
+# v0.026: life/operations ratings have material gameplay consequences and queued
+# routines use elapsed time, not turn count, so DAY turns cannot trigger 30x more
+# paid routines than MONTH turns. All gameplay ratings remain on the 0-100 scale.
+
+const ROUTINE_INTERVAL_DAYS: float = 30.4375
 
 var operator_energy: float = 72.0
 var operator_focus: float = 68.0
 var operator_social: float = 60.0
 var queued_routine: String = "NONE"
+var queued_routine_days: float = 0.0
 var life_status_label: Label
 
 func _ready() -> void:
@@ -64,10 +67,11 @@ func _install_life_ops_ui() -> void:
     queue.position = Vector2(1080.0, 281.0)
     queue.size = Vector2(330.0, 34.0)
     queue.text = "QUEUE ROUTINE: NONE  [CHANGE]"
-    queue.tooltip_text = "Persist one routine and execute it automatically after each settled turn when cash allows."
+    queue.tooltip_text = "Persist one routine and execute it about once per simulated month when cash allows."
     queue.pressed.connect(func() -> void:
         var options := ["NONE", "RECOVER", "TRAIN", "NETWORK"]
         queued_routine = String(options[(options.find(queued_routine) + 1) % options.size()])
+        queued_routine_days = 0.0
         queue.text = "QUEUE ROUTINE: %s  [CHANGE]" % queued_routine
         _refresh_life_ops_ui()
     )
@@ -106,8 +110,9 @@ func _site_fit_score() -> int:
     return int(round((power_fit * 0.40) + (land_fit * 0.25) + (machine_fit * 0.35)))
 
 func _open_life_overview() -> void:
+    var routine_progress: int = int(round(clampf(queued_routine_days / ROUTINE_INTERVAL_DAYS * 100.0, 0.0, 100.0)))
     dialog_title.text = "OPERATOR LIFE + MINING SITE"
-    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s\n\nEnergy now changes mining uptime, Focus changes research cost, and Social changes partner/deal cost. Manage the operator before advancing long turns or accept the operational penalty." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine]
+    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\n\nQueued routines follow simulated elapsed time, so DAY, WEEK, MONTH and QUARTER turns have the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress]
     _set_actions([])
 
 func _spend_for_routine(cost: float) -> bool:
@@ -147,15 +152,26 @@ func _network_operator(silent: bool = false) -> bool:
     _refresh_ui()
     return true
 
+func _run_queued_routine() -> bool:
+    match queued_routine:
+        "RECOVER": return _recover_operator(true)
+        "TRAIN": return _train_operator(true)
+        "NETWORK": return _network_operator(true)
+    return false
+
 func _apply_elapsed_life(days: float) -> void:
-    var pressure: float = days / 30.4375
+    var pressure: float = days / ROUTINE_INTERVAL_DAYS
     operator_energy = clampf(operator_energy - 8.0 * pressure, 0.0, 100.0)
     operator_focus = clampf(operator_focus - 5.0 * pressure, 0.0, 100.0)
     operator_social = clampf(operator_social - 4.0 * pressure, 0.0, 100.0)
-    match queued_routine:
-        "RECOVER": _recover_operator(true)
-        "TRAIN": _train_operator(true)
-        "NETWORK": _network_operator(true)
+    if queued_routine != "NONE":
+        queued_routine_days += days
+        while queued_routine_days >= ROUTINE_INTERVAL_DAYS:
+            if not _run_queued_routine():
+                break
+            queued_routine_days -= ROUTINE_INTERVAL_DAYS
+    else:
+        queued_routine_days = 0.0
     _refresh_life_ops_ui()
 
 func _end_quarter() -> void:
