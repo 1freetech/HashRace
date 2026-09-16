@@ -6,11 +6,11 @@ The project is designed around the development of a Bitcoin mining company from 
 
 ## Play Hash Race
 
-The current public desktop version is **v0.006**.
+The current public desktop version is **v0.013**.
 
 - **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
-- [Download Hash Race v0.006 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-windows-x64.zip)
-- [Download Hash Race v0.006 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-linux-x64.tar.gz)
+- [Download Hash Race v0.013 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.013/HashRace-v0.013-windows-x64.zip)
+- [Download Hash Race v0.013 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.013/HashRace-v0.013-linux-x64.tar.gz)
 - [View all Hash Race releases](https://github.com/1freetech/HashRace/releases)
 
 The primary **latest release** link above always points to GitHub's `/releases/latest` page, so it automatically follows the newest public playable build. Whenever a new public version is published, the explicit version number and platform-specific links in this section should also be updated.
@@ -71,6 +71,14 @@ Non-player organizations can influence the development of a mining company throu
 - **Digital finance** — treasury and sats-related advantages
 
 These organizations are part of the broader business environment and are not selectable mining competitors.
+
+## Visual and map system
+
+Hash Race now uses a tile-built pixel world instead of relying only on large procedural debug rectangles. Roads, water, company lots, plazas and terrain are aligned to a logical map grid and use compact four-shade material palettes for stronger handheld-RPG readability.
+
+The live map renderer includes original pixel-style mining facilities, company representatives, scanner visors, solar and substation props, grid pathfinding and tile-aware company districts. Nearest-neighbor texture filtering is enabled so future sprite and tileset art remains sharp.
+
+Small map-painting helpers are adapted from **GB Studio** under the MIT license, while isolated tile editing operations are adapted from **Tilemap Studio** under LGPL-3.0. Attribution and source details are documented in [docs/THIRD_PARTY_TILEMAP.md](docs/THIRD_PARTY_TILEMAP.md). The project uses these code patterns for original Hash Race maps and does not copy Pokémon/Nintendo artwork.
 
 ## Technology
 
@@ -136,14 +144,14 @@ The repository contains the current game client, earlier prototypes, development
 - `tools/` — automated smoke tests and content checks
 - `.github/workflows/` — automated testing and Windows/Linux desktop release workflows
 - `GAME_DESIGN.md` — canonical gameplay design document
-- `docs/` — engine, economy, language, and design documentation
+- `docs/` — engine, economy, language, design and third-party-code documentation
 - `VERSION` — current public downloadable version
 
 ## Development status
 
-Hash Race is under active development. The current public build uses the live Godot client and includes the company-selection screen, fixed quarterly campaign clock, top-down company world, rival and partner representatives, machine/land/power markets, financing, energy choices, mergers, market movement, and verified Windows/Linux exports.
+Hash Race is under active development. The current public build uses the live Godot client and includes the company-selection screen, fixed quarterly campaign clock, top-down company world, rival and partner representatives, machine/land/power markets, financing, energy choices, mergers, market movement, grid navigation, and verified Windows/Linux exports.
 
-Current development is focused heavily on improving the world presentation: replacing debug-style procedural geometry with stronger tile/sprite-based towns, better map composition, clearer company identity, richer NPC behavior, collision/pathfinding, and a more polished RPG-style interface.
+Current development is focused heavily on improving the world presentation: replacing remaining procedural placeholders with stronger tileset/sprite art, better map composition, clearer company identity, richer NPC behavior, animated characters, building interiors, and a more polished RPG-style interface.
 
 ## Versioning
 
