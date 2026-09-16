@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free contract checks for the live Hash Race campaign and overworld."""
+"""Dependency-free contract checks for the live Hash Race campaign and RPG overworld."""
 from pathlib import Path
 import re
 
@@ -25,12 +25,14 @@ def main():
     setup = Path("Godot/scripts/campaign_setup.gd").read_text(encoding="utf-8")
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
     overworld = Path("Godot/scripts/world_overworld.gd").read_text(encoding="utf-8")
+    towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_overworld.gd" in world_scene, "Live world must use the stable company overworld"
+    assert "world_towns.gd" in world_scene, "Live world must use the multi-town RPG presentation layer"
+    assert 'extends "res://scripts/world_overworld.gd"' in towns, "Town layer must retain the stable overworld core"
     assert "validate_overworld.gd" in Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
 
     setup_markers = [
@@ -71,8 +73,21 @@ def main():
     for marker in overworld_markers:
         assert marker in overworld, f"Live overworld missing gameplay feature: {marker}"
 
-    for marker in ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter"]:
-        assert marker in validator or marker in overworld, f"Runtime validation missing: {marker}"
+    town_markers = [
+        "TOWN_NAMES", "COMPANY_REPS", "PARTNER_REPS", "Emberline Basin", "Helix Row",
+        "ArcCurrent Junction", "StoneGrid Works", "Meridian Exchange", "BlueLoop Harbor",
+        "SignalPeak Heights", "Parallax Ward", "Lattice Reach", "Epoch Port",
+        "rival_rep", "partner_rep", "scanner", "NEGOTIATE DEAL", "PROPOSE MERGER",
+        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"
+    ]
+    for marker in town_markers:
+        assert marker in towns, f"Town/representative layer missing: {marker}"
+
+    for marker in [
+        "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter",
+        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"
+    ]:
+        assert marker in validator or marker in overworld or marker in towns, f"Runtime validation missing: {marker}"
 
     required_support = [
         "native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs",
@@ -83,9 +98,9 @@ def main():
         assert Path(item).exists(), f"Missing support file: {item}"
 
     print(
-        "Hash Race smoke test passed: campaign setup, company overworld, representative movement, "
-        "interactive companies, partner deals, machines, land/power/energy, lender ladder, Fed/BTC/land markets, "
-        "rare crashes, one-time merger, quarterly settlement, and runtime validator are present."
+        "Hash Race smoke test passed: campaign setup, ten company towns, ten mining reps, nine partner reps, "
+        "futuristic scanner-visor techwear, interactive companies, partner deals, machines, land/power/energy, "
+        "lender ladder, Fed/BTC/land markets, rare crashes, one-time merger, quarterly settlement, and runtime validation are present."
     )
 
 
