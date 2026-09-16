@@ -8,8 +8,15 @@ var quarter_button: Button
 var treasury_button: Button
 var treasury_rescue_button: Button
 var treasury_policy_button: Button
+var strategy_preset_button: Button
 const TREASURY_HOLD_LEVELS := [0.0, 0.25, 0.50, 0.75, 1.0]
+const QUARTER_STRATEGY_PRESETS := [
+    {"name": "CASH", "hold": 0.0},
+    {"name": "BALANCED", "hold": 0.50},
+    {"name": "HODL", "hold": 1.0}
+]
 const TREASURY_RESCUE_RESERVE := 10000.0
+var quarter_strategy_index := 1
 
 func configure_campaign_buttons() -> void:
     super.configure_campaign_buttons()
@@ -21,6 +28,12 @@ func configure_campaign_buttons() -> void:
             button.pressed.connect(request_end_quarter)
             break
     if is_instance_valid(quarter_button):
+        strategy_preset_button = Button.new()
+        strategy_preset_button.tooltip_text = "Quickly switch the quarter between cash-first, balanced, and treasury-first Bitcoin strategies."
+        quarter_button.get_parent().add_child(strategy_preset_button)
+        strategy_preset_button.pressed.connect(cycle_quarter_strategy)
+        refresh_strategy_preset_button()
+
         treasury_policy_button = Button.new()
         treasury_policy_button.tooltip_text = "Choose how much newly mined Bitcoin to keep instead of selling for operating cash each quarter."
         quarter_button.get_parent().add_child(treasury_policy_button)
@@ -38,6 +51,27 @@ func configure_campaign_buttons() -> void:
         treasury_rescue_button.tooltip_text = "Sell only enough held Bitcoin to cover the projected quarter and leave a $10,000 operating reserve."
         quarter_button.get_parent().add_child(treasury_rescue_button)
         treasury_rescue_button.pressed.connect(auto_fund_next_quarter)
+
+func refresh_strategy_preset_button() -> void:
+    if not is_instance_valid(strategy_preset_button):
+        return
+    var preset: Dictionary = QUARTER_STRATEGY_PRESETS[quarter_strategy_index]
+    strategy_preset_button.text = "QUARTER PLAN: %s" % String(preset["name"])
+
+func cycle_quarter_strategy() -> void:
+    if towns.is_empty() or campaign_complete:
+        return
+    quarter_strategy_index = (quarter_strategy_index + 1) % QUARTER_STRATEGY_PRESETS.size()
+    var preset: Dictionary = QUARTER_STRATEGY_PRESETS[quarter_strategy_index]
+    var player := towns[player_town_idx]
+    player["treasury_hold"] = float(preset["hold"])
+    reset_quarter_confirmation()
+    refresh_strategy_preset_button()
+    refresh_treasury_policy_button()
+    var projection := projected_quarter_cash_result()
+    update_hud("Quarter plan set to %s: hold %d%% of newly mined BTC. Projected quarter cash result: $%d.%s" % [
+        String(preset["name"]), int(float(preset["hold"]) * 100.0), int(projection), quarter_risk_message()
+    ])
 
 func refresh_treasury_policy_button() -> void:
     if not is_instance_valid(treasury_policy_button) or towns.is_empty():
@@ -62,9 +96,7 @@ func cycle_treasury_hold() -> void:
     refresh_treasury_policy_button()
     var projection := projected_quarter_cash_result()
     update_hud("Treasury policy changed: hold %d%% of newly mined BTC and sell %d%% for cash. Projected quarter cash result is now $%d." % [
-        int(float(player["treasury_hold"]) * 100.0),
-        int((1.0 - float(player["treasury_hold"])) * 100.0),
-        int(projection)
+        int(float(player["treasury_hold"]) * 100.0), int((1.0 - float(player["treasury_hold"])) * 100.0), int(projection)
     ])
 
 func reset_quarter_confirmation() -> void:
