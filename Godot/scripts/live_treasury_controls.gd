@@ -1,17 +1,16 @@
 extends Node
 
 # Live treasury controls for the shipped RPG strategy world.
-# Keeps emergency liquidity inside the actual playable world instead of only
-# in the older campaign prototype layer.
+# Strategy ratings use Hash Race's universal 0-100 scale.
 
 const SATS_PER_BTC: float = 100000000.0
 const OPERATING_RESERVE: float = 10000.0
-const HOLD_POLICIES: Array[float] = [0.0, 0.25, 0.50, 0.75, 1.0]
 
 var world: Node
 var sell_button: Button
 var auto_fund_button: Button
-var hold_policy_button: Button
+var hold_policy_slider: HSlider
+var hold_policy_label: Label
 var status_label: Label
 
 func _ready() -> void:
@@ -27,8 +26,8 @@ func _install_controls() -> void:
     world.add_child(layer)
 
     var panel := Panel.new()
-    panel.position = Vector2(1038.0, 576.0)
-    panel.size = Vector2(390.0, 312.0)
+    panel.position = Vector2(1038.0, 548.0)
+    panel.size = Vector2(390.0, 340.0)
     var style := StyleBoxFlat.new()
     style.bg_color = Color("071018f2")
     style.border_width_left = 2
@@ -52,22 +51,33 @@ func _install_controls() -> void:
     panel.add_child(title)
 
     status_label = Label.new()
-    status_label.position = Vector2(16.0, 44.0)
-    status_label.size = Vector2(355.0, 72.0)
+    status_label.position = Vector2(16.0, 42.0)
+    status_label.size = Vector2(355.0, 58.0)
     status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     status_label.add_theme_font_size_override("font_size", 11)
     status_label.add_theme_color_override("font_color", Color("d7eef3"))
     panel.add_child(status_label)
 
-    hold_policy_button = Button.new()
-    hold_policy_button.position = Vector2(16.0, 116.0)
-    hold_policy_button.size = Vector2(355.0, 46.0)
-    hold_policy_button.tooltip_text = "Choose how much newly mined Bitcoin stays in treasury each quarter. The rest is sold for operating cash."
-    hold_policy_button.pressed.connect(cycle_hold_policy)
-    panel.add_child(hold_policy_button)
+    hold_policy_label = Label.new()
+    hold_policy_label.position = Vector2(16.0, 102.0)
+    hold_policy_label.size = Vector2(355.0, 24.0)
+    hold_policy_label.add_theme_font_size_override("font_size", 12)
+    hold_policy_label.add_theme_color_override("font_color", Color("c5b8ff"))
+    panel.add_child(hold_policy_label)
+
+    hold_policy_slider = HSlider.new()
+    hold_policy_slider.position = Vector2(16.0, 126.0)
+    hold_policy_slider.size = Vector2(355.0, 34.0)
+    hold_policy_slider.min_value = 0.0
+    hold_policy_slider.max_value = 100.0
+    hold_policy_slider.step = 1.0
+    hold_policy_slider.value = float(_player().get("treasury_hold", 0.30)) * 100.0
+    hold_policy_slider.tooltip_text = "Set exactly 0-100% of newly mined Bitcoin to hold. The remainder is sold for operating cash."
+    hold_policy_slider.value_changed.connect(_on_hold_policy_changed)
+    panel.add_child(hold_policy_slider)
 
     sell_button = Button.new()
-    sell_button.position = Vector2(16.0, 172.0)
+    sell_button.position = Vector2(16.0, 174.0)
     sell_button.size = Vector2(355.0, 46.0)
     sell_button.text = "SELL 25% BTC TREASURY"
     sell_button.tooltip_text = "Sell one quarter of held sats at the current simulated Bitcoin price."
@@ -75,10 +85,10 @@ func _install_controls() -> void:
     panel.add_child(sell_button)
 
     auto_fund_button = Button.new()
-    auto_fund_button.position = Vector2(16.0, 228.0)
+    auto_fund_button.position = Vector2(16.0, 230.0)
     auto_fund_button.size = Vector2(355.0, 46.0)
-    auto_fund_button.text = "AUTO-FUND SAFE QUARTER"
-    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to target $10,000 cash after the projected quarter."
+    auto_fund_button.text = "AUTO-FUND SAFE TURN"
+    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to target $10,000 cash after the projected turn."
     auto_fund_button.pressed.connect(auto_fund_safe_quarter)
     panel.add_child(auto_fund_button)
     _refresh_status()
@@ -91,25 +101,21 @@ func _btc_price() -> float:
 
 func _projected_end_cash() -> float:
     var player := _player()
-    return float(player.get("cash", 0.0)) + float(world.call("_project_live_quarter_profit"))
+    var profit: float = 0.0
+    if world.has_method("turn_length_days") and world.has_method("_project_scaled_profit"):
+        profit = float(world.call("_project_scaled_profit", float(world.call("turn_length_days"))))
+    else:
+        profit = float(world.call("_project_live_quarter_profit"))
+    return float(player.get("cash", 0.0)) + profit
 
-func cycle_hold_policy() -> void:
+func _on_hold_policy_changed(value: float) -> void:
     var player := _player()
-    var current := float(player.get("treasury_hold", 0.30))
-    var closest_index: int = 0
-    var closest_distance: float = INF
-    for i in range(HOLD_POLICIES.size()):
-        var distance: float = absf(HOLD_POLICIES[i] - current)
-        if distance < closest_distance:
-            closest_distance = distance
-            closest_index = i
-    var next_index: int = (closest_index + 1) % HOLD_POLICIES.size()
-    player["treasury_hold"] = HOLD_POLICIES[next_index]
-    _reset_quarter_preview()
+    var percent: int = clampi(int(round(value)), 0, 100)
+    player["treasury_hold"] = float(percent) / 100.0
+    _reset_turn_preview()
     if world.has_method("_refresh_ui"):
         world.call("_refresh_ui")
     _refresh_status()
-    _feedback("BTC hold policy set to %d%%. The remaining %d%% of newly mined Bitcoin will be sold for operating cash this quarter." % [int(HOLD_POLICIES[next_index] * 100.0), int((1.0 - HOLD_POLICIES[next_index]) * 100.0)])
 
 func _sell_sats(sats_to_sell: float) -> float:
     var player := _player()
@@ -120,7 +126,7 @@ func _sell_sats(sats_to_sell: float) -> float:
     var cash_raised := (sats_to_sell / SATS_PER_BTC) * _btc_price()
     player["sats"] = held_sats - sats_to_sell
     player["cash"] = float(player.get("cash", 0.0)) + cash_raised
-    _reset_quarter_preview()
+    _reset_turn_preview()
     if world.has_method("_refresh_ui"):
         world.call("_refresh_ui")
     return cash_raised
@@ -141,28 +147,31 @@ func auto_fund_safe_quarter() -> void:
     var projected_end := _projected_end_cash()
     var cash_needed := OPERATING_RESERVE - projected_end
     if cash_needed <= 0.0:
-        _feedback("No treasury sale needed. Projected quarter-end cash already exceeds the $10,000 reserve target.")
+        _feedback("No treasury sale needed. Projected turn-end cash already exceeds the $10,000 reserve target.")
         _refresh_status()
         return
     var held_sats := float(player.get("sats", 0.0))
     if held_sats < 1.0:
-        _feedback("No BTC treasury is available. Lower the HQ hold policy, seek financing, or cut costs before advancing.")
+        _feedback("No BTC treasury is available. Lower the hold policy, seek financing, or cut costs before advancing.")
         return
     var sats_needed: float = float(ceil((cash_needed / maxf(1.0, _btc_price())) * SATS_PER_BTC))
     var sats_to_sell := minf(held_sats, sats_needed)
     var raised := _sell_sats(sats_to_sell)
     var new_end := _projected_end_cash()
     if new_end < 0.0:
-        _feedback("Sold all available %d sats for $%d, but projected quarter-end cash is still $%d. Financing or cost cuts are still required." % [int(sats_to_sell), int(raised), int(new_end)])
+        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is still $%d. Financing or cost cuts are still required." % [int(sats_to_sell), int(raised), int(new_end)])
     else:
-        _feedback("Auto-fund sold only %d sats for $%d. Projected quarter-end cash is now $%d; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end)])
+        _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end)])
     _refresh_status()
 
-func _reset_quarter_preview() -> void:
+func _reset_turn_preview() -> void:
     world.set("live_quarter_confirmation_pending", false)
     var button = world.get("quarter_button")
     if is_instance_valid(button):
-        button.text = "END QUARTER"
+        if world.has_method("turn_length_name"):
+            button.text = "END %s TURN" % String(world.call("turn_length_name"))
+        else:
+            button.text = "END QUARTER"
 
 func _feedback(message: String) -> void:
     if world.has_method("_feedback"):
@@ -173,9 +182,10 @@ func _refresh_status() -> void:
         return
     var player := _player()
     var held_sats := float(player.get("sats", 0.0))
-    var hold_percent: int = int(float(player.get("treasury_hold", 0.30)) * 100.0)
-    hold_policy_button.text = "BTC HOLD POLICY: %d%%" % hold_percent
-    status_label.text = "Held: %d sats  •  BTC $%d\nProjected quarter-end cash: $%d  •  reserve target $%d" % [int(held_sats), int(_btc_price()), int(_projected_end_cash()), int(OPERATING_RESERVE)]
+    var hold_percent: int = clampi(int(round(float(player.get("treasury_hold", 0.30)) * 100.0)), 0, 100)
+    if is_instance_valid(hold_policy_label):
+        hold_policy_label.text = "BTC HOLD POLICY: %d / 100" % hold_percent
+    status_label.text = "Held: %d sats  •  BTC $%d\nProjected turn-end cash: $%d  •  reserve $%d" % [int(held_sats), int(_btc_price()), int(_projected_end_cash()), int(OPERATING_RESERVE)]
 
 func debug_live_treasury_ready() -> bool:
-    return is_instance_valid(hold_policy_button) and is_instance_valid(sell_button) and is_instance_valid(auto_fund_button)
+    return is_instance_valid(hold_policy_slider) and is_instance_valid(sell_button) and is_instance_valid(auto_fund_button)
