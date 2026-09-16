@@ -101,14 +101,30 @@ func _run() -> void:
         _fail("loading fallback remained after successful world initialization")
         return
 
+    var treasury_controls: Node = scene.get_node_or_null("LiveTreasuryControls")
+    if treasury_controls == null or not treasury_controls.has_method("debug_live_treasury_ready"):
+        _fail("live BTC treasury liquidity controls are missing")
+        return
+    if not bool(treasury_controls.call("debug_live_treasury_ready")):
+        _fail("live BTC treasury liquidity buttons did not initialize")
+        return
+
     scene.call("_open_entity", 1)
     await process_frame
     var start_turn: int = int(scene.get("turn"))
     scene.call("_end_quarter")
     await process_frame
+    if int(scene.get("turn")) != start_turn:
+        _fail("first END QUARTER click must preview instead of advancing time")
+        return
+    if not bool(scene.get("live_quarter_confirmation_pending")):
+        _fail("quarter preview did not arm the confirmation state")
+        return
+    scene.call("_end_quarter")
+    await process_frame
     if int(scene.get("turn")) != start_turn + 1:
-        _fail("quarter settlement did not advance the turn")
+        _fail("confirmed quarter settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: pixel-tile RPG strategy world initialized, collision-safe movement, directional rep state, reachable scanner grid, range-limited pathfinding, ten towns, ten mining reps, nine partner reps, land market, dialogue actions, camera, and quarter settlement verified.")
+    print("HASH RACE OVERWORLD PASS: pixel-tile RPG strategy world initialized, collision-safe movement, directional rep state, reachable scanner grid, range-limited pathfinding, ten towns, ten mining reps, nine partner reps, land market, live BTC treasury liquidity, two-step quarter confirmation, dialogue actions, camera, and quarter settlement verified.")
     quit(0)
