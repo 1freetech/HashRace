@@ -1,20 +1,22 @@
 # Hash Race Downloads
 
-Current public version target: **v0.017**
+Current public version target: **v0.018**
 
-- [Windows x64 — Hash Race v0.017](https://github.com/1freetech/HashRace/releases/download/v0.017/HashRace-v0.017-windows-x64.zip)
-- [Linux x64 — Hash Race v0.017](https://github.com/1freetech/HashRace/releases/download/v0.017/HashRace-v0.017-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.018](https://github.com/1freetech/HashRace/releases/download/v0.018/HashRace-v0.018-windows-x64.zip)
+- [Linux x64 — Hash Race v0.018](https://github.com/1freetech/HashRace/releases/download/v0.018/HashRace-v0.018-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.017 gameplay change
+## v0.018 gameplay change
 
-The shipped Godot RPG strategy world now puts **BTC HOLD POLICY** directly inside the live treasury panel. Players can cycle through **0%, 25%, 50%, 75%, and 100%** hold targets before ending a quarter. The selected percentage controls how much newly mined Bitcoin stays in treasury; the remainder is sold for operating cash. The projected quarter-end cash display updates immediately, making the tradeoff between liquidity and long-term BTC accumulation visible before the player commits roughly 91 days.
+Hash Race now has a **flexible season clock** in the shipped Godot RPG strategy world. One strategic turn can represent **one day, one week, one month, or one quarter**, with **one month per turn as the default**. The player can change the turn length during a campaign, allowing close day-by-day management around important decisions or faster month/quarter progression when the company plan is stable.
 
-Changing the hold policy also cancels a pending **CONFIRM END QUARTER** state so the preview can never settle using stale assumptions. The existing **SELL 25% BTC TREASURY** and **AUTO-FUND SAFE QUARTER** controls remain available. The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
+Changing the turn length does not change the underlying mining metrics. BTC production, electricity use, operating expense, debt interest, recurring partner income, rival development, market movement, and Bitcoin halving timing are scaled against the actual number of elapsed simulation days. The existing two-click financial preview remains in place and now previews the selected turn length before settlement; changing the scale cancels a stale confirmation.
 
-This control follows the broader open-source Godot pattern of keeping persistent economy/run state visible and player-adjustable instead of burying important simulation choices. Useful references: [SimpleTowerDefense's MIT-licensed GameState/save architecture](https://github.com/IronWolve/SimpleTowerDefense) and [Godot's GDScript documentation](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/).
+The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers, or strategic allies.
+
+Useful implementation references: [Godot GDScript documentation](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/) and [Godot's time-scale documentation](https://docs.godotengine.org/en/stable/classes/class_engine.html#class-engine-property-time-scale). Hash Race uses its own strategic elapsed-day clock rather than changing the engine frame-time scale, because a turn represents simulated calendar time rather than animation speed.
 
 ## Build stack
 
