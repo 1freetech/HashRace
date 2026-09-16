@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free checks for Hash Race mining math, campaign setup, company identities, financing, Godot world, and polyglot support."""
+"""Dependency-free checks for Hash Race mining math, campaign setup, macro markets, financing, Godot world, and support tooling."""
 from pathlib import Path
 import re
 
@@ -31,6 +31,7 @@ def main():
     world = Path("Godot/scripts/world_v2.gd").read_text(encoding="utf-8")
     campaign = Path("Godot/scripts/world_campaign.gd").read_text(encoding="utf-8")
     playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
+    market = Path("Godot/scripts/world_market.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 
     mining_companies = [
@@ -53,7 +54,8 @@ def main():
         Path("native/cpp/hashrace_core.cpp"), Path("native/rust/hashrace_balance.rs"),
         Path("tools/typescript/hashrace_validate.ts"), Path("docs/LANGUAGE_STACK.md"),
         Path("docs/ECONOMY_MODEL.md"), Path("Godot/scripts/company_profiles.gd"),
-        Path("Godot/scripts/world_campaign.gd"), Path("Godot/scripts/world_playability.gd"), Path("Godot/scripts/campaign_setup.gd"),
+        Path("Godot/scripts/world_campaign.gd"), Path("Godot/scripts/world_playability.gd"),
+        Path("Godot/scripts/world_market.gd"), Path("Godot/scripts/campaign_setup.gd"),
     ]
     for path in required_support_files:
         assert path.exists(), f"Missing support file: {path}"
@@ -69,9 +71,9 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project, "Godot must boot into the new-campaign setup menu"
     assert "campaign_setup.gd" in setup_scene, "Campaign setup scene must load its setup script"
-    assert "world_playability.gd" in world_scene, "Live world scene must load the playability-safe quarterly campaign controller"
+    assert "world_market.gd" in world_scene, "Live world scene must load the macro-market gameplay controller"
     for marker in ["CONFIRM END QUARTER", "projected_quarter_cash_result", "Quarter preview:"]:
-        assert marker in playability, f"Quarter confirmation layer missing playability safeguard: {marker}"
+        assert marker in playability + market, f"Quarter confirmation layer missing playability safeguard: {marker}"
 
     setup_markers = [
         "MINING COMPANY", "CAMPAIGN LENGTH", "1 TURN = 1 QUARTER", "HALVING EVERY 16 TURNS",
@@ -93,21 +95,36 @@ def main():
     campaign_markers = [
         "QUARTER_DAYS", "TURNS_PER_YEAR := 4", "HALVING_TURNS := 16", "MAX_CAMPAIGN_YEARS := 20",
         "END QUARTER", "block_subsidy_btc *= 0.5", "configure_company_starts", "eligible_loan_offer",
-        "Community Bank", "Government", "debt_rate", "GET ASSET LOAN",
-        "repay_loan", "REPAY LOAN", "operating_reserve", "final_standings", "show_campaign_results",
-        "HASH RACE // FINAL STANDINGS", "Winner:", "START NEW CAMPAIGN"
+        "debt_rate", "GET ASSET LOAN", "repay_loan", "REPAY LOAN", "operating_reserve",
+        "final_standings", "show_campaign_results", "HASH RACE // FINAL STANDINGS", "Winner:", "START NEW CAMPAIGN"
     ]
-    source = campaign + profiles
+    source = campaign + profiles + market
     for marker in campaign_markers:
         assert marker in source, f"Quarterly campaign/company financing or finish system missing: {marker}"
 
     for marker in ["POWER COST + PROFIT", "ACRES + MW", "CASH + FINANCING", "MACHINES + MW", "CASH + ACRES"]:
         assert marker in profiles, f"Company strength profile missing: {marker}"
 
-    for lender in ["Community Bank", "Commercial Bank", "Infrastructure Bank", "State Development Fund", "Strategic Infrastructure Program"]:
+    lenders = [
+        "Local Joker Bank", "Main Street Business Bank", "Regional Commercial Bank",
+        "Infrastructure Capital Bank", "State Development Fund", "Federal Strategic Infrastructure Program"
+    ]
+    for lender in lenders:
         assert lender in profiles, f"Asset-tier lender missing: {lender}"
 
-    print("Hash Race smoke test passed: the opening company/clock menu, quarterly campaign with cash preview/confirmation, halving clock, ten tech towns, company strengths, two-way asset financing, final standings/winner screen, seven-stat economy, sites, energy/cooling/chips, partners, hosting, mining math, and polyglot support are present.")
+    market_markers = [
+        "federal_rate", "land_price_per_acre", "Fed", "DOT-COM-STYLE TECH CRASH",
+        "COVID-STYLE PROPERTY / LOGISTICS CRASH", "halvings_since_crash", "MERGE SELECTED RIVAL // ONCE",
+        "merger_used", "ENERGY_ECONOMICS", "CLEAN OFF-GRID REWARDED", "FoundryWorks Silicon",
+        "machine_efficiency_bonus", "land_discount", "power_capex_discount", "lender_spread_discount"
+    ]
+    for marker in market_markers:
+        assert marker in market, f"Macro market/merger/partner gameplay layer missing: {marker}"
+
+    for energy in ["Grid", "Utility PPA", "Natural Gas", "Hydro", "Solar + Storage", "Nuclear PPA"]:
+        assert energy in market, f"Energy advantage/disadvantage profile missing: {energy}"
+
+    print("Hash Race smoke test passed: company/clock setup, quarterly confirmation, halving clock, lender ladder, Fed-sensitive BTC/land markets, rare multi-halving crashes, one-time mergers, partner-specific boosts, energy tradeoffs, ten tech towns, sites, cooling/chips, hosting, mining math, and support tooling are present.")
 
 
 if __name__ == "__main__":
