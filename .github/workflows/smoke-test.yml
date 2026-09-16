@@ -10,12 +10,14 @@ jobs:
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+
       - name: Set up Godot 4.7.2
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.2
           use-dotnet: false
           include-templates: false
+
       - name: Boot opening campaign setup with strict script-error gate
         shell: bash
         run: |
@@ -25,17 +27,45 @@ jobs:
             echo "Godot setup emitted a script/parse error."
             exit 1
           fi
-      - name: Boot real company overworld with strict script-error gate
+
+      - name: Boot real company town network with strict script-error gate
         shell: bash
         run: |
           set -euo pipefail
           godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-world.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log; then
-            echo "Godot overworld emitted a script/parse error."
+            echo "Godot town network emitted a script/parse error."
             exit 1
           fi
-      - name: Validate selected-company transition and playable overworld loop
+
+      - name: Validate selected-company transition and playable town loop
         run: godot --headless --path Godot --script res://scripts/validate_overworld.gd
+
+      - name: Install virtual display for real rendered-frame proof
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Render and validate actual company-town frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_overworld.gd 2>&1 | tee /tmp/hashrace-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|VISUAL PROOF FAIL" /tmp/hashrace-visual.log; then
+            echo "Rendered visual proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-overworld.png
+
+      - name: Upload actual rendered game frame
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-overworld-visual-proof
+          path: visual-proof/hashrace-overworld.png
+          if-no-files-found: error
 
   python-contract:
     runs-on: ubuntu-latest
