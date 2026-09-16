@@ -9,6 +9,7 @@ var treasury_button: Button
 var treasury_rescue_button: Button
 var treasury_policy_button: Button
 var strategy_preset_button: Button
+var recommended_plan_button: Button
 const TREASURY_HOLD_LEVELS := [0.0, 0.25, 0.50, 0.75, 1.0]
 const QUARTER_STRATEGY_PRESETS := [
     {"name": "CASH", "hold": 0.0},
@@ -28,6 +29,12 @@ func configure_campaign_buttons() -> void:
             button.pressed.connect(request_end_quarter)
             break
     if is_instance_valid(quarter_button):
+        recommended_plan_button = Button.new()
+        recommended_plan_button.text = "USE RECOMMENDED PLAN"
+        recommended_plan_button.tooltip_text = "Choose the safest useful quarter plan from CASH, BALANCED, and HODL using projected quarter-end cash."
+        quarter_button.get_parent().add_child(recommended_plan_button)
+        recommended_plan_button.pressed.connect(use_recommended_quarter_plan)
+
         strategy_preset_button = Button.new()
         strategy_preset_button.tooltip_text = "Quickly switch the quarter between cash-first, balanced, and treasury-first Bitcoin strategies."
         quarter_button.get_parent().add_child(strategy_preset_button)
@@ -52,6 +59,37 @@ func configure_campaign_buttons() -> void:
         quarter_button.get_parent().add_child(treasury_rescue_button)
         treasury_rescue_button.pressed.connect(auto_fund_next_quarter)
 
+func projected_quarter_end_cash_for_hold(hold_rate: float) -> float:
+    if towns.is_empty():
+        return 0.0
+    var player := towns[player_town_idx]
+    var mined_btc := btc_per_day(player) * QUARTER_DAYS
+    var revenue := mined_btc * (1.0 - hold_rate) * btc_price
+    revenue += hosting_profit_per_day(player) * QUARTER_DAYS
+    revenue += float(player["weekly_bonus"])
+    return float(player["cash"]) + revenue - operating_cost_per_day(player) * QUARTER_DAYS
+
+func recommended_quarter_strategy_index() -> int:
+    var hodl_end := projected_quarter_end_cash_for_hold(1.0)
+    if hodl_end >= TREASURY_RESCUE_RESERVE * 2.0:
+        return 2
+    var balanced_end := projected_quarter_end_cash_for_hold(0.50)
+    if balanced_end >= TREASURY_RESCUE_RESERVE:
+        return 1
+    return 0
+
+func use_recommended_quarter_plan() -> void:
+    if towns.is_empty() or campaign_complete:
+        return
+    quarter_strategy_index = recommended_quarter_strategy_index()
+    var preset: Dictionary = QUARTER_STRATEGY_PRESETS[quarter_strategy_index]
+    var player := towns[player_town_idx]
+    player["treasury_hold"] = float(preset["hold"])
+    reset_quarter_confirmation()
+    refresh_strategy_preset_button()
+    refresh_treasury_policy_button()
+    update_hud("Advisor selected %s: hold %d%% of newly mined BTC. Projected quarter-end cash: $%d.%s" % [String(preset["name"]), int(float(preset["hold"]) * 100.0), int(projected_quarter_end_cash()), quarter_risk_message()])
+
 func refresh_strategy_preset_button() -> void:
     if not is_instance_valid(strategy_preset_button):
         return
@@ -69,9 +107,7 @@ func cycle_quarter_strategy() -> void:
     refresh_strategy_preset_button()
     refresh_treasury_policy_button()
     var projection := projected_quarter_cash_result()
-    update_hud("Quarter plan set to %s: hold %d%% of newly mined BTC. Projected quarter cash result: $%d.%s" % [
-        String(preset["name"]), int(float(preset["hold"]) * 100.0), int(projection), quarter_risk_message()
-    ])
+    update_hud("Quarter plan set to %s: hold %d%% of newly mined BTC. Projected quarter cash result: $%d.%s" % [String(preset["name"]), int(float(preset["hold"]) * 100.0), int(projection), quarter_risk_message()])
 
 func refresh_treasury_policy_button() -> void:
     if not is_instance_valid(treasury_policy_button) or towns.is_empty():
@@ -95,9 +131,7 @@ func cycle_treasury_hold() -> void:
     reset_quarter_confirmation()
     refresh_treasury_policy_button()
     var projection := projected_quarter_cash_result()
-    update_hud("Treasury policy changed: hold %d%% of newly mined BTC and sell %d%% for cash. Projected quarter cash result is now $%d." % [
-        int(float(player["treasury_hold"]) * 100.0), int((1.0 - float(player["treasury_hold"])) * 100.0), int(projection)
-    ])
+    update_hud("Treasury policy changed: hold %d%% of newly mined BTC and sell %d%% for cash. Projected quarter cash result is now $%d." % [int(float(player["treasury_hold"]) * 100.0), int((1.0 - float(player["treasury_hold"])) * 100.0), int(projection)])
 
 func reset_quarter_confirmation() -> void:
     quarter_confirmation_pending = false
@@ -153,12 +187,7 @@ func projected_quarter_cash_result() -> float:
     if towns.is_empty():
         return 0.0
     var player := towns[player_town_idx]
-    var mined_btc := btc_per_day(player) * QUARTER_DAYS
-    var sold_btc := mined_btc * (1.0 - float(player["treasury_hold"]))
-    var revenue := sold_btc * btc_price
-    revenue += hosting_profit_per_day(player) * QUARTER_DAYS
-    revenue += float(player["weekly_bonus"])
-    return revenue - operating_cost_per_day(player) * QUARTER_DAYS
+    return projected_quarter_end_cash_for_hold(float(player["treasury_hold"])) - float(player["cash"])
 
 func projected_quarter_end_cash() -> float:
     if towns.is_empty():
@@ -174,7 +203,7 @@ func quarter_risk_message() -> String:
     var daily_cost := max(1.0, operating_cost_per_day(player))
     var runway_days := max(0, int(end_cash / daily_cost))
     if end_cash < 0.0:
-        return " DANGER: this projection puts cash below $0. Lower BTC HOLD POLICY, use AUTO-FUND NEXT QUARTER, financing, cost cuts, or delay expansion."
+        return " DANGER: this projection puts cash below $0. Try USE RECOMMENDED PLAN, lower BTC HOLD POLICY, AUTO-FUND NEXT QUARTER, financing, cost cuts, or delay expansion."
     if projection < 0.0 and runway_days < 120:
         return " WARNING: only about %d days of operating-cost runway remain after this quarter." % runway_days
     if projection < 0.0:
