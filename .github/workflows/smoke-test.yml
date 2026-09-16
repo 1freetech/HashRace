@@ -16,10 +16,26 @@ jobs:
           version: 4.7.2
           use-dotnet: false
           include-templates: false
-      - name: Boot opening campaign setup headlessly
-        run: godot --headless --path Godot --quit-after 3
-      - name: Boot real tech-town campaign scene headlessly
-        run: godot --headless --path Godot res://scenes/world.tscn --quit-after 3
+      - name: Boot opening campaign setup with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-setup.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-setup.log; then
+            echo "Godot setup emitted a script/parse error."
+            exit 1
+          fi
+      - name: Boot real company overworld with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-world.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log; then
+            echo "Godot overworld emitted a script/parse error."
+            exit 1
+          fi
+      - name: Validate selected-company transition and playable overworld loop
+        run: godot --headless --path Godot --script res://scripts/validate_overworld.gd
 
   python-contract:
     runs-on: ubuntu-latest
