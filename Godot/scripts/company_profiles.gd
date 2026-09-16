@@ -13,10 +13,13 @@ const PROFILES := [
     {"name":"Epoch Harbor Holdings", "strengths":"CASH + ACRES", "power_discount":0.0, "cash_bonus":25000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":4.25, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.02}
 ]
 
+# Loan pricing is Fed rate + lender spread. Small lenders are expensive and
+# capped; larger asset bases unlock progressively larger, cheaper capital.
 const LOAN_TIERS := [
-    {"name":"Community Bank", "kind":"Bank", "min_assets":50000.0, "ltv":0.22, "rate":0.120, "cap":100000.0, "min_stage":0},
-    {"name":"Commercial Bank", "kind":"Bank", "min_assets":250000.0, "ltv":0.32, "rate":0.090, "cap":500000.0, "min_stage":0},
-    {"name":"Infrastructure Bank", "kind":"Bank", "min_assets":1000000.0, "ltv":0.42, "rate":0.070, "cap":2500000.0, "min_stage":1},
-    {"name":"State Development Fund", "kind":"Government", "min_assets":5000000.0, "ltv":0.52, "rate":0.055, "cap":10000000.0, "min_stage":2},
-    {"name":"Strategic Infrastructure Program", "kind":"Government", "min_assets":20000000.0, "ltv":0.62, "rate":0.045, "cap":50000000.0, "min_stage":3}
+    {"name":"Local Joker Bank", "kind":"Local Bank", "min_assets":25000.0, "ltv":0.15, "spread":0.120, "rate":0.165, "cap":50000.0, "min_stage":0},
+    {"name":"Main Street Business Bank", "kind":"Bank", "min_assets":100000.0, "ltv":0.24, "spread":0.080, "rate":0.125, "cap":250000.0, "min_stage":0},
+    {"name":"Regional Commercial Bank", "kind":"Bank", "min_assets":500000.0, "ltv":0.34, "spread":0.050, "rate":0.095, "cap":1500000.0, "min_stage":1},
+    {"name":"Infrastructure Capital Bank", "kind":"Bank", "min_assets":2000000.0, "ltv":0.44, "spread":0.030, "rate":0.075, "cap":7500000.0, "min_stage":1},
+    {"name":"State Development Fund", "kind":"Government", "min_assets":8000000.0, "ltv":0.55, "spread":0.015, "rate":0.060, "cap":30000000.0, "min_stage":2},
+    {"name":"Federal Strategic Infrastructure Program", "kind":"Government", "min_assets":30000000.0, "ltv":0.65, "spread":0.0075, "rate":0.0525, "cap":100000000.0, "min_stage":3}
 ]
