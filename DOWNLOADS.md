@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.007**
+Current public version target: **v0.008**
 
-- [Windows x64 — Hash Race v0.007](https://github.com/1freetech/HashRace/releases/download/v0.007/HashRace-v0.007-windows-x64.zip)
-- [Linux x64 — Hash Race v0.007](https://github.com/1freetech/HashRace/releases/download/v0.007/HashRace-v0.007-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.008](https://github.com/1freetech/HashRace/releases/download/v0.008/HashRace-v0.008-windows-x64.zip)
+- [Linux x64 — Hash Race v0.008](https://github.com/1freetech/HashRace/releases/download/v0.008/HashRace-v0.008-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.007 gameplay change
+## v0.008 gameplay change
 
-The quarterly front-office screen now has a **SELL 25% BTC TREASURY** action. A mining company that has accumulated sats can convert one quarter of those holdings to operating cash at the current simulated BTC price before ending the quarter. The action makes the existing cash-danger preview useful: instead of merely warning the player to sell BTC, the game now provides the control needed to do it. A sale cancels any pending END QUARTER confirmation so the player can review the improved cash position before advancing time.
+The quarterly front office now has a **BTC HOLD POLICY** control. Players can cycle between holding 0%, 25%, 50%, 75%, or 100% of newly mined Bitcoin. The remainder is sold for operating cash when the quarter settles. This turns treasury management into a real strategy decision: a miner can sell more BTC when cash is tight or hold more when it wants greater Bitcoin exposure. Changing the policy cancels a pending quarter confirmation and immediately recalculates the projected cash result, so the player can compare the tradeoff before advancing time.
 
-The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
+The existing **SELL 25% BTC TREASURY** action remains available for converting already-held sats to cash. The competitive model also remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
 
 ## Build stack
 
