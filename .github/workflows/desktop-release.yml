@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Strictly verify source game and overworld
+      - name: Strictly verify source game and town network
         shell: bash
         run: |
           set -euo pipefail
@@ -53,10 +53,31 @@ jobs:
           fi
           godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-release-world.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-release-world.log; then
-            echo "Overworld emitted a Godot script error."
+            echo "Town network emitted a Godot script error."
             exit 1
           fi
           godot --headless --path Godot --script res://scripts/validate_overworld.gd
+
+      - name: Install virtual display for rendered release proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Render and validate actual release frame
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_overworld.gd 2>&1 | tee /tmp/hashrace-release-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|VISUAL PROOF FAIL" /tmp/hashrace-release-visual.log; then
+            echo "Rendered release proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-overworld.png
 
       - name: Export current Godot game
         shell: bash
@@ -100,6 +121,14 @@ jobs:
           path: HashRace-${{ steps.version.outputs.value }}-${{ matrix.package_name }}
           if-no-files-found: error
 
+      - name: Upload rendered game preview
+        if: matrix.platform == 'linux-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-${{ steps.version.outputs.value }}-visual-proof
+          path: visual-proof/hashrace-overworld.png
+          if-no-files-found: error
+
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -114,7 +143,7 @@ jobs:
         shell: bash
         run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Download packaged builds
+      - name: Download packaged builds and rendered preview
         uses: actions/download-artifact@v4
         with:
           pattern: HashRace-${{ steps.version.outputs.value }}-*
@@ -140,7 +169,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION replaces the broken blank-world build with a verified playable 2D company overworld. Choose a mining company and campaign clock, then walk a company representative around a tech district, enter named companies, strike partner deals, buy miners, add MW, change energy, finance growth from Local Joker Bank through government programs, buy land, manage cooling/chips/treasury, attempt one merger, and end quarters to move the Bitcoin/Fed/land/energy market. The build is gated against Godot script/parse errors and the Linux export is boot-tested before release."
+          NOTES="Hash Race $VERSION is the first release gated by an actual rendered-frame proof. After choosing a mining company and 1-20 year campaign clock, the game now enters a visible futuristic top-down company world instead of a blank gray screen. The ten fictional mining competitors are VantaGrid Mining, NeonForge Mining, ArcShift Mining, IronVector Mining, Meridian Zero Mining, BlueNova Mining, SignalFlux Mining, Parallax Core Mining, LatticeX Mining, and Epoch Vector Mining. Each has its own named town, HQ and representative wearing original techwear with a left- or right-eye scanner visor. Walk with WASD/arrows, talk with E/Enter, use Town Transit with T, visit rival reps and partner firms, buy ASICs, land and MW, change energy, finance growth from Local Joker Bank upward, negotiate partner boosts, manage cooling/chips/treasury, attempt one merger, and end quarters to advance the Bitcoin/Fed/land/energy market. The release includes the actual CI-rendered overworld PNG used to prove the game is not blank."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
