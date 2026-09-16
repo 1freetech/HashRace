@@ -28,6 +28,7 @@ def main():
     towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
     grid_world = Path("Godot/scripts/world_grid.gd").read_text(encoding="utf-8")
     grid_nav = Path("Godot/scripts/grid_navigation.gd").read_text(encoding="utf-8")
+    playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
     smoke_workflow = Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
@@ -96,6 +97,14 @@ def main():
     for marker in grid_markers:
         assert marker in grid_world or marker in grid_nav, f"Grid/pathfinding layer missing: {marker}"
 
+    playability_markers = [
+        "BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER",
+        "TREASURY_RESCUE_RESERVE", "auto_fund_next_quarter", "sell_sats_for_cash",
+        "projected_quarter_end_cash", "CONFIRM END QUARTER"
+    ]
+    for marker in playability_markers:
+        assert marker in playability, f"Quarterly playability layer missing: {marker}"
+
     for marker in [
         "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter",
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market"
@@ -115,7 +124,8 @@ def main():
         "Hash Race smoke test passed: campaign setup, modern mining companies, ten towns, ten mining reps, "
         "nine partner reps, futuristic scanner-visor techwear, land/machine/power markets, town transit, partner deals, "
         "grid-aware click movement, blocked map cells, four-direction pathfinding, lender ladder, Fed/BTC/land markets, "
-        "rare crashes, one-time merger, quarterly settlement, visible fallback, and runtime validation are present."
+        "rare crashes, one-time merger, quarterly settlement, BTC treasury controls, smart quarter funding, visible fallback, "
+        "and runtime validation are present."
     )
 
 
