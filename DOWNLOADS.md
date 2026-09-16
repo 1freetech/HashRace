@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.015**
+Current public version target: **v0.016**
 
-- [Windows x64 — Hash Race v0.015](https://github.com/1freetech/HashRace/releases/download/v0.015/HashRace-v0.015-windows-x64.zip)
-- [Linux x64 — Hash Race v0.015](https://github.com/1freetech/HashRace/releases/download/v0.015/HashRace-v0.015-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.016](https://github.com/1freetech/HashRace/releases/download/v0.016/HashRace-v0.016-windows-x64.zip)
+- [Linux x64 — Hash Race v0.016](https://github.com/1freetech/HashRace/releases/download/v0.016/HashRace-v0.016-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.015 gameplay change
+## v0.016 gameplay change
 
-The active Godot RPG world now protects the **END QUARTER** action itself. The first click calculates the current quarter's projected cash result and projected ending cash using the live mining revenue, BTC treasury policy, power cost, uptime, operating expense, recurring partner income, and debt interest. The button changes to **CONFIRM END QUARTER** and clearly warns when the quarter is projected to lose cash or push the company below $0. A second click is required to settle roughly 91 days of simulation, while **Escape** cancels the pending settlement and returns the player to planning.
+The shipped Godot RPG strategy world now has a visible **BTC TREASURY // LIQUIDITY** panel. **SELL 25% BTC TREASURY** converts one quarter of held sats into cash at the current simulated Bitcoin price. **AUTO-FUND SAFE QUARTER** calculates the live quarter projection and sells only the sats needed to target a $10,000 quarter-end operating reserve, preserving the rest of the company's Bitcoin whenever possible. If the entire treasury is insufficient, the game tells the player that financing or cost cuts are still required.
 
-This closes a playability gap between the separate quarter-safety prototype and the actual RPG world used by the shipped Godot scene. The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
+Treasury sales also cancel any pending **CONFIRM END QUARTER** state. That prevents a player from previewing one financial plan, changing cash through a BTC sale, and then accidentally settling the quarter from a stale confirmation. The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
 
 ## Build stack
 
