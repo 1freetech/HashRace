@@ -1,10 +1,11 @@
 extends "res://scripts/world_league_standings.gd"
 
-# v0.026: life/operations ratings have material gameplay consequences and queued
-# routines use elapsed time, not turn count, so DAY turns cannot trigger 30x more
-# paid routines than MONTH turns. All gameplay ratings remain on the 0-100 scale.
+# v0.027: life/operations ratings have material gameplay consequences, queued
+# routines use elapsed time, and automatic routines avoid wasting company cash
+# when their target need is already near full. Ratings remain on the 0-100 scale.
 
 const ROUTINE_INTERVAL_DAYS: float = 30.4375
+const AUTO_ROUTINE_NEED_THRESHOLD: float = 85.0
 
 var operator_energy: float = 72.0
 var operator_focus: float = 68.0
@@ -23,14 +24,12 @@ func _install_life_ops_ui() -> void:
     layer.name = "LifeOpsLayer"
     layer.layer = 14
     add_child(layer)
-
     life_status_label = Label.new()
     life_status_label.position = Vector2(1080.0, 140.0)
     life_status_label.size = Vector2(330.0, 58.0)
     life_status_label.add_theme_font_size_override("font_size", 11)
     life_status_label.add_theme_color_override("font_color", Color("b8dce5"))
     layer.add_child(life_status_label)
-
     var overview := Button.new()
     overview.position = Vector2(1080.0, 202.0)
     overview.size = Vector2(330.0, 36.0)
@@ -38,7 +37,6 @@ func _install_life_ops_ui() -> void:
     overview.tooltip_text = "Preview operator needs, live gameplay effects, facility context, queued routine and site fit."
     overview.pressed.connect(_open_life_overview)
     layer.add_child(overview)
-
     var recover := Button.new()
     recover.position = Vector2(1080.0, 242.0)
     recover.size = Vector2(105.0, 34.0)
@@ -46,7 +44,6 @@ func _install_life_ops_ui() -> void:
     recover.tooltip_text = "$500: restore energy and focus."
     recover.pressed.connect(_recover_operator)
     layer.add_child(recover)
-
     var train := Button.new()
     train.position = Vector2(1190.0, 242.0)
     train.size = Vector2(105.0, 34.0)
@@ -54,7 +51,6 @@ func _install_life_ops_ui() -> void:
     train.tooltip_text = "$1,500: improve focus for technical work."
     train.pressed.connect(_train_operator)
     layer.add_child(train)
-
     var network := Button.new()
     network.position = Vector2(1300.0, 242.0)
     network.size = Vector2(110.0, 34.0)
@@ -62,12 +58,11 @@ func _install_life_ops_ui() -> void:
     network.tooltip_text = "$1,000: restore social capacity for partner work."
     network.pressed.connect(_network_operator)
     layer.add_child(network)
-
     var queue := Button.new()
     queue.position = Vector2(1080.0, 281.0)
     queue.size = Vector2(330.0, 34.0)
     queue.text = "QUEUE ROUTINE: NONE  [CHANGE]"
-    queue.tooltip_text = "Persist one routine and execute it about once per simulated month when cash allows."
+    queue.tooltip_text = "Persist one smart routine. About monthly, it runs only when the related need is below 85/100 and cash allows."
     queue.pressed.connect(func() -> void:
         var options := ["NONE", "RECOVER", "TRAIN", "NETWORK"]
         queued_routine = String(options[(options.find(queued_routine) + 1) % options.size()])
@@ -102,8 +97,7 @@ func _partner_cost_multiplier() -> float:
     return clampf(super._partner_cost_multiplier() * _life_partner_cost_multiplier(), 0.82, 1.20)
 
 func _site_fit_score() -> int:
-    if player.is_empty():
-        return 0
+    if player.is_empty(): return 0
     var power_fit: float = clampf(float(player.get("mw", 0.0)) * 18.0, 0.0, 100.0)
     var land_fit: float = clampf(float(player.get("acres", 0.0)) * 4.0, 0.0, 100.0)
     var machine_fit: float = clampf(float(player.get("machines", 0)) / maxf(1.0, float(player.get("mw", 0.25)) * 35.0) * 100.0, 0.0, 100.0)
@@ -112,7 +106,7 @@ func _site_fit_score() -> int:
 func _open_life_overview() -> void:
     var routine_progress: int = int(round(clampf(queued_routine_days / ROUTINE_INTERVAL_DAYS * 100.0, 0.0, 100.0)))
     dialog_title.text = "OPERATOR LIFE + MINING SITE"
-    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\n\nQueued routines follow simulated elapsed time, so DAY, WEEK, MONTH and QUARTER turns have the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress]
+    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\nSmart queue threshold: runs only when its target need is below %d/100. DAY, WEEK, MONTH and QUARTER turns keep the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress, int(AUTO_ROUTINE_NEED_THRESHOLD)]
     _set_actions([])
 
 func _spend_for_routine(cost: float) -> bool:
@@ -123,36 +117,39 @@ func _spend_for_routine(cost: float) -> bool:
     return true
 
 func _recover_operator(silent: bool = false) -> bool:
-    if not _spend_for_routine(500.0):
-        return false
+    if not _spend_for_routine(500.0): return false
     operator_energy = minf(100.0, operator_energy + 24.0)
     operator_focus = minf(100.0, operator_focus + 8.0)
-    if not silent:
-        _feedback("RECOVER: -$500 • Energy and focus restored; mining uptime improves with Energy.")
+    if not silent: _feedback("RECOVER: -$500 • Energy and focus restored; mining uptime improves with Energy.")
     _refresh_ui()
     return true
 
 func _train_operator(silent: bool = false) -> bool:
-    if not _spend_for_routine(1500.0):
-        return false
+    if not _spend_for_routine(1500.0): return false
     operator_focus = minf(100.0, operator_focus + 18.0)
     operator_energy = maxf(0.0, operator_energy - 5.0)
-    if not silent:
-        _feedback("TRAIN: -$1,500 • Focus improved, lowering research cost; training used some energy.")
+    if not silent: _feedback("TRAIN: -$1,500 • Focus improved, lowering research cost; training used some energy.")
     _refresh_ui()
     return true
 
 func _network_operator(silent: bool = false) -> bool:
-    if not _spend_for_routine(1000.0):
-        return false
+    if not _spend_for_routine(1000.0): return false
     operator_social = minf(100.0, operator_social + 22.0)
     operator_energy = maxf(0.0, operator_energy - 3.0)
-    if not silent:
-        _feedback("NETWORK: -$1,000 • Social improved, lowering partner/deal cost; networking used some energy.")
+    if not silent: _feedback("NETWORK: -$1,000 • Social improved, lowering partner/deal cost; networking used some energy.")
     _refresh_ui()
     return true
 
+func _queued_routine_needed() -> bool:
+    match queued_routine:
+        "RECOVER": return operator_energy < AUTO_ROUTINE_NEED_THRESHOLD or operator_focus < AUTO_ROUTINE_NEED_THRESHOLD
+        "TRAIN": return operator_focus < AUTO_ROUTINE_NEED_THRESHOLD
+        "NETWORK": return operator_social < AUTO_ROUTINE_NEED_THRESHOLD
+    return false
+
 func _run_queued_routine() -> bool:
+    if not _queued_routine_needed():
+        return true
     match queued_routine:
         "RECOVER": return _recover_operator(true)
         "TRAIN": return _train_operator(true)
@@ -167,8 +164,7 @@ func _apply_elapsed_life(days: float) -> void:
     if queued_routine != "NONE":
         queued_routine_days += days
         while queued_routine_days >= ROUTINE_INTERVAL_DAYS:
-            if not _run_queued_routine():
-                break
+            if not _run_queued_routine(): break
             queued_routine_days -= ROUTINE_INTERVAL_DAYS
     else:
         queued_routine_days = 0.0
@@ -178,8 +174,7 @@ func _end_quarter() -> void:
     var before_days: float = elapsed_campaign_days
     super._end_quarter()
     var advanced: float = elapsed_campaign_days - before_days
-    if advanced > 0.0:
-        _apply_elapsed_life(advanced)
+    if advanced > 0.0: _apply_elapsed_life(advanced)
 
 func _refresh_life_ops_ui() -> void:
     if is_instance_valid(life_status_label):
