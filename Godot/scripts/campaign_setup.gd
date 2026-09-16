@@ -36,8 +36,8 @@ func build_background() -> void:
 
 func build_menu() -> void:
     var panel := Panel.new()
-    panel.position = Vector2(320, 70)
-    panel.size = Vector2(800, 760)
+    panel.position = Vector2(300, 40)
+    panel.size = Vector2(840, 820)
     var style := StyleBoxFlat.new()
     style.bg_color = PANEL
     style.border_width_left = 2
@@ -53,8 +53,8 @@ func build_menu() -> void:
     add_child(panel)
 
     var title := Label.new()
-    title.position = Vector2(34, 22)
-    title.size = Vector2(732, 48)
+    title.position = Vector2(34, 18)
+    title.size = Vector2(772, 48)
     title.text = "HASH RACE // NEW CAMPAIGN"
     title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     title.add_theme_font_size_override("font_size", 30)
@@ -62,16 +62,16 @@ func build_menu() -> void:
     panel.add_child(title)
 
     var subtitle := Label.new()
-    subtitle.position = Vector2(40, 78)
-    subtitle.size = Vector2(720, 42)
-    subtitle.text = "Pick your Bitcoin mining company and campaign length before Turn 1."
+    subtitle.position = Vector2(40, 68)
+    subtitle.size = Vector2(760, 42)
+    subtitle.text = "Pick a Bitcoin mining company. Its history and culture are the starting template, not a permanent script."
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    subtitle.add_theme_font_size_override("font_size", 15)
+    subtitle.add_theme_font_size_override("font_size", 14)
     subtitle.add_theme_color_override("font_color", WHITE)
     panel.add_child(subtitle)
 
     var company_hdr := Label.new()
-    company_hdr.position = Vector2(78, 138)
+    company_hdr.position = Vector2(78, 116)
     company_hdr.size = Vector2(300, 30)
     company_hdr.text = "MINING COMPANY"
     company_hdr.add_theme_font_size_override("font_size", 18)
@@ -79,25 +79,25 @@ func build_menu() -> void:
     panel.add_child(company_hdr)
 
     company_option = OptionButton.new()
-    company_option.position = Vector2(78, 176)
-    company_option.size = Vector2(644, 46)
+    company_option.position = Vector2(78, 150)
+    company_option.size = Vector2(684, 44)
     company_option.add_theme_font_size_override("font_size", 15)
     for i in range(Profiles.PROFILES.size()):
         var profile: Dictionary = Profiles.PROFILES[i]
-        company_option.add_item("%s  //  %s" % [profile["name"], profile["strengths"]], i)
+        company_option.add_item("%s  //  %s  //  %s" % [profile["name"], profile["posture"], profile["strengths"]], i)
     company_option.item_selected.connect(_on_company_changed)
     panel.add_child(company_option)
 
     company_label = Label.new()
-    company_label.position = Vector2(78, 234)
-    company_label.size = Vector2(644, 92)
+    company_label.position = Vector2(78, 202)
+    company_label.size = Vector2(684, 242)
     company_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    company_label.add_theme_font_size_override("font_size", 14)
+    company_label.add_theme_font_size_override("font_size", 12)
     company_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(company_label)
 
     var clock_label := Label.new()
-    clock_label.position = Vector2(78, 342)
+    clock_label.position = Vector2(78, 452)
     clock_label.size = Vector2(300, 30)
     clock_label.text = "CAMPAIGN LENGTH"
     clock_label.add_theme_font_size_override("font_size", 18)
@@ -105,8 +105,8 @@ func build_menu() -> void:
     panel.add_child(clock_label)
 
     years_option = OptionButton.new()
-    years_option.position = Vector2(78, 380)
-    years_option.size = Vector2(644, 46)
+    years_option.position = Vector2(78, 486)
+    years_option.size = Vector2(684, 44)
     years_option.add_theme_font_size_override("font_size", 15)
     for years in range(1, 21):
         years_option.add_item("%d year%s" % [years, "" if years == 1 else "s"], years)
@@ -115,16 +115,16 @@ func build_menu() -> void:
     panel.add_child(years_option)
 
     summary_label = Label.new()
-    summary_label.position = Vector2(78, 444)
-    summary_label.size = Vector2(644, 116)
+    summary_label.position = Vector2(78, 542)
+    summary_label.size = Vector2(684, 88)
     summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    summary_label.add_theme_font_size_override("font_size", 14)
+    summary_label.add_theme_font_size_override("font_size", 13)
     summary_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(summary_label)
 
     var rule := Label.new()
-    rule.position = Vector2(78, 570)
-    rule.size = Vector2(644, 54)
+    rule.position = Vector2(78, 638)
+    rule.size = Vector2(684, 48)
     rule.text = "DEFAULT: 1 TURN = 1 MONTH  •  CHANGE IN GAME: DAY / WEEK / MONTH / QUARTER"
     rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     rule.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -133,7 +133,7 @@ func build_menu() -> void:
     panel.add_child(rule)
 
     var start := Button.new()
-    start.position = Vector2(230, 650)
+    start.position = Vector2(250, 704)
     start.size = Vector2(340, 58)
     start.text = "START MINING RACE"
     start.add_theme_font_size_override("font_size", 18)
@@ -143,9 +143,18 @@ func build_menu() -> void:
     _on_company_changed(0)
     _on_clock_changed(years_option.selected)
 
+func _ratings_line(profile: Dictionary) -> String:
+    return "AGG %d  RISK %d  GROW %d  R&D %d  TREAS %d  OPS %d  REP %d" % [
+        int(profile["aggression"]), int(profile["risk"]), int(profile["growth"]), int(profile["research"]),
+        int(profile["treasury"]), int(profile["operations"]), int(profile["reputation"])
+    ]
+
 func _on_company_changed(index: int) -> void:
     var profile: Dictionary = Profiles.PROFILES[index]
-    company_label.text = "Starting strengths: %s\nYour company begins at Garage Town scale, but these advantages apply from Turn 1. Financing eligibility still depends on total assets." % profile["strengths"]
+    company_label.text = "POSTURE: %s  •  STARTING STRENGTH: %s\n%s\n\nBACKGROUND: %s\n\nCONTROVERSY: %s\n\nThese 0-100 ratings are a starting template. Company actions, profit, debt, research, expansion, partnerships, and new controversies can change them during the campaign." % [
+        String(profile["posture"]), String(profile["strengths"]), _ratings_line(profile),
+        String(profile["background"]), String(profile["controversy"])
+    ]
 
 func _on_clock_changed(index: int) -> void:
     var years := years_option.get_item_id(index)
