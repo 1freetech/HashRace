@@ -1,16 +1,16 @@
 extends Control
 
 const STARTING_MINERS := [
-    {"name":"BlockForge Mining","trait":"Low-cost operator","cash":9000.0,"fleet":5,"jth":82.0,"power_discount":0.10,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"Northstar Hash","trait":"Research-first miner","cash":9500.0,"fleet":3,"jth":78.0,"power_discount":0.00,"rd_bonus":0.25,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"VoltHash Mining","trait":"Grid-optimization specialist","cash":8500.0,"fleet":4,"jth":80.0,"power_discount":0.16,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"TerraHash Industries","trait":"Land-and-site scaler","cash":10000.0,"fleet":3,"jth":84.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.20},
-    {"name":"Frontier Mining Co.","trait":"Deal-focused consolidator","cash":15000.0,"fleet":2,"jth":86.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.18,"site_bonus":0.00},
-    {"name":"HydroBlock Mining","trait":"Cooling and uptime specialist","cash":9000.0,"fleet":3,"jth":76.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.025,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"IronPeak Digital Mining","trait":"Reliability-first operator","cash":9000.0,"fleet":4,"jth":83.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.018,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"Atlas Hashworks","trait":"Balanced industrial miner","cash":10500.0,"fleet":3,"jth":79.0,"power_discount":0.05,"rd_bonus":0.08,"uptime_bonus":0.005,"acquisition_discount":0.00,"site_bonus":0.05},
-    {"name":"Cascade Mining Systems","trait":"Efficiency-focused fleet manager","cash":8000.0,"fleet":3,"jth":72.0,"power_discount":0.00,"rd_bonus":0.10,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
-    {"name":"DeepCore Bitcoin Mining","trait":"Capital-heavy expansion miner","cash":13500.0,"fleet":3,"jth":88.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.08,"site_bonus":0.15}
+    {"name":"Emberline Compute","trait":"Low-cost operator","cash":9000.0,"fleet":5,"jth":82.0,"power_discount":0.10,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"Helix Circuit Labs","trait":"Research-first miner","cash":9500.0,"fleet":3,"jth":78.0,"power_discount":0.00,"rd_bonus":0.25,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"ArcCurrent Systems","trait":"Grid-optimization specialist","cash":8500.0,"fleet":4,"jth":80.0,"power_discount":0.16,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"StoneGrid Infrastructure","trait":"Land-and-site scaler","cash":10000.0,"fleet":3,"jth":84.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.20},
+    {"name":"Meridian Node Group","trait":"Deal-focused consolidator","cash":15000.0,"fleet":2,"jth":86.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.18,"site_bonus":0.00},
+    {"name":"BlueLoop Compute","trait":"Cooling and uptime specialist","cash":9000.0,"fleet":3,"jth":76.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.025,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"SignalPeak Systems","trait":"Reliability-first operator","cash":9000.0,"fleet":4,"jth":83.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.018,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"Parallax Digital Works","trait":"Balanced industrial miner","cash":10500.0,"fleet":3,"jth":79.0,"power_discount":0.05,"rd_bonus":0.08,"uptime_bonus":0.005,"acquisition_discount":0.00,"site_bonus":0.05},
+    {"name":"Lattice Energy Labs","trait":"Efficiency-focused fleet manager","cash":8000.0,"fleet":3,"jth":72.0,"power_discount":0.00,"rd_bonus":0.10,"uptime_bonus":0.00,"acquisition_discount":0.00,"site_bonus":0.00},
+    {"name":"Epoch Harbor Holdings","trait":"Capital-heavy expansion miner","cash":13500.0,"fleet":3,"jth":88.0,"power_discount":0.00,"rd_bonus":0.00,"uptime_bonus":0.00,"acquisition_discount":0.08,"site_bonus":0.15}
 ]
 
 const PARTNERS := [
