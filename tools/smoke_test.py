@@ -65,7 +65,7 @@ def main():
     for marker in grid_markers:
         assert marker in grid_world or marker in grid_nav, f"Grid/pathfinding layer missing: {marker}"
 
-    playability_markers = ["BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "QUARTER_STRATEGY_PRESETS", '"CASH"', '"BALANCED"', '"HODL"', "cycle_quarter_strategy", "TREASURY_RESCUE_RESERVE", "auto_fund_next_quarter", "sell_sats_for_cash", "projected_quarter_end_cash", "CONFIRM END QUARTER"]
+    playability_markers = ["PREPARE SAFE QUARTER", "prepare_safe_quarter", "BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "QUARTER_STRATEGY_PRESETS", '"CASH"', '"BALANCED"', '"HODL"', "cycle_quarter_strategy", "TREASURY_RESCUE_RESERVE", "auto_fund_next_quarter", "sell_sats_for_cash", "projected_quarter_end_cash", "CONFIRM END QUARTER"]
     for marker in playability_markers:
         assert marker in playability, f"Quarterly playability layer missing: {marker}"
 
@@ -76,7 +76,7 @@ def main():
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: campaign setup, ten Bitcoin mining companies, external partner economy, towns, grid navigation, treasury controls, smart quarter funding, CASH/BALANCED/HODL quarter plans, and runtime validation are present.")
+    print("Hash Race smoke test passed: campaign setup, ten Bitcoin mining companies, external partner economy, towns, grid navigation, treasury controls, safe-quarter preparation, smart quarter funding, CASH/BALANCED/HODL quarter plans, and runtime validation are present.")
 
 
 if __name__ == "__main__":
