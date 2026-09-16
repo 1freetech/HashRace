@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free checks for Hash Race mining math, corrected company model, and Godot migration."""
+"""Dependency-free checks for Hash Race mining math, company rules, Godot migration, and polyglot support."""
 from pathlib import Path
 
 
@@ -41,7 +41,21 @@ def main():
         assert sector in godot, f"Godot build missing partner sector: {sector}"
 
     assert "STARTING_MINERS" in godot and "PARTNERS" in godot
-    print("Hash Race smoke test passed: mining math is sane, all ten competitors are Bitcoin miners, all ten outside partner sectors exist, and the Godot migration files are present.")
+
+    required_polyglot_files = [
+        Path("native/cpp/hashrace_core.cpp"),
+        Path("native/rust/hashrace_balance.rs"),
+        Path("tools/typescript/hashrace_validate.ts"),
+        Path("docs/LANGUAGE_STACK.md"),
+    ]
+    for path in required_polyglot_files:
+        assert path.exists(), f"Missing polyglot support file: {path}"
+
+    language_doc = Path("docs/LANGUAGE_STACK.md").read_text(encoding="utf-8")
+    for language in ["C++", "Rust", "TypeScript"]:
+        assert language in language_doc, f"Language stack document missing: {language}"
+
+    print("Hash Race smoke test passed: mining math is sane, all ten competitors are Bitcoin miners, all ten outside partner sectors exist, the Godot migration is present, and the C++/Rust/TypeScript support files are installed.")
 
 
 if __name__ == "__main__":

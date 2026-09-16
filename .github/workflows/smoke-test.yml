@@ -1,11 +1,11 @@
-name: Hash Race smoke test
+name: Hash Race multi-language smoke test
 
 on:
   push:
   pull_request:
 
 jobs:
-  mining-math:
+  python-contract:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Hash Race
@@ -14,5 +14,41 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Test the core mining math
+      - name: Test the core mining and concept contract
         run: python tools/smoke_test.py
+
+  cpp-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Compile C++ mining core
+        run: g++ -std=c++20 -Wall -Wextra -pedantic native/cpp/hashrace_core.cpp -o /tmp/hashrace_cpp
+      - name: Run C++ mining core checks
+        run: /tmp/hashrace_cpp
+
+  rust-balance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Run Rust balance unit tests
+        run: rustc --edition=2021 --test native/rust/hashrace_balance.rs -o /tmp/hashrace_rust_tests && /tmp/hashrace_rust_tests
+      - name: Run Rust one-year balance probe
+        run: rustc --edition=2021 native/rust/hashrace_balance.rs -o /tmp/hashrace_rust && /tmp/hashrace_rust
+
+  typescript-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install TypeScript compiler
+        run: npm install --no-save typescript@5.8.3
+      - name: Compile TypeScript content validator
+        run: npx tsc tools/typescript/hashrace_validate.ts --target ES2020 --module commonjs --strict --outDir .tmp-ts
+      - name: Validate Hash Race content contract
+        run: node .tmp-ts/hashrace_validate.js
