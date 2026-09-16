@@ -39,20 +39,20 @@ A typical Hash Race campaign includes the following activities:
 
 ## Mining companies
 
-Hash Race currently includes ten fictional Bitcoin mining companies.
+Hash Race currently includes ten fictional Bitcoin mining companies. Their names use broader compute, energy, infrastructure, and technology branding rather than directly imitating real-world Bitcoin mining companies.
 
-- **BlockForge Mining** — low-cost operator with a larger opening fleet
-- **Northstar Hash** — research-focused mining company
-- **VoltHash Mining** — grid-optimization specialist
-- **TerraHash Industries** — land and site expansion specialist
-- **Frontier Mining Co.** — acquisition-focused consolidator
-- **HydroBlock Mining** — cooling, uptime, and efficiency specialist
-- **IronPeak Digital Mining** — reliability-focused operator
-- **Atlas Hashworks** — balanced industrial mining company
-- **Cascade Mining Systems** — efficiency-focused fleet manager
-- **DeepCore Bitcoin Mining** — capital-intensive expansion company
+- **Emberline Compute** — low-cost fleet operator with a larger opening fleet
+- **Helix Circuit Labs** — research-first mining operator
+- **ArcCurrent Systems** — grid-responsive mining and power-optimization specialist
+- **StoneGrid Infrastructure** — land and site expansion specialist
+- **Meridian Node Group** — acquisition-focused mining consolidator
+- **BlueLoop Compute** — cooling, uptime, and efficiency specialist
+- **SignalPeak Systems** — reliability-focused mining operator
+- **Parallax Digital Works** — balanced industrial miner
+- **Lattice Energy Labs** — efficiency-focused fleet manager
+- **Epoch Harbor Holdings** — capital-intensive mining and expansion company
 
-Each company represents a different strategic approach to mining operations, capital allocation, infrastructure growth, or hardware development.
+Each company represents a different strategic approach to mining operations, capital allocation, infrastructure growth, energy use, or hardware development.
 
 ## External partner market
 
