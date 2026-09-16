@@ -6,8 +6,10 @@ extends "res://scripts/world_campaign.gd"
 var quarter_confirmation_pending := false
 var quarter_button: Button
 var treasury_button: Button
+var treasury_rescue_button: Button
 var treasury_policy_button: Button
 const TREASURY_HOLD_LEVELS := [0.0, 0.25, 0.50, 0.75, 1.0]
+const TREASURY_RESCUE_RESERVE := 10000.0
 
 func configure_campaign_buttons() -> void:
     super.configure_campaign_buttons()
@@ -31,6 +33,12 @@ func configure_campaign_buttons() -> void:
         quarter_button.get_parent().add_child(treasury_button)
         treasury_button.pressed.connect(sell_quarter_treasury)
 
+        treasury_rescue_button = Button.new()
+        treasury_rescue_button.text = "AUTO-FUND NEXT QUARTER"
+        treasury_rescue_button.tooltip_text = "Sell only enough held Bitcoin to cover the projected quarter and leave a $10,000 operating reserve."
+        quarter_button.get_parent().add_child(treasury_rescue_button)
+        treasury_rescue_button.pressed.connect(auto_fund_next_quarter)
+
 func refresh_treasury_policy_button() -> void:
     if not is_instance_valid(treasury_policy_button) or towns.is_empty():
         return
@@ -50,9 +58,7 @@ func cycle_treasury_hold() -> void:
             best_distance = distance
             next_index = (i + 1) % TREASURY_HOLD_LEVELS.size()
     player["treasury_hold"] = float(TREASURY_HOLD_LEVELS[next_index])
-    quarter_confirmation_pending = false
-    if is_instance_valid(quarter_button):
-        quarter_button.text = "END QUARTER"
+    reset_quarter_confirmation()
     refresh_treasury_policy_button()
     var projection := projected_quarter_cash_result()
     update_hud("Treasury policy changed: hold %d%% of newly mined BTC and sell %d%% for cash. Projected quarter cash result is now $%d." % [
@@ -60,6 +66,20 @@ func cycle_treasury_hold() -> void:
         int((1.0 - float(player["treasury_hold"])) * 100.0),
         int(projection)
     ])
+
+func reset_quarter_confirmation() -> void:
+    quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button) and not campaign_complete:
+        quarter_button.text = "END QUARTER"
+
+func sell_sats_for_cash(player: Dictionary, sats_to_sell: float) -> float:
+    sats_to_sell = clamp(floor(sats_to_sell), 0.0, float(player["sats"]))
+    if sats_to_sell < 1.0:
+        return 0.0
+    var cash_raised := (sats_to_sell / SATS_PER_BTC) * btc_price
+    player["sats"] = float(player["sats"]) - sats_to_sell
+    player["cash"] = float(player["cash"]) + cash_raised
+    return cash_raised
 
 func sell_quarter_treasury() -> void:
     if towns.is_empty() or campaign_complete:
@@ -70,14 +90,32 @@ func sell_quarter_treasury() -> void:
         update_hud("No Bitcoin treasury to sell yet. Mine and hold sats before using treasury liquidity.")
         return
     var sats_to_sell := max(1.0, floor(held_sats * 0.25))
-    var btc_to_sell := sats_to_sell / SATS_PER_BTC
-    var cash_raised := btc_to_sell * btc_price
-    player["sats"] = held_sats - sats_to_sell
-    player["cash"] = float(player["cash"]) + cash_raised
-    quarter_confirmation_pending = false
-    if is_instance_valid(quarter_button):
-        quarter_button.text = "END QUARTER"
-    update_hud("Treasury sale: sold %d sats (%.6f BTC) at BTC $%d and raised $%d cash. %d sats remain." % [sats_to_sell, btc_to_sell, int(btc_price), int(cash_raised), int(player["sats"])])
+    var cash_raised := sell_sats_for_cash(player, sats_to_sell)
+    reset_quarter_confirmation()
+    update_hud("Treasury sale: sold %d sats at BTC $%d and raised $%d cash. %d sats remain." % [sats_to_sell, int(btc_price), int(cash_raised), int(player["sats"])])
+
+func auto_fund_next_quarter() -> void:
+    if towns.is_empty() or campaign_complete:
+        return
+    var player := towns[player_town_idx]
+    var projected_end := projected_quarter_end_cash()
+    var cash_needed := TREASURY_RESCUE_RESERVE - projected_end
+    if cash_needed <= 0.0:
+        update_hud("No treasury rescue needed. The current plan already projects at least $%d cash after the quarter." % int(TREASURY_RESCUE_RESERVE))
+        return
+    var held_sats := float(player["sats"])
+    if held_sats < 1.0:
+        update_hud("Treasury rescue unavailable: no held Bitcoin to sell. Lower BTC HOLD POLICY, seek financing, or cut costs.")
+        return
+    var sats_needed := ceil((cash_needed / max(1.0, btc_price)) * SATS_PER_BTC)
+    var sats_to_sell := min(held_sats, sats_needed)
+    var cash_raised := sell_sats_for_cash(player, sats_to_sell)
+    reset_quarter_confirmation()
+    var new_end := projected_quarter_end_cash()
+    if new_end < 0.0:
+        update_hud("Treasury rescue sold all available %d sats for $%d, but projected quarter-end cash is still $%d. Financing, lower BTC hold, or cost cuts are still needed." % [int(sats_to_sell), int(cash_raised), int(new_end)])
+    else:
+        update_hud("Treasury rescue sold only %d sats for $%d. Projected quarter-end cash is now $%d, preserving the rest of your Bitcoin." % [int(sats_to_sell), int(cash_raised), int(new_end)])
 
 func projected_quarter_cash_result() -> float:
     if towns.is_empty():
@@ -104,7 +142,7 @@ func quarter_risk_message() -> String:
     var daily_cost := max(1.0, operating_cost_per_day(player))
     var runway_days := max(0, int(end_cash / daily_cost))
     if end_cash < 0.0:
-        return " DANGER: this projection puts cash below $0. Lower BTC HOLD POLICY, use SELL 25% BTC TREASURY, financing, cost cuts, or delay expansion."
+        return " DANGER: this projection puts cash below $0. Lower BTC HOLD POLICY, use AUTO-FUND NEXT QUARTER, financing, cost cuts, or delay expansion."
     if projection < 0.0 and runway_days < 120:
         return " WARNING: only about %d days of operating-cost runway remain after this quarter." % runway_days
     if projection < 0.0:
@@ -123,15 +161,11 @@ func request_end_quarter() -> void:
         var direction := "profit" if projection >= 0.0 else "loss"
         update_hud("Quarter preview: projected cash %s $%d at current BTC, fees, uptime, power and hosting.%s Click CONFIRM END QUARTER to advance about 91 days." % [direction, abs(int(projection)), quarter_risk_message()])
         return
-    quarter_confirmation_pending = false
-    if is_instance_valid(quarter_button):
-        quarter_button.text = "END QUARTER"
+    reset_quarter_confirmation()
     super.advance_turn()
 
 func advance_turn() -> void:
-    quarter_confirmation_pending = false
-    if is_instance_valid(quarter_button) and not campaign_complete:
-        quarter_button.text = "END QUARTER"
+    reset_quarter_confirmation()
     super.advance_turn()
 
 func rename_complete_button() -> void:
