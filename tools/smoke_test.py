@@ -26,15 +26,18 @@ def main():
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
     overworld = Path("Godot/scripts/world_overworld.gd").read_text(encoding="utf-8")
     towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
+    grid_world = Path("Godot/scripts/world_grid.gd").read_text(encoding="utf-8")
+    grid_nav = Path("Godot/scripts/grid_navigation.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
     smoke_workflow = Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_towns.gd" in world_scene, "Live world must use the multi-town RPG presentation layer"
+    assert "world_grid.gd" in world_scene, "Live world must use the grid-aware multi-town RPG layer"
     assert "BootFallback" in world_scene, "World scene must show a visible fallback instead of a blank gray screen"
     assert 'extends "res://scripts/world_overworld.gd"' in towns, "Town layer must retain the stable overworld core"
+    assert 'extends "res://scripts/world_towns.gd"' in grid_world, "Grid layer must retain the town presentation layer"
     assert "validate_overworld.gd" in smoke_workflow
 
     setup_markers = [
@@ -86,6 +89,13 @@ def main():
     for marker in town_markers:
         assert marker in towns, f"Town/representative layer missing: {marker}"
 
+    grid_markers = [
+        "NAV_CELL_SIZE", "_rebuild_navigation_grid", "_route_to", "debug_grid_navigation_ready",
+        "debug_grid_path_exists", "block_rect", "nearest_open", "find_path", "_manhattan"
+    ]
+    for marker in grid_markers:
+        assert marker in grid_world or marker in grid_nav, f"Grid/pathfinding layer missing: {marker}"
+
     for marker in [
         "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter",
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market"
@@ -95,7 +105,8 @@ def main():
     required_support = [
         "native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs",
         "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md",
-        "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg"
+        "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg",
+        "Godot/scripts/grid_navigation.gd", "Godot/scripts/world_grid.gd"
     ]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
@@ -103,8 +114,8 @@ def main():
     print(
         "Hash Race smoke test passed: campaign setup, modern mining companies, ten towns, ten mining reps, "
         "nine partner reps, futuristic scanner-visor techwear, land/machine/power markets, town transit, partner deals, "
-        "lender ladder, Fed/BTC/land markets, rare crashes, one-time merger, quarterly settlement, visible fallback, "
-        "and runtime validation are present."
+        "grid-aware click movement, blocked map cells, four-direction pathfinding, lender ladder, Fed/BTC/land markets, "
+        "rare crashes, one-time merger, quarterly settlement, visible fallback, and runtime validation are present."
     )
 
 
