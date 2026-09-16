@@ -1,16 +1,18 @@
 extends RefCounted
 
+# Ten fictional Bitcoin-mining competitors. Every company is a miner; the
+# differences are starting strengths, operating style, and representative.
 const PROFILES := [
-    {"name":"Emberline Compute", "strengths":"POWER COST + PROFIT", "power_discount":0.012, "cash_bonus":10000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"Helix Circuit Labs", "strengths":"MACHINES + CASH", "power_discount":0.0, "cash_bonus":22000.0, "mw_bonus":0.0, "machine_bonus":8, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"ArcCurrent Systems", "strengths":"MW + POWER COST", "power_discount":0.008, "cash_bonus":0.0, "mw_bonus":0.10, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"StoneGrid Infrastructure", "strengths":"ACRES + MW", "power_discount":0.0, "cash_bonus":0.0, "mw_bonus":0.10, "machine_bonus":0, "acres_bonus":4.25, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"Meridian Node Group", "strengths":"CASH + FINANCING", "power_discount":0.0, "cash_bonus":30000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.05},
-    {"name":"BlueLoop Compute", "strengths":"ENERGY + PROFIT", "power_discount":0.006, "cash_bonus":10000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Utility PPA", "loan_bonus":0.00},
-    {"name":"SignalPeak Systems", "strengths":"MACHINES + ENERGY", "power_discount":0.004, "cash_bonus":0.0, "mw_bonus":0.0, "machine_bonus":6, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"Parallax Digital Works", "strengths":"MACHINES + MW", "power_discount":0.0, "cash_bonus":0.0, "mw_bonus":0.08, "machine_bonus":6, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"Lattice Energy Labs", "strengths":"POWER COST + MACHINES", "power_discount":0.010, "cash_bonus":0.0, "mw_bonus":0.0, "machine_bonus":5, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
-    {"name":"Epoch Harbor Holdings", "strengths":"CASH + ACRES", "power_discount":0.0, "cash_bonus":25000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":4.25, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.02}
+    {"name":"VantaGrid Mining", "strengths":"POWER COST + PROFIT", "power_discount":0.012, "cash_bonus":10000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"NeonForge Mining", "strengths":"MACHINES + CASH", "power_discount":0.0, "cash_bonus":22000.0, "mw_bonus":0.0, "machine_bonus":8, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"ArcShift Mining", "strengths":"MW + POWER COST", "power_discount":0.008, "cash_bonus":0.0, "mw_bonus":0.10, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"IronVector Mining", "strengths":"ACRES + MW", "power_discount":0.0, "cash_bonus":0.0, "mw_bonus":0.10, "machine_bonus":0, "acres_bonus":4.25, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"Meridian Zero Mining", "strengths":"CASH + FINANCING", "power_discount":0.0, "cash_bonus":30000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.05},
+    {"name":"BlueNova Mining", "strengths":"ENERGY + PROFIT", "power_discount":0.006, "cash_bonus":10000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Utility PPA", "loan_bonus":0.00},
+    {"name":"SignalFlux Mining", "strengths":"MACHINES + ENERGY", "power_discount":0.004, "cash_bonus":0.0, "mw_bonus":0.0, "machine_bonus":6, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"Parallax Core Mining", "strengths":"MACHINES + MW", "power_discount":0.0, "cash_bonus":0.0, "mw_bonus":0.08, "machine_bonus":6, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"LatticeX Mining", "strengths":"POWER COST + MACHINES", "power_discount":0.010, "cash_bonus":0.0, "mw_bonus":0.0, "machine_bonus":5, "acres_bonus":0.0, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.00},
+    {"name":"Epoch Vector Mining", "strengths":"CASH + ACRES", "power_discount":0.0, "cash_bonus":25000.0, "mw_bonus":0.0, "machine_bonus":0, "acres_bonus":4.25, "sats_bonus":0.0, "energy":"Grid", "loan_bonus":0.02}
 ]
 
 # Loan pricing is Fed rate + lender spread. Small lenders are expensive and
