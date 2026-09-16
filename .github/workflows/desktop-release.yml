@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'VERSION'
+      - '.github/workflows/desktop-release.yml'
   workflow_dispatch:
 
 permissions:
@@ -47,8 +48,9 @@ jobs:
       - name: Export current Godot game
         shell: bash
         run: |
-          mkdir -p "$(dirname '${{ matrix.export_path }}')"
-          godot --headless --path Godot --export-release "${{ matrix.preset }}" "${{ matrix.export_path }}"
+          EXPORT_PATH="$GITHUB_WORKSPACE/${{ matrix.export_path }}"
+          mkdir -p "$(dirname "$EXPORT_PATH")"
+          godot --headless --path Godot --export-release "${{ matrix.preset }}" "$EXPORT_PATH"
 
       - name: Package Windows build
         if: matrix.platform == 'windows-x64'
@@ -100,7 +102,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Current Godot Hash Race build with the interactive Bitcoin mining tech-town world, selectable campaign clock from 1 year/4 turns through 20 years/80 turns, quarterly turns, 16-turn halvings, unique company starting strengths, machines/MW/land/energy/cooling/chip progression, NPC partnerships, hosting, asset-backed bank and government financing, debt repayment, and final campaign standings."
+          NOTES="Current Godot Hash Race build with the interactive Bitcoin mining tech-town world, selectable campaign clock from 1 year/4 turns through 20 years/80 turns, quarterly turns with a cash preview and confirmation before advancing, 16-turn halvings, unique company starting strengths, machines/MW/land/energy/cooling/chip progression, NPC partnerships, hosting, asset-backed bank and government financing, debt repayment, and final campaign standings."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES"
