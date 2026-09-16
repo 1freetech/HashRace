@@ -150,17 +150,6 @@ jobs:
           path: release
           merge-multiple: true
 
-      - name: Point release tag at this tested Godot build
-        env:
-          VERSION: ${{ steps.version.outputs.value }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f "$VERSION" "$GITHUB_SHA"
-          git push origin "refs/tags/$VERSION" --force
-
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -169,7 +158,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION is the first release gated by an actual rendered-frame proof. After choosing a mining company and 1-20 year campaign clock, the game now enters a visible futuristic top-down company world instead of a blank gray screen. The ten fictional mining competitors are VantaGrid Mining, NeonForge Mining, ArcShift Mining, IronVector Mining, Meridian Zero Mining, BlueNova Mining, SignalFlux Mining, Parallax Core Mining, LatticeX Mining, and Epoch Vector Mining. Each has its own named town, HQ and representative wearing original techwear with a left- or right-eye scanner visor. Walk with WASD/arrows, talk with E/Enter, use Town Transit with T, visit rival reps and partner firms, buy ASICs, land and MW, change energy, finance growth from Local Joker Bank upward, negotiate partner boosts, manage cooling/chips/treasury, attempt one merger, and end quarters to advance the Bitcoin/Fed/land/energy market. The release includes the actual CI-rendered overworld PNG used to prove the game is not blank."
+          NOTES="Hash Race $VERSION ships the current tested Godot strategy-RPG build. The ten fictional league competitors are all Bitcoin mining companies; outside industries remain NPC partners and suppliers. The release includes CI-verified Windows and Linux packages plus the rendered overworld proof used by the release gate."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
