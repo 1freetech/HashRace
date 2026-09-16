@@ -78,6 +78,8 @@ jobs:
           python-version: '3.x'
       - name: Test the core mining and concept contract
         run: python tools/smoke_test.py
+      - name: Test the ten-miner league standings contract
+        run: python tools/test_league_contract.py
 
   cpp-core:
     runs-on: ubuntu-latest
