@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_league_standings.gd extends res://scripts/world_company_effects.gd so the existing material culture effects remain in the live inheritance chain.
-[ext_resource path="res://scripts/world_league_standings.gd" type="Script" id="1_world"]
+; world_life_ops.gd extends the league, company effects, flexible time, RPG and mining simulation inheritance chain.
+[ext_resource path="res://scripts/world_life_ops.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
@@ -36,6 +36,6 @@ offset_right = 1110.0
 offset_bottom = 500.0
 theme_override_colors/font_color = Color(0.745, 0.91, 0.94, 1)
 theme_override_font_sizes/font_size = 16
-text = "Building mining towns, league standings, scanner navigation, flexible turns, dynamic company personalities, material rating effects, strategy UI and collision grid...\n\nIf this screen remains, the world controller failed to initialize."
+text = "Building mining towns, league standings, life + operations, scanner navigation, flexible turns, dynamic company personalities, material rating effects, strategy UI and collision grid...\n\nIf this screen remains, the world controller failed to initialize."
 horizontal_alignment = 1
 vertical_alignment = 1
