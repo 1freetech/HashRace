@@ -1,0 +1,18 @@
+name: Hash Race smoke test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  mining-math:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Test the core mining math
+        run: python tools/smoke_test.py
