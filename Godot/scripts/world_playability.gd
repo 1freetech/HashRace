@@ -27,6 +27,27 @@ func projected_quarter_cash_result() -> float:
     revenue += float(player["weekly_bonus"])
     return revenue - operating_cost_per_day(player) * QUARTER_DAYS
 
+func projected_quarter_end_cash() -> float:
+    if towns.is_empty():
+        return 0.0
+    return float(towns[player_town_idx]["cash"]) + projected_quarter_cash_result()
+
+func quarter_risk_message() -> String:
+    if towns.is_empty():
+        return ""
+    var player := towns[player_town_idx]
+    var projection := projected_quarter_cash_result()
+    var end_cash := projected_quarter_end_cash()
+    var daily_cost := max(1.0, operating_cost_per_day(player))
+    var runway_days := max(0, int(end_cash / daily_cost))
+    if end_cash < 0.0:
+        return " DANGER: this projection puts cash below $0. Consider financing, selling BTC, cutting costs, or delaying expansion."
+    if projection < 0.0 and runway_days < 120:
+        return " WARNING: only about %d days of operating-cost runway remain after this quarter." % runway_days
+    if projection < 0.0:
+        return " Runway after the quarter is about %d days at today's operating cost." % runway_days
+    return " Projected quarter-end cash: $%d." % int(end_cash)
+
 func request_end_quarter() -> void:
     if campaign_complete:
         update_hud("Campaign already complete. Start a new campaign from the results screen.")
@@ -37,7 +58,7 @@ func request_end_quarter() -> void:
             quarter_button.text = "CONFIRM END QUARTER"
         var projection := projected_quarter_cash_result()
         var direction := "profit" if projection >= 0.0 else "loss"
-        update_hud("Quarter preview: projected cash %s $%d at current BTC, fees, uptime, power and hosting. Click CONFIRM END QUARTER to advance about 91 days." % [direction, abs(int(projection))])
+        update_hud("Quarter preview: projected cash %s $%d at current BTC, fees, uptime, power and hosting.%s Click CONFIRM END QUARTER to advance about 91 days." % [direction, abs(int(projection)), quarter_risk_message()])
         return
     quarter_confirmation_pending = false
     if is_instance_valid(quarter_button):
