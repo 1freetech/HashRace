@@ -1,16 +1,16 @@
 # Hash Race Downloads
 
-Current public version target: **v0.025**
+Current public version target: **v0.026**
 
-- [Windows x64 — Hash Race v0.025](https://github.com/1freetech/HashRace/releases/download/v0.025/HashRace-v0.025-windows-x64.zip)
-- [Linux x64 — Hash Race v0.025](https://github.com/1freetech/HashRace/releases/download/v0.025/HashRace-v0.025-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.026](https://github.com/1freetech/HashRace/releases/download/v0.026/HashRace-v0.026-windows-x64.zip)
+- [Linux x64 — Hash Race v0.026](https://github.com/1freetech/HashRace/releases/download/v0.026/HashRace-v0.026-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.025 reliability change
+## v0.026 gameplay balance fix
 
-The Life + Operations regression contract no longer hard-codes the old v0.023 release number. That stale assertion could make a healthy newer build fail simply because VERSION advanced. The contract now validates Hash Race's `v0.xxx` public-version format and continues checking the actual playable requirements: 0-100 Energy/Focus/Social, paid routines, persistent routine queue, elapsed-time decay, site fit, and the material uptime/research/partner effects introduced in v0.024. This is a small but important playability-pipeline fix because passing CI is required before a Godot desktop build is presented as downloadable.
+Queued Life + Operations routines now follow **simulated elapsed time instead of turn count**. RECOVER, TRAIN, and NETWORK execute about once per simulated month (30.4375 days) when queued and affordable. Previously a player using one-day turns could trigger a paid routine every day while a player using monthly turns triggered it once per month, making the flexible DAY/WEEK/MONTH/QUARTER clock materially inconsistent. The new elapsed-time accumulator gives every turn length the same long-term routine frequency. The Life + Site overview also shows the queued routine's monthly progress on the universal 0-100 scale.
 
 All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
 
