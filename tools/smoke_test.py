@@ -27,6 +27,9 @@ def main():
     overworld = Path("Godot/scripts/world_overworld.gd").read_text(encoding="utf-8")
     towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
     grid_world = Path("Godot/scripts/world_grid.gd").read_text(encoding="utf-8")
+    gbc_world = Path("Godot/scripts/world_gbc.gd").read_text(encoding="utf-8")
+    gb_paint = Path("Godot/scripts/gbstudio_paint.gd").read_text(encoding="utf-8")
+    tile_ops = Path("Godot/scripts/tilemap_studio_ops.gd").read_text(encoding="utf-8")
     grid_nav = Path("Godot/scripts/grid_navigation.gd").read_text(encoding="utf-8")
     playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
@@ -35,10 +38,11 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_grid.gd" in world_scene, "Live world must use the grid-aware multi-town RPG layer"
+    assert "world_gbc.gd" in world_scene, "Live world must use the pixel-tile company-town presentation layer"
     assert "BootFallback" in world_scene, "World scene must show a visible fallback instead of a blank gray screen"
     assert 'extends "res://scripts/world_overworld.gd"' in towns, "Town layer must retain the stable overworld core"
     assert 'extends "res://scripts/world_towns.gd"' in grid_world, "Grid layer must retain the town presentation layer"
+    assert 'extends "res://scripts/world_grid.gd"' in gbc_world, "Pixel layer must retain grid navigation"
     assert "validate_overworld.gd" in smoke_workflow
 
     setup_markers = ["MINING COMPANY", "CAMPAIGN LENGTH", "1 TURN = 1 QUARTER", "HALVING EVERY 16 TURNS", "range(1, 21)", "hashrace_company_idx", "hashrace_campaign_turns", "START MINING RACE"]
@@ -65,18 +69,32 @@ def main():
     for marker in grid_markers:
         assert marker in grid_world or marker in grid_nav, f"Grid/pathfinding layer missing: {marker}"
 
+    pixel_markers = [
+        "GBPaint", "TileOps", "ART_TILE_SIZE", "_build_art_tilemap", "_draw_pixel_tile_world",
+        "_draw_art_tile", "_draw_road_connections", "_draw_pixel_facility", "_draw_px",
+        "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed"
+    ]
+    for marker in pixel_markers:
+        assert marker in gbc_world, f"GBC-style tile renderer missing: {marker}"
+
+    for marker in ["paint_rect", "paint_line", "paint_matching", "Chris Maltby", "MIT"]:
+        assert marker in gb_paint, f"GB Studio-derived paint helper missing attribution/code: {marker}"
+
+    for marker in ["flood_fill", "substitute_tile", "swap_tiles", "Tilemap Studio", "LGPL-3.0"]:
+        assert marker in tile_ops, f"Tilemap Studio adapted operation missing: {marker}"
+
     playability_markers = ["PREPARE SAFE QUARTER", "prepare_safe_quarter", "BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "QUARTER_STRATEGY_PRESETS", '"CASH"', '"BALANCED"', '"HODL"', "cycle_quarter_strategy", "TREASURY_RESCUE_RESERVE", "auto_fund_next_quarter", "sell_sats_for_cash", "projected_quarter_end_cash", "CONFIRM END QUARTER"]
     for marker in playability_markers:
         assert marker in playability, f"Quarterly playability layer missing: {marker}"
 
-    for marker in ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter", "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market"]:
-        assert marker in validator or marker in overworld or marker in towns, f"Runtime validation missing: {marker}"
+    for marker in ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter", "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market", "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed"]:
+        assert marker in validator or marker in overworld or marker in towns or marker in gbc_world, f"Runtime validation missing: {marker}"
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/grid_navigation.gd", "Godot/scripts/world_grid.gd"]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/grid_navigation.gd", "Godot/scripts/world_grid.gd", "Godot/scripts/world_gbc.gd", "Godot/scripts/gbstudio_paint.gd", "Godot/scripts/tilemap_studio_ops.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: campaign setup, ten Bitcoin mining companies, external partner economy, towns, grid navigation, treasury controls, safe-quarter preparation, smart quarter funding, CASH/BALANCED/HODL quarter plans, and runtime validation are present.")
+    print("Hash Race smoke test passed: campaign setup, ten Bitcoin mining companies, external partner economy, towns, grid navigation, GBC-style tiled rendering, GB Studio paint helpers, Tilemap Studio operations, treasury controls, safe-quarter preparation, smart quarter funding, CASH/BALANCED/HODL quarter plans, and runtime validation are present.")
 
 
 if __name__ == "__main__":
