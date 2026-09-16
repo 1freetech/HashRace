@@ -29,7 +29,9 @@ func _run() -> void:
     var required_methods: Array = [
         "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_player_company",
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_player_rep_name",
-        "debug_has_land_market", "_open_entity", "_end_quarter"
+        "debug_has_land_market", "debug_grid_navigation_ready", "debug_grid_path_exists",
+        "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed",
+        "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
@@ -57,6 +59,21 @@ func _run() -> void:
     if not bool(scene.call("debug_has_dialogue_ui")):
         _fail("RPG dialogue/action interface is missing")
         return
+    if not bool(scene.call("debug_grid_navigation_ready")):
+        _fail("grid navigation did not initialize")
+        return
+    if not bool(scene.call("debug_grid_path_exists")):
+        _fail("grid navigation could not produce a valid route")
+        return
+    if not bool(scene.call("debug_gbc_map_ready")):
+        _fail("GBC-style art tilemap did not initialize")
+        return
+    if int(scene.call("debug_gbc_road_tiles")) < 40:
+        _fail("pixel tilemap does not contain enough road tiles")
+        return
+    if int(scene.call("debug_tile_ops_changed")) <= 0:
+        _fail("ported tilemap operations did not modify the live map")
+        return
     if String(scene.call("debug_player_company")) != "ArcShift Mining":
         _fail("campaign company selection did not reach the overworld")
         return
@@ -76,5 +93,5 @@ func _run() -> void:
         _fail("quarter settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: visible world initialized, ten towns, ten mining reps, nine partner reps, land market, scanner techwear, dialogue actions, selected company, camera, and quarter settlement verified.")
+    print("HASH RACE OVERWORLD PASS: visible pixel-tile world initialized, ten towns, ten mining reps, nine partner reps, land market, scanner techwear, grid pathfinding, GB Studio paint helpers, Tilemap Studio terrain operations, dialogue actions, selected company, camera, and quarter settlement verified.")
     quit(0)
