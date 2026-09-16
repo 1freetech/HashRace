@@ -1,12 +1,10 @@
-name: Hash Race Desktop Release
+name: Hash Race Godot Desktop Release
 
 on:
   push:
     branches: [main]
     paths:
-      - 'desktop/**'
       - 'VERSION'
-      - '.github/workflows/desktop-release.yml'
   workflow_dispatch:
 
 permissions:
@@ -17,54 +15,62 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rid: [win-x64, linux-x64]
+        include:
+          - preset: Windows Desktop
+            platform: windows-x64
+            export_path: build/windows/HashRace.exe
+            package_name: windows-x64.zip
+          - preset: Linux
+            platform: linux-x64
+            export_path: build/linux/HashRace.x86_64
+            package_name: linux-x64.tar.gz
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
 
-      - name: Set up .NET 8
-        uses: actions/setup-dotnet@v4
+      - name: Set up Godot 4.7.2 with export templates
+        uses: chickensoft-games/setup-godot@v2
         with:
-          dotnet-version: '8.0.x'
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
 
       - name: Read version
         id: version
         shell: bash
         run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Publish self-contained game
+      - name: Verify current Godot game boots
         shell: bash
-        run: >-
-          dotnet publish desktop/HashRace.Desktop/HashRace.Desktop.csproj
-          -c Release
-          -r ${{ matrix.rid }}
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:DebugType=None
-          -p:DebugSymbols=false
-          -o publish/${{ matrix.rid }}
+        run: godot --headless --path Godot --quit-after 3
+
+      - name: Export current Godot game
+        shell: bash
+        run: |
+          mkdir -p "$(dirname '${{ matrix.export_path }}')"
+          godot --headless --path Godot --export-release "${{ matrix.preset }}" "${{ matrix.export_path }}"
 
       - name: Package Windows build
-        if: matrix.rid == 'win-x64'
+        if: matrix.platform == 'windows-x64'
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.value }}"
-          cd publish/win-x64
+          cd build/windows
           zip -j "../../HashRace-${VERSION}-windows-x64.zip" HashRace.exe
 
       - name: Package Linux build
-        if: matrix.rid == 'linux-x64'
+        if: matrix.platform == 'linux-x64'
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.value }}"
-          chmod +x publish/linux-x64/HashRace
-          tar -czf "HashRace-${VERSION}-linux-x64.tar.gz" -C publish/linux-x64 HashRace
+          chmod +x build/linux/HashRace.x86_64
+          tar -czf "HashRace-${VERSION}-linux-x64.tar.gz" -C build/linux HashRace.x86_64
 
       - name: Upload packaged build
         uses: actions/upload-artifact@v4
         with:
-          name: HashRace-${{ steps.version.outputs.value }}-${{ matrix.rid }}
-          path: HashRace-${{ steps.version.outputs.value }}-*
+          name: HashRace-${{ steps.version.outputs.value }}-${{ matrix.platform }}
+          path: HashRace-${{ steps.version.outputs.value }}-${{ matrix.package_name }}
           if-no-files-found: error
 
   release:
@@ -86,7 +92,7 @@ jobs:
           path: release
           merge-multiple: true
 
-      - name: Create or refresh GitHub release
+      - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.value }}
@@ -94,11 +100,10 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
+          NOTES="Current Godot Hash Race build with the interactive Bitcoin mining tech-town world, selectable campaign clock from 1 year/4 turns through 20 years/80 turns, quarterly turns, 16-turn halvings, unique company starting strengths, machines/MW/land/energy/cooling/chip progression, NPC partnerships, hosting, asset-backed bank and government financing, debt repayment, and final campaign standings."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
+            gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES"
           else
-            gh release create "$VERSION" release/* \
-              --target "$GITHUB_SHA" \
-              --title "Hash Race $VERSION" \
-              --notes "Playable Hash Race desktop prototype. Windows and Linux builds are self-contained. This early version focuses on the company race, ASIC evolution, facilities, partnerships, league standings, R&D, acquisitions, and mining economics."
+            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "Hash Race $VERSION" --notes "$NOTES"
           fi
