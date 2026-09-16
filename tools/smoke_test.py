@@ -36,11 +36,28 @@ def main():
 
     base_site_mw = 0.10
     infrastructure_partner_mw = base_site_mw * 1.35
+    real_estate_partner_mw = infrastructure_partner_mw * 1.20
     assert infrastructure_partner_mw > base_site_mw, "Infrastructure partnerships must increase usable site capacity"
+    assert real_estate_partner_mw > infrastructure_partner_mw, "Real estate partnerships must add more site capacity"
 
     source = Path("Assets/Scripts/HashRacePrototype.cs").read_text(encoding="utf-8")
     assert source.count("companyProfiles.Add(new CompanyProfile") == 10, "Hash Race must keep ten selectable company archetypes"
-    assert source.count("partnerships.Add(new StrategicPartnership") == 6, "Hash Race must keep six strategic partnership paths"
+    assert source.count("partnerships.Add(new StrategicPartnership") == 10, "Hash Race must keep ten strategic partnership paths"
+
+    required_partnerships = [
+        '"AI"',
+        '"Robotics"',
+        '"Energy"',
+        '"Semiconductor"',
+        '"Finance"',
+        '"Infrastructure"',
+        '"Real Estate"',
+        '"Quick Service"',
+        '"Telecom"',
+        '"Sports"',
+    ]
+    for partnership in required_partnerships:
+        assert partnership in source, f"Missing partnership sector: {partnership}"
 
     required_systems = [
         "FranchiseRating",
@@ -49,11 +66,12 @@ def main():
         "TryAcquire",
         "ProcessWorldEvent",
         "CurrentSeason",
+        "DailyPartnerRevenue",
     ]
     for system in required_systems:
         assert system in source, f"Missing required strategy system: {system}"
 
-    print("Hash Race smoke test passed: mining math, partnerships, companies, infrastructure, league, and acquisition systems are present and sane.")
+    print("Hash Race smoke test passed: mining math, ten partnership paths, ten companies, infrastructure, league, partner revenue, and acquisition systems are present and sane.")
 
 
 if __name__ == "__main__":
