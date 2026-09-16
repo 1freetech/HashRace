@@ -1,8 +1,8 @@
 extends "res://scripts/world_league_standings.gd"
 
-# v0.023: life/operations layer inspired by open-source simulation projects.
-# Concepts are adapted for Hash Race; no Sims assets, names, characters, or proprietary content are used.
-# All life ratings follow Hash Race's universal 0-100 gameplay scale.
+# v0.024: life/operations ratings now have material gameplay consequences.
+# Low energy/focus/social reduce uptime, research effectiveness and deal execution;
+# healthy operator management earns small bounded bonuses. All ratings stay 0-100.
 
 var operator_energy: float = 72.0
 var operator_focus: float = 68.0
@@ -32,7 +32,7 @@ func _install_life_ops_ui() -> void:
     overview.position = Vector2(1080.0, 202.0)
     overview.size = Vector2(330.0, 36.0)
     overview.text = "LIFE + SITE OVERVIEW"
-    overview.tooltip_text = "Preview operator needs, facility context, queued routine and site fit."
+    overview.tooltip_text = "Preview operator needs, live gameplay effects, facility context, queued routine and site fit."
     overview.pressed.connect(_open_life_overview)
     layer.add_child(overview)
 
@@ -76,6 +76,27 @@ func _install_life_ops_ui() -> void:
 func _life_score() -> float:
     return clampf((operator_energy + operator_focus + operator_social) / 3.0, 0.0, 100.0)
 
+func _rating_effect(value: float, maximum_swing: float) -> float:
+    return clampf((value - 50.0) / 50.0, -1.0, 1.0) * maximum_swing
+
+func _life_uptime_adjustment() -> float:
+    return _rating_effect(operator_energy, 0.025)
+
+func _life_research_cost_multiplier() -> float:
+    return clampf(1.0 - _rating_effect(operator_focus, 0.08), 0.92, 1.08)
+
+func _life_partner_cost_multiplier() -> float:
+    return clampf(1.0 - _rating_effect(operator_social, 0.08), 0.92, 1.08)
+
+func _uptime() -> float:
+    return clampf(super._uptime() + _life_uptime_adjustment(), 0.82, 0.995)
+
+func _research_cost_multiplier() -> float:
+    return clampf(super._research_cost_multiplier() * _life_research_cost_multiplier(), 0.82, 1.20)
+
+func _partner_cost_multiplier() -> float:
+    return clampf(super._partner_cost_multiplier() * _life_partner_cost_multiplier(), 0.82, 1.20)
+
 func _site_fit_score() -> int:
     if player.is_empty():
         return 0
@@ -86,7 +107,7 @@ func _site_fit_score() -> int:
 
 func _open_life_overview() -> void:
     dialog_title.text = "OPERATOR LIFE + MINING SITE"
-    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s\n\nHigher life ratings represent a healthier management workload. Site fit compares installed miners with available power and land so expansion problems are visible before the next turn." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine]
+    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s\n\nEnergy now changes mining uptime, Focus changes research cost, and Social changes partner/deal cost. Manage the operator before advancing long turns or accept the operational penalty." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine]
     _set_actions([])
 
 func _spend_for_routine(cost: float) -> bool:
@@ -102,7 +123,7 @@ func _recover_operator(silent: bool = false) -> bool:
     operator_energy = minf(100.0, operator_energy + 24.0)
     operator_focus = minf(100.0, operator_focus + 8.0)
     if not silent:
-        _feedback("RECOVER: -$500 • Energy and focus restored.")
+        _feedback("RECOVER: -$500 • Energy and focus restored; mining uptime improves with Energy.")
     _refresh_ui()
     return true
 
@@ -112,7 +133,7 @@ func _train_operator(silent: bool = false) -> bool:
     operator_focus = minf(100.0, operator_focus + 18.0)
     operator_energy = maxf(0.0, operator_energy - 5.0)
     if not silent:
-        _feedback("TRAIN: -$1,500 • Focus improved; training used some energy.")
+        _feedback("TRAIN: -$1,500 • Focus improved, lowering research cost; training used some energy.")
     _refresh_ui()
     return true
 
@@ -122,7 +143,7 @@ func _network_operator(silent: bool = false) -> bool:
     operator_social = minf(100.0, operator_social + 22.0)
     operator_energy = maxf(0.0, operator_energy - 3.0)
     if not silent:
-        _feedback("NETWORK: -$1,000 • Social capacity restored for partner and deal work.")
+        _feedback("NETWORK: -$1,000 • Social improved, lowering partner/deal cost; networking used some energy.")
     _refresh_ui()
     return true
 
@@ -154,3 +175,6 @@ func _refresh_ui() -> void:
 
 func debug_life_ops_ready() -> bool:
     return operator_energy >= 0.0 and operator_energy <= 100.0 and operator_focus >= 0.0 and operator_focus <= 100.0 and operator_social >= 0.0 and operator_social <= 100.0 and _site_fit_score() >= 0 and _site_fit_score() <= 100
+
+func debug_life_effects_material() -> bool:
+    return _life_uptime_adjustment() != 0.0 and _life_research_cost_multiplier() != 1.0 and _life_partner_cost_multiplier() != 1.0
