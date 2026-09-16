@@ -88,11 +88,13 @@ def main():
     campaign_markers = [
         "QUARTER_DAYS", "TURNS_PER_YEAR := 4", "HALVING_TURNS := 16", "MAX_CAMPAIGN_YEARS := 20",
         "END QUARTER", "block_subsidy_btc *= 0.5", "configure_company_starts", "eligible_loan_offer",
-        "Community Bank", "Government", "debt_rate", "GET ASSET LOAN"
+        "Community Bank", "Government", "debt_rate", "GET ASSET LOAN",
+        "repay_loan", "REPAY LOAN", "operating_reserve", "final_standings", "show_campaign_results",
+        "HASH RACE // FINAL STANDINGS", "Winner:", "START NEW CAMPAIGN"
     ]
+    source = campaign + profiles
     for marker in campaign_markers:
-        source = campaign + profiles
-        assert marker in source, f"Quarterly campaign/company financing system missing: {marker}"
+        assert marker in source, f"Quarterly campaign/company financing or finish system missing: {marker}"
 
     for marker in ["POWER COST + PROFIT", "ACRES + MW", "CASH + FINANCING", "MACHINES + MW", "CASH + ACRES"]:
         assert marker in profiles, f"Company strength profile missing: {marker}"
@@ -100,7 +102,7 @@ def main():
     for lender in ["Community Bank", "Commercial Bank", "Infrastructure Bank", "State Development Fund", "Strategic Infrastructure Program"]:
         assert lender in profiles, f"Asset-tier lender missing: {lender}"
 
-    print("Hash Race smoke test passed: the opening company/clock menu, quarterly 1-20 year campaign, halving clock, ten tech towns, company stat strengths, asset-tier bank/government financing, seven-stat economy, sites, energy/cooling/chips, partners, hosting, mining math, and polyglot support are present.")
+    print("Hash Race smoke test passed: the opening company/clock menu, quarterly campaign, halving clock, ten tech towns, company strengths, two-way asset financing, final standings/winner screen, seven-stat economy, sites, energy/cooling/chips, partners, hosting, mining math, and polyglot support are present.")
 
 
 if __name__ == "__main__":
