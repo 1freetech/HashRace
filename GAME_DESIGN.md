@@ -85,6 +85,10 @@ Current prototype events include:
 - Maintenance failures
 - Regional development/site opportunities
 - Investor financing
+- Property development deals
+- Retail branding opportunities
+- Telecom outages
+- Sports sponsorship opportunities
 
 Future 2D maps can allow the player to move through facilities, visit partner companies, inspect racks, meet engineers, and interact with business opportunities. The open-world influence should add personality without turning Hash Race into an action game.
 
@@ -145,7 +149,39 @@ Partnerships are the second technology tree. They should be powerful enough that
 - Cheaper site expansion
 - Strong path toward PH/s and EH/s scale
 
+### Real Estate — MetroLand Development Group
+
+- Cheaper land and site expansion
+- More effective usable site capacity
+- Future versions can add leases, land appreciation, zoning, taxes, and property portfolios
+
+### Quick Service — QuickBite Franchise Network
+
+- Creates steady non-mining commercial income
+- Adds brand visibility and retail sponsorship opportunities
+- Future versions can add branded locations, franchise deals, and heat-reuse partnerships
+
+### Telecom — FiberGrid Communications
+
+- Better network uptime
+- Lower operating costs
+- Future versions can add carrier redundancy, latency, bandwidth, network outages, and private fiber builds
+
+### Sports — Pro Sports Alliance
+
+- Adds sponsorship income
+- Adds franchise prestige and OVR value
+- Future versions can add team sponsorships, league partnerships, naming rights, stadium deals, and seasonal marketing events
+
 Partnerships require minimum company value, technology progress, and cash. A small early-game company cannot instantly sign every major partner.
+
+## Partnership philosophy
+
+Hash Race partnerships do not need to stay inside Bitcoin or technology. A successful company can become a broader business empire.
+
+A mining company might partner with an AI company for research, an energy company for cheaper electricity, a real-estate developer for land, a telecom provider for connectivity, a food franchise for commercial cash flow, or a sports organization for sponsorship and brand power.
+
+The important design rule is that every partnership must change a real game system. Partnerships should never be badges that only decorate the UI.
 
 ## Mining economics
 
