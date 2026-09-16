@@ -36,6 +36,7 @@ def main():
     rpg_world = Path("Godot/scripts/world_rpg_strategy.gd").read_text(encoding="utf-8")
     time_scale = Path("Godot/scripts/world_time_scale.gd").read_text(encoding="utf-8")
     company_ai = Path("Godot/scripts/world_company_ai.gd").read_text(encoding="utf-8")
+    treasury = Path("Godot/scripts/live_treasury_controls.gd").read_text(encoding="utf-8")
     playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
@@ -53,94 +54,37 @@ def main():
     assert 'extends "res://scripts/world_time_scale.gd"' in company_ai
     assert "validate_overworld.gd" in workflow
 
-    require(setup, [
-        "MINING COMPANY", "CAMPAIGN LENGTH", "DEFAULT: 1 TURN = 1 MONTH",
-        "DAY / WEEK / MONTH / QUARTER", "range(1, 21)", "hashrace_company_idx",
-        "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d"
-    ], "Campaign setup")
-
-    companies = [
-        "VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining",
-        "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining",
-        "LatticeX Mining", "Epoch Vector Mining"
-    ]
+    require(setup, ["MINING COMPANY", "CAMPAIGN LENGTH", "DEFAULT: 1 TURN = 1 MONTH", "DAY / WEEK / MONTH / QUARTER", "range(1, 21)", "hashrace_company_idx", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d"], "Campaign setup")
+    companies = ["VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining", "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining", "LatticeX Mining", "Epoch Vector Mining"]
     require(profiles, companies, "Mining-company profile")
-    require(profiles, [
-        '"background"', '"controversy"', '"posture"', '"affinity"',
-        '"aggression"', '"risk"', '"growth"', '"research"', '"treasury"',
-        '"operations"', '"reputation"'
-    ], "Dynamic company profile")
+    require(profiles, ['"background"', '"controversy"', '"posture"', '"affinity"', '"aggression"', '"risk"', '"growth"', '"research"', '"treasury"', '"operations"', '"reputation"'], "Dynamic company profile")
     assert profiles.count('"background"') >= 10
     assert profiles.count('"controversy"') >= 10
 
-    require(overworld, [
-        "COMPANY OVERWORLD", "HashWorks ASIC Exchange", "Gridline Power Office",
-        "Cascadia Utility District", "FoundryWorks Silicon", "Meridian Finance Cooperative",
-        "QuickBite Services", "Pro Circuit Sports", "BlueRiver Energy Authority",
-        "BUY 10 MACHINES", "CHANGE ENERGY", "TAKE LOAN", "REPAY DEBT",
-        "STRIKE DEAL", "ATTEMPT ONE-TIME MERGER", "federal_rate", "land_price_per_acre"
-    ], "Live overworld")
-    require(towns, [
-        "TOWN_NAMES", "COMPANY_REPS", "PARTNER_REPS", "rival_rep", "partner_rep",
-        "TOWN TRANSIT", "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"
-    ], "Town layer")
-    require(gbc_world, [
-        "GBPaint", "TileOps", "ART_TILE_SIZE", "_build_art_tilemap",
-        "_draw_pixel_tile_world", "debug_gbc_map_ready"
-    ], "Pixel renderer")
-    require(rpg_world, [
-        "RPGMovement", "SCANNER_RANGE_CELLS", "SCANNER GRID",
-        "_draw_scanner_overlay", "debug_rpg_collision_ready", "debug_scanner_reachable_count"
-    ], "RPG strategy layer")
+    require(overworld, ["COMPANY OVERWORLD", "HashWorks ASIC Exchange", "Gridline Power Office", "Cascadia Utility District", "FoundryWorks Silicon", "Meridian Finance Cooperative", "QuickBite Services", "Pro Circuit Sports", "BlueRiver Energy Authority", "BUY 10 MACHINES", "CHANGE ENERGY", "TAKE LOAN", "REPAY DEBT", "STRIKE DEAL", "ATTEMPT ONE-TIME MERGER", "federal_rate", "land_price_per_acre"], "Live overworld")
+    require(towns, ["TOWN_NAMES", "COMPANY_REPS", "PARTNER_REPS", "rival_rep", "partner_rep", "TOWN TRANSIT", "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"], "Town layer")
+    require(gbc_world, ["GBPaint", "TileOps", "ART_TILE_SIZE", "_build_art_tilemap", "_draw_pixel_tile_world", "debug_gbc_map_ready"], "Pixel renderer")
+    require(rpg_world, ["RPGMovement", "SCANNER_RANGE_CELLS", "SCANNER GRID", "_draw_scanner_overlay", "debug_rpg_collision_ready", "debug_scanner_reachable_count"], "RPG strategy layer")
 
-    require(time_scale, [
-        '"DAY", "days": 1.0', '"WEEK", "days": 7.0', '"MONTH", "days": 30.4375',
-        '"QUARTER", "days": 91.3125', "turn_length_days", "turn_length_name",
-        "_cycle_turn_length", "_project_scaled_profit", "_simulate_rivals_scaled",
-        "_advance_market_scaled", "HALVING_DAYS", "elapsed_campaign_days",
-        "recurring_income", "CONFIRM %s TURN", "1 turn = %s"
-    ], "Flexible season clock")
-    assert "* days" in time_scale, "Time-based mining economics must scale with elapsed days"
-    assert "days / 365.0" in time_scale, "Debt interest must remain annualized"
-    assert "days / 91.3125" in time_scale, "Quarter-authored recurring income must be prorated"
+    require(time_scale, ['"DAY", "days": 1.0', '"WEEK", "days": 7.0', '"MONTH", "days": 30.4375', '"QUARTER", "days": 91.3125', "turn_length_days", "turn_length_name", "_cycle_turn_length", "_project_scaled_profit", "_simulate_rivals_scaled", "_advance_market_scaled", "HALVING_DAYS", "elapsed_campaign_days", "recurring_income", "CONFIRM %s TURN", "1 turn = %s"], "Flexible season clock")
+    assert "* days" in time_scale
+    assert "days / 365.0" in time_scale
+    assert "days / 91.3125" in time_scale
 
-    require(company_ai, [
-        "CULTURE_MONTH_DAYS", "_new_personality", "_posture", "_ratings_text",
-        "_evolve_player_culture", "_run_rival_month", "_maybe_rival_partnership",
-        "_maybe_rival_controversy", "_maybe_player_controversy",
-        "Aggressive", "Conservative", "Moderate", "CURRENT CULTURE",
-        "FOUNDING CONTROVERSY", "Current action", "Recent controversy",
-        "debug_company_personality_ready", "debug_rival_personality_count",
-        "debug_personality_ratings_in_range"
-    ], "Dynamic company AI")
+    require(company_ai, ["CULTURE_MONTH_DAYS", "_new_personality", "_posture", "_ratings_text", "_evolve_player_culture", "_run_rival_month", "_maybe_rival_partnership", "_maybe_rival_controversy", "_maybe_player_controversy", "Aggressive", "Conservative", "Moderate", "CURRENT CULTURE", "FOUNDING CONTROVERSY", "Current action", "Recent controversy", "debug_company_personality_ready", "debug_rival_personality_count", "debug_personality_ratings_in_range"], "Dynamic company AI")
     for key in ["aggression", "risk", "growth", "research", "treasury", "operations", "reputation"]:
         assert key in company_ai
 
-    require(playability, [
-        "BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER",
-        "QUARTER PLAN", "PREPARE SAFE QUARTER"
-    ], "Treasury playability layer")
-    require(validator, [
-        "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui",
-        "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready"
-    ], "Runtime validator")
+    require(treasury, ["HSlider", "min_value = 0.0", "max_value = 100.0", "step = 1.0", "BTC HOLD POLICY: %d / 100", "_on_hold_policy_changed", "turn_length_days", "_project_scaled_profit", "AUTO-FUND SAFE TURN"], "Live 0-100 treasury strategy")
+    assert "HOLD_POLICIES" not in treasury, "BTC hold policy must not be restricted to presets"
+    require(playability, ["BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "PREPARE SAFE QUARTER"], "Treasury playability layer")
+    require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready"], "Runtime validator")
 
-    required_support = [
-        "native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs",
-        "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md",
-        "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg",
-        "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd",
-        "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd"
-    ]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print(
-        "Hash Race smoke test passed: ten Bitcoin mining companies now have fictional "
-        "backgrounds, controversy histories, mutable 0-100 culture ratings, personality-driven "
-        "rival actions, external partner economy, RPG world, grid navigation, treasury controls, "
-        "and day/week/month/quarter season clock."
-    )
+    print("Hash Race smoke test passed: ten Bitcoin mining companies, mutable 0-100 company ratings, a fully adjustable 0-100 BTC hold strategy, external partner economy, RPG world, grid navigation, and day/week/month/quarter season clock are present.")
 
 
 if __name__ == "__main__":
