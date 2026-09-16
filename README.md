@@ -1,49 +1,38 @@
 # Hash Race
 
-**Hash Race** is a 2D Bitcoin mining strategy simulation centered on competition between fictional Bitcoin mining companies. The game combines hardware development, facility management, financial strategy, acquisitions, external partnerships, long-term company growth, quarterly competition, and progression through increasingly powerful generations of mining hardware.
+**Hash Race** is a 2D Bitcoin mining strategy simulation built around competition between fictional Bitcoin mining companies. The game combines hardware deployment, power and land expansion, BTC treasury management, financing, research, partnerships, mergers, company culture, market cycles, and an explorable top-down company world.
 
-The project follows a mining company from a small operator into a large-scale industrial organization. Players manage hashrate, energy efficiency, electricity costs, infrastructure, research, company value, financing, land, power and strategic relationships while competing against rival mining companies.
+The player begins as one of ten mining companies and attempts to build a stronger operation across a multi-year campaign. Rival miners continue making their own decisions while Bitcoin price, network hashrate, energy markets, land values, interest rates, and halvings change around them.
 
 ## Play Hash Race
 
-The current public desktop version is **v0.014**.
+The current public desktop release remains **v0.014**. The repository development version is **v0.021**.
 
 - **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
 - [Download Hash Race v0.014 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.014/HashRace-v0.014-windows-x64.zip)
 - [Download Hash Race v0.014 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.014/HashRace-v0.014-linux-x64.tar.gz)
 - [View all Hash Race releases](https://github.com/1freetech/HashRace/releases)
 
-The primary **latest release** link always points to GitHub's `/releases/latest` page, so it automatically follows the newest public playable build. The explicit version and platform links above are updated with each public release.
+The desktop game uses **Godot 4.7.2 and GDScript**. Older Unity/C# code remains in the repository as prototype and migration reference material where useful.
 
-The downloadable desktop game is built in **Godot 4.7.2 using GDScript**. Windows and Linux builds are exported from the same live Godot project used by the current company-world gameplay. Earlier C# and Unity prototypes remain in the repository only as migration and reference material where useful.
+## Game structure
 
-## Game concept
+All playable companies and league rivals are Bitcoin miners. AI, semiconductor, robotics, energy, telecommunications, finance, real-estate, infrastructure, service, sports, and other companies exist as external NPC organizations that can provide partnerships and strategic advantages.
 
-Hash Race is structured around competition between Bitcoin mining companies. All ten playable and rival companies operate as Bitcoin miners.
+A campaign includes mining, buying hardware, securing power, acquiring land, improving technology, managing BTC, borrowing and repaying capital, signing external deals, exploring company towns, competing with rivals, and optionally completing one merger.
 
-Organizations from other industries appear as non-player partners rather than competing mining companies. These industries include artificial intelligence, robotics, semiconductors, energy, telecommunications, real estate, finance, infrastructure, quick-service and retail businesses, and sports organizations.
+## Flexible turn system
 
-External partners can provide strategic advantages such as improved technology, lower energy costs, additional machines, better efficiency, automation, additional land, financing, network reliability, sponsorship revenue, commercial income, or infrastructure support.
+A campaign is selected in years. The default strategic turn is **one month**, but the live game can switch between:
 
-## Gameplay
+- **Day**
+- **Week**
+- **Month**
+- **Quarter**
 
-A typical Hash Race campaign includes the following activities:
+Changing turn length changes how often the player makes decisions. Mining output, power cost, debt interest, recurring income, halvings, market movement, rival behavior, and company-culture development are all scaled by elapsed days so the underlying economics remain consistent.
 
-1. Selecting one of ten fictional Bitcoin mining companies with distinct starting strengths.
-2. Choosing a fixed campaign clock from 1 year / 4 turns through 20 years / 80 turns.
-3. Walking a top-down company-world map as a company representative.
-4. Visiting rival firms, banks, ASIC markets, land markets, utilities and partner organizations.
-5. Purchasing ASIC miners while remaining within energized power limits.
-6. Buying land and adding MW capacity as the company expands.
-7. Selecting and upgrading energy, cooling and chip strategies.
-8. Forming partnerships with technology, energy, finance, infrastructure, real-estate, service and sports organizations.
-9. Managing debt, cash, sats, BTC treasury policy and changing market conditions.
-10. Competing with rival mining companies and optionally completing one merger during the campaign.
-11. Ending a quarter only after the player is ready to advance the simulation.
-
-One turn equals one quarter. Four turns equal one year. The game models a halving every 16 turns, or approximately four in-game years.
-
-## Mining companies
+## Ten Bitcoin mining companies
 
 Hash Race currently includes ten fictional Bitcoin mining companies:
 
@@ -53,87 +42,82 @@ Hash Race currently includes ten fictional Bitcoin mining companies:
 - **IronVector Mining** — land and MW infrastructure strength
 - **Meridian Zero Mining** — cash and financing strength
 - **BlueNova Mining** — energy and profitability strength
-- **SignalFlux Mining** — machines and energy strength
+- **SignalFlux Mining** — machines and operating reliability strength
 - **Parallax Core Mining** — machines and MW capacity strength
-- **LatticeX Mining** — power-cost and machine strength
+- **LatticeX Mining** — efficiency, machines, and research strength
 - **Epoch Vector Mining** — cash and land strength
 
-Each company has its own town/HQ identity and representative. Representatives use original futuristic techwear and single-eye scanner visors.
+Each miner has a fictional company history, a past controversy, a starting strategy, a representative, and a home town. The histories use common business and mining-industry problems without copying a specific real company.
+
+## Dynamic company personality
+
+Each mining company uses seven ratings on a **0–100 scale**:
+
+- Aggression
+- Risk
+- Growth
+- R&D
+- Treasury
+- Operations
+- Reputation
+
+Aggression and Risk produce the company's current **Aggressive, Moderate, or Conservative** posture. These ratings are not permanent classes. Expansion, debt, research, BTC policy, profitability, partnerships, controversies, and other decisions move them over time.
+
+Rival AI uses the current ratings when deciding whether to expand the fleet, invest in research, add infrastructure, preserve cash, or pursue a partnership. A company can therefore change strategy during a campaign instead of following the same script forever.
+
+### Material gameplay effects
+
+Version **v0.021** fixes a weakness in the original personality implementation: the player's ratings previously changed but were mostly descriptive. The live ratings now affect actual game economics.
+
+- **Operations** modifies effective mining uptime.
+- **Treasury + Reputation** modify borrowing rates.
+- **Reputation** modifies partnership costs.
+- **R&D + Operations** modify chip-development costs.
+- **Growth + Operations** modify ASIC, MW, and land expansion costs.
+- Very high **Aggression + Risk** can create a rush premium during expansion.
+- **Aggression + Reputation** modify merger negotiation costs.
+- **Aggression + Risk** increase controversy exposure.
+
+The modifiers are intentionally bounded so company culture shapes strategy without becoming more important than power, hardware, cash, market conditions, or player decisions. Detailed rules are documented in [docs/COMPANY_PERSONALITY_SYSTEM.md](docs/COMPANY_PERSONALITY_SYSTEM.md).
 
 ## External partner market
 
-Non-player organizations influence company growth through partnerships and commercial agreements.
+External organizations form a second business and technology tree.
 
-- **Utility and energy** — cheaper electricity, PPAs, hydro access and clean-power advantages
-- **Real estate** — additional land and lower future land costs
-- **Infrastructure** — more MW capacity and cheaper future interconnect work
-- **Semiconductors** — additional machines, fleet-efficiency gains and machine discounts
-- **Finance** — more cash and improved borrowing terms
-- **Food and services** — recurring commercial income
-- **Sports** — sponsorship and recurring income
-- **Digital finance** — treasury and sats-related advantages
+- **Utility / energy** — lower power costs, PPAs, hydro access, clean-power advantages
+- **Real estate** — land and site expansion
+- **Infrastructure** — MW and interconnect capacity
+- **Semiconductors** — machines, efficiency, and hardware discounts
+- **Finance** — cash, borrowing capacity, and lower financing friction
+- **Food / services** — recurring commercial revenue
+- **Sports** — sponsorship and recurring revenue
+- **Digital finance** — BTC and sats treasury advantages
+- **Telecommunications** — connectivity and operational reliability
 
-These organizations are part of the wider business environment and are not selectable mining competitors.
+These organizations are not mining competitors.
 
-## Financing and markets
+## Mining and market model
 
-The lender ladder begins with **Local Joker Bank**, a small high-cost lender, and progresses toward larger lower-spread commercial, infrastructure, state and federal financing sources as company assets increase.
-
-Loan pricing is influenced by the simulated Federal rate. BTC price, land value and energy markets also move over time. Rare market shocks can affect BTC and land differently, including technology-style crashes and property/logistics-style crashes.
-
-Asset value influences borrowing capacity. Land, cash, sats, machines, MW capacity and company development all contribute to the financing model.
-
-## Visual, map and movement system
-
-Hash Race uses a tile-built pixel world rather than relying only on large procedural debug rectangles. Roads, water, company lots, plazas and terrain are aligned to a logical map grid and use compact four-shade material palettes for stronger handheld-RPG readability.
-
-The live map includes original pixel-style mining facilities, company representatives, scanner visors, solar and substation props, grid navigation and tile-aware company districts. Nearest-neighbor texture filtering is used so future sprite and tileset artwork remains sharp.
-
-Version **v0.014** adds collision-safe RPG movement and a real scanner navigation layer. Keyboard movement respects blocked map cells, the company representative tracks up/down/left/right facing state, interactions turn the representative toward the nearby company/NPC, and the scanner visor can display nearby reachable grid cells with **R**. Click-to-walk uses four-direction A* routing with compressed straight-line waypoints.
-
-The RPG movement helper adapts CC0 code structure from **Python-Monsters** by Clear Code Projects. Small map-painting helpers are adapted from **GB Studio** under the MIT license. Isolated tile editing operations are adapted from **Tilemap Studio** under LGPL-3.0. Licensing and attribution details are documented in [docs/THIRD_PARTY_TILEMAP.md](docs/THIRD_PARTY_TILEMAP.md) and [docs/RPG_STRATEGY_REFERENCES.md](docs/RPG_STRATEGY_REFERENCES.md).
-
-The project also studies grid/pathfinding and turn-system architecture from LawlessPlay's Gridbased Pathfinding Tutorial, tutorial-work's Unity Turn-Based Strategy Game, and Battle for Wesnoth. Code from unlicensed or GPL reference projects is not copied into the Hash Race runtime; equivalent Hash Race systems are implemented independently.
-
-## Technology
-
-Hash Race uses **[Godot](https://godotengine.org/)** as its primary game engine. The current development target is **Godot 4.7.2**.
-
-Godot is a free and open-source game engine distributed under the MIT License. The project uses a hybrid language structure:
-
-- **GDScript** — live gameplay systems, interface logic, maps, events, navigation and simulation orchestration
-- **C#** — older simulation/prototype systems retained for reference
-- **C++** — selected mining-core logic and native-performance experiments
-- **Rust** — deterministic/offline balance simulation work
-- **TypeScript** — content and data validation tooling
-- **Python** — dependency-free contract and smoke tests
-
-Additional information is available in [docs/GODOT_DIRECTION.md](docs/GODOT_DIRECTION.md) and [docs/LANGUAGE_STACK.md](docs/LANGUAGE_STACK.md).
-
-## Simulation model
-
-Major simulation metrics include:
+Major simulation values include:
 
 - Hashrate
-- Joules per terahash (J/TH)
-- Kilowatts and megawatts
-- Electricity price
+- J/TH
 - Machines
-- Land / acres
-- Energy source
+- kW and MW
+- Electricity price
+- Land and acres
 - Uptime
+- BTC price
 - Network hashrate
 - Block subsidy and fees
-- Sats and BTC value
-- BTC market price
-- Land market price
-- Federal rate
-- Revenue and power cost
+- Sats and BTC treasury
 - Cash and debt
+- Federal interest rate
+- Partner income
 - Company assets
-- Partner boosts
+- Company culture ratings
 
-The basic mining power relationship is:
+The basic power relationship is:
 
 `power watts = hashrate TH/s × J/TH`
 
@@ -141,39 +125,74 @@ Simulated Bitcoin production is:
 
 `BTC/day = company hashrate ÷ network hashrate × blocks/day × (block subsidy + fees) × uptime`
 
-Additional assumptions are documented in [docs/ECONOMY_MODEL.md](docs/ECONOMY_MODEL.md).
+Additional economic assumptions are documented in [docs/ECONOMY_MODEL.md](docs/ECONOMY_MODEL.md).
+
+## BTC treasury strategy
+
+The BTC hold policy uses the game's universal strategy scale and is adjustable from **0 to 100** in one-point steps. The player can therefore choose any hold/sell balance instead of selecting from a small set of presets.
+
+Treasury controls remain tied to the flexible turn system so projected income and liquidity use the currently selected day/week/month/quarter duration.
+
+## Financing
+
+Lending begins with expensive small-business debt and progresses toward larger commercial, infrastructure, state, and federal financing as asset value increases.
+
+Loan pricing moves with the simulated Federal rate. Company Treasury and Reputation ratings now also affect the live borrowing rate, representing lender confidence and financial discipline.
+
+## Company world
+
+Hash Race uses an explorable top-down pixel-style company world. The map contains mining towns, rival headquarters, partner companies, ASIC markets, land markets, banks, power offices, roads, water, substations, solar infrastructure, and cooling infrastructure.
+
+The representative can move with keyboard controls or click-to-pathfind around blocked map cells. The scanner overlay displays nearby reachable grid cells. Town transit allows fast travel between mining-company districts.
 
 ## Controls
 
 - **WASD / Arrow keys** — walk
-- **Left click open ground** — route to a reachable location
-- **E / Enter / Space** — interact with a nearby company, representative or building
-- **T** — travel to the next mining-company town
-- **R** — toggle the scanner reachable-grid overlay
-- **END QUARTER** — advance the company simulation by one quarter
+- **Left click open ground** — pathfind to a reachable location
+- **E / Enter / Space** — interact
+- **T** — travel between mining towns
+- **R** — toggle scanner grid
+- **Turn Length control** — cycle Day / Week / Month / Quarter
+- **END TURN** — preview and then confirm settlement for the selected turn length
+- **BTC Hold slider** — set the hold policy anywhere from 0–100
+
+## Technology
+
+Hash Race uses **Godot** as its primary engine. The repository uses a hybrid development stack:
+
+- **GDScript** — live gameplay, UI, world, simulation orchestration, rival AI, company culture
+- **C#** — earlier simulation and prototype systems retained for reference
+- **C++** — selected mining-core/native experiments
+- **Rust** — deterministic balance and simulation experiments
+- **TypeScript** — validation tooling
+- **Python** — source smoke tests
+
+More information is available in [docs/GODOT_DIRECTION.md](docs/GODOT_DIRECTION.md) and [docs/LANGUAGE_STACK.md](docs/LANGUAGE_STACK.md).
 
 ## Repository structure
 
-- `Godot/` — primary Godot 4 game client
-- `desktop/HashRace.Desktop/` — earlier C# desktop prototype retained for reference
-- `Assets/` — earlier Unity prototype retained as migration/reference code
-- `native/` — C++ and Rust simulation experiments
-- `tools/` — automated smoke tests and content checks
-- `.github/workflows/` — automated testing and Windows/Linux release workflows
-- `GAME_DESIGN.md` — canonical gameplay design document
-- `docs/` — engine, economy, language, design and third-party-code documentation
-- `VERSION` — current public downloadable version
+- `Godot/` — primary live Godot game
+- `desktop/HashRace.Desktop/` — earlier C# desktop prototype
+- `Assets/` — earlier Unity prototype
+- `native/` — C++ and Rust experiments
+- `tools/` — smoke tests and validation utilities
+- `.github/workflows/` — automated test and release workflows
+- `GAME_DESIGN.md` — canonical gameplay design
+- `docs/` — technical and gameplay documentation
+- `VERSION` — current development version
 
 ## Verification
 
-Public builds are checked with source boot tests, a live overworld runtime validator, Python/C++/Rust/TypeScript checks, Windows/Linux exports, an exported Linux executable boot and an actual rendered gameplay screenshot. The rendered-frame test exists specifically to prevent a blank world from being published as a successful build.
+The repository uses several layers of verification. Source smoke tests check required gameplay contracts and files. A live Godot runtime validator boots the company world and checks movement, pathfinding, scanner navigation, company and partner populations, BTC treasury controls, flexible turn confirmation, company personality state, 0–100 rating bounds, and the material company-culture modifiers added in v0.021.
 
-## Development status
+Release workflows also support Windows/Linux exports and playable-build verification.
 
-Hash Race is under active development. The current focus is replacing remaining procedural placeholders with stronger sprite/tile artwork, improving company-town composition, animating representatives, adding richer NPC/company memory, expanding building interiors and strengthening the turn-based business strategy layer underneath the explorable RPG world.
+## Development direction
+
+Current development priorities include stronger company strategy, improved rival memory, deeper mining-facility engineering, more detailed R&D, better town and character artwork, additional management systems, multiple regions and power markets, and longer-term league history.
+
+The company-culture system is intended to become one of the main strategic layers: companies should develop recognizable identities while still being able to change when their decisions, financial results, and controversies change.
 
 ## Versioning
 
-Public playable versions begin at **v0.001** and increase by **0.001** for each completed public game update.
-
-A Windows or Linux version is considered publicly available only after its GitHub release asset has been built and verified. The README's primary download link remains the stable **latest release** URL so players are not sent to an outdated build.
+Development versions use the `v0.001` format and increase by `0.001` for each completed repository/game update. A version is considered a public downloadable release only after its release assets have been built and published.

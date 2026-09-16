@@ -32,7 +32,9 @@ func _run() -> void:
         "debug_has_land_market", "debug_grid_navigation_ready", "debug_grid_path_exists",
         "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed",
         "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
-        "debug_range_limited_path_exists", "_open_entity", "_end_quarter"
+        "debug_range_limited_path_exists", "debug_company_personality_ready", "debug_rival_personality_count",
+        "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
+        "debug_culture_effects_summary", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
@@ -97,6 +99,24 @@ func _run() -> void:
     if String(scene.call("debug_player_rep_name")) != "Imani Vale":
         _fail("selected company representative identity did not load")
         return
+    if not bool(scene.call("debug_company_personality_ready")):
+        _fail("player company personality did not initialize")
+        return
+    if int(scene.call("debug_rival_personality_count")) != 9:
+        _fail("all nine rival companies need live personality state")
+        return
+    if not bool(scene.call("debug_personality_ratings_in_range")):
+        _fail("company personality rating escaped the 0-100 scale")
+        return
+    if not bool(scene.call("debug_culture_effects_ready")):
+        _fail("company ratings are not producing bounded gameplay modifiers")
+        return
+    if not bool(scene.call("debug_culture_effects_are_material")):
+        _fail("company ratings initialized but do not materially affect gameplay")
+        return
+    if String(scene.call("debug_culture_effects_summary")).is_empty():
+        _fail("company gameplay-effect summary is missing")
+        return
     if scene.get_node_or_null("BootFallback") != null:
         _fail("loading fallback remained after successful world initialization")
         return
@@ -115,16 +135,16 @@ func _run() -> void:
     scene.call("_end_quarter")
     await process_frame
     if int(scene.get("turn")) != start_turn:
-        _fail("first END QUARTER click must preview instead of advancing time")
+        _fail("first END TURN click must preview instead of advancing time")
         return
     if not bool(scene.get("live_quarter_confirmation_pending")):
-        _fail("quarter preview did not arm the confirmation state")
+        _fail("turn preview did not arm the confirmation state")
         return
     scene.call("_end_quarter")
     await process_frame
     if int(scene.get("turn")) != start_turn + 1:
-        _fail("confirmed quarter settlement did not advance the turn")
+        _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: pixel-tile RPG strategy world initialized, collision-safe movement, directional rep state, reachable scanner grid, range-limited pathfinding, ten towns, ten mining reps, nine partner reps, land market, live BTC treasury liquidity, two-step quarter confirmation, dialogue actions, camera, and quarter settlement verified.")
+    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
     quit(0)

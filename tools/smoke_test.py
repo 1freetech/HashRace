@@ -36,6 +36,7 @@ def main():
     rpg_world = Path("Godot/scripts/world_rpg_strategy.gd").read_text(encoding="utf-8")
     time_scale = Path("Godot/scripts/world_time_scale.gd").read_text(encoding="utf-8")
     company_ai = Path("Godot/scripts/world_company_ai.gd").read_text(encoding="utf-8")
+    company_effects = Path("Godot/scripts/world_company_effects.gd").read_text(encoding="utf-8")
     treasury = Path("Godot/scripts/live_treasury_controls.gd").read_text(encoding="utf-8")
     playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
@@ -44,7 +45,7 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_company_ai.gd" in world_scene, "Live world must use the company-AI controller"
+    assert "world_company_effects.gd" in world_scene, "Live world must use material company-culture gameplay effects"
     assert "BootFallback" in world_scene
     assert 'extends "res://scripts/world_overworld.gd"' in towns
     assert 'extends "res://scripts/world_towns.gd"' in grid_world
@@ -52,6 +53,7 @@ def main():
     assert 'extends "res://scripts/world_gbc.gd"' in rpg_world
     assert 'extends "res://scripts/world_rpg_strategy.gd"' in time_scale
     assert 'extends "res://scripts/world_time_scale.gd"' in company_ai
+    assert 'extends "res://scripts/world_company_ai.gd"' in company_effects
     assert "validate_overworld.gd" in workflow
 
     require(setup, ["MINING COMPANY", "CAMPAIGN LENGTH", "DEFAULT: 1 TURN = 1 MONTH", "DAY / WEEK / MONTH / QUARTER", "range(1, 21)", "hashrace_company_idx", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d"], "Campaign setup")
@@ -75,16 +77,19 @@ def main():
     for key in ["aggression", "risk", "growth", "research", "treasury", "operations", "reputation"]:
         assert key in company_ai
 
+    require(company_effects, ["_operations_uptime_bonus", "_financing_rate_adjustment", "_partner_cost_multiplier", "_research_cost_multiplier", "_expansion_cost_multiplier", "_merger_cost_multiplier", "func _uptime()", "func _loan_rate", "func _buy_machines", "func _buy_power", "func _buy_land", "func _upgrade_chips", "func _sign_partner", "func _merge_rival", "LIVE GAMEPLAY EFFECTS", "debug_culture_effects_ready", "debug_culture_effects_are_material"], "Material company-culture effects")
+    assert "0.88" in company_effects and "1.12" in company_effects, "Culture modifiers need explicit balance bounds"
+
     require(treasury, ["HSlider", "min_value = 0.0", "max_value = 100.0", "step = 1.0", "BTC HOLD POLICY: %d / 100", "_on_hold_policy_changed", "turn_length_days", "_project_scaled_profit", "AUTO-FUND SAFE TURN"], "Live 0-100 treasury strategy")
     assert "HOLD_POLICIES" not in treasury, "BTC hold policy must not be restricted to presets"
     require(playability, ["BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "PREPARE SAFE QUARTER"], "Treasury playability layer")
-    require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready"], "Runtime validator")
+    require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material"], "Runtime validator")
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd"]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: ten Bitcoin mining companies, mutable 0-100 company ratings, a fully adjustable 0-100 BTC hold strategy, external partner economy, RPG world, grid navigation, and day/week/month/quarter season clock are present.")
+    print("Hash Race smoke test passed: ten Bitcoin mining companies have mutable 0-100 ratings that now materially affect player economics, rival AI remains personality-driven, the BTC hold strategy stays fully adjustable from 0-100, and the RPG world keeps its flexible day/week/month/quarter clock.")
 
 
 if __name__ == "__main__":
