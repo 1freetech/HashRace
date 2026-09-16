@@ -121,7 +121,7 @@ func auto_fund_safe_quarter() -> void:
     if held_sats < 1.0:
         _feedback("No BTC treasury is available. Lower the HQ hold policy, seek financing, or cut costs before advancing.")
         return
-    var sats_needed := ceil((cash_needed / maxf(1.0, _btc_price())) * SATS_PER_BTC)
+    var sats_needed: float = float(ceil((cash_needed / maxf(1.0, _btc_price())) * SATS_PER_BTC))
     var sats_to_sell := minf(held_sats, sats_needed)
     var raised := _sell_sats(sats_to_sell)
     var new_end := _projected_end_cash()
