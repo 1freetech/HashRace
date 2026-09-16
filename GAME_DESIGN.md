@@ -40,18 +40,20 @@ World events create outages, grid opportunities, site deals, financing, componen
 
 ## Ten starting Bitcoin mining companies
 
+The starting league uses original technology, compute, energy, infrastructure, and digital-industry branding. The names are intentionally broader than typical public mining-company names while every company remains a Bitcoin mining operator within the game world.
+
 | Company | Mining identity | Main starting advantage |
 | --- | --- | --- |
-| BlockForge Mining | Low-cost operator | Cheaper power and larger opening fleet |
-| Northstar Hash | R&D miner | Faster research |
-| VoltHash Mining | Grid optimizer | Lower effective electricity burden |
-| TerraHash Industries | Site scaler | More land/capacity leverage |
-| Frontier Mining Co. | Consolidator | More cash and cheaper acquisitions |
-| HydroBlock Mining | Cooling specialist | Higher uptime and better initial efficiency |
-| IronPeak Digital Mining | Reliability operator | Better uptime and stable operations |
-| Atlas Hashworks | Balanced industrial miner | Small advantages across several systems |
-| Cascade Mining Systems | Efficiency specialist | Best opening J/TH profile |
-| DeepCore Bitcoin Mining | Capital-heavy scaler | More cash and site-growth leverage |
+| Emberline Compute | Low-cost fleet operator | Cheaper power and larger opening fleet |
+| Helix Circuit Labs | R&D miner | Faster research |
+| ArcCurrent Systems | Grid-responsive miner | Lower effective electricity burden |
+| StoneGrid Infrastructure | Site scaler | More land/capacity leverage |
+| Meridian Node Group | Consolidator | More cash and cheaper acquisitions |
+| BlueLoop Compute | Cooling specialist | Higher uptime and better initial efficiency |
+| SignalPeak Systems | Reliability operator | Better uptime and stable operations |
+| Parallax Digital Works | Balanced industrial miner | Small advantages across several systems |
+| Lattice Energy Labs | Efficiency specialist | Best opening J/TH profile |
+| Epoch Harbor Holdings | Capital-heavy scaler | More cash and site-growth leverage |
 
 The player selects one. The other nine remain active AI-controlled Bitcoin mining competitors.
 
