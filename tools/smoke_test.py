@@ -20,8 +20,9 @@ def main():
 
     desktop = Path("desktop/HashRace.Desktop/ProgramV002.cs").read_text(encoding="utf-8")
     godot = Path("Godot/scripts/main.gd").read_text(encoding="utf-8")
+    scene = Path("Godot/scenes/main.tscn").read_text(encoding="utf-8")
+    strategy_layer = Path("Godot/scripts/strategy_layer.gd").read_text(encoding="utf-8")
     assert Path("Godot/project.godot").exists()
-    assert Path("Godot/scenes/main.tscn").exists()
 
     mining_companies = [
         "BlockForge Mining", "Northstar Hash", "VoltHash Mining", "TerraHash Industries",
@@ -55,7 +56,12 @@ def main():
     for language in ["C++", "Rust", "TypeScript"]:
         assert language in language_doc, f"Language stack document missing: {language}"
 
-    print("Hash Race smoke test passed: mining math is sane, all ten competitors are Bitcoin miners, all ten outside partner sectors exist, the Godot migration is present, and the C++/Rust/TypeScript support files are installed.")
+    assert "strategy_layer.gd" in scene, "Godot scene must load the strategy layer"
+    for marker in ["Operations priority", "ASIC lab focus", "Season objective", "Company journal"]:
+        assert marker in strategy_layer, f"Strategy layer missing gameplay system: {marker}"
+    assert Path("docs/SHOWREEL_GAMEPLAY_REFERENCES.md").exists(), "Missing source-backed gameplay reference notes"
+
+    print("Hash Race smoke test passed: mining math is sane, all ten competitors are Bitcoin miners, all ten outside partner sectors exist, the Godot migration and strategy layer are present, and the C++/Rust/TypeScript support files are installed.")
 
 
 if __name__ == "__main__":
