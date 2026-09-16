@@ -28,12 +28,14 @@ def main():
     towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
+    smoke_workflow = Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
     assert "world_towns.gd" in world_scene, "Live world must use the multi-town RPG presentation layer"
+    assert "BootFallback" in world_scene, "World scene must show a visible fallback instead of a blank gray screen"
     assert 'extends "res://scripts/world_overworld.gd"' in towns, "Town layer must retain the stable overworld core"
-    assert "validate_overworld.gd" in Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
+    assert "validate_overworld.gd" in smoke_workflow
 
     setup_markers = [
         "MINING COMPANY", "CAMPAIGN LENGTH", "1 TURN = 1 QUARTER", "HALVING EVERY 16 TURNS",
@@ -43,9 +45,9 @@ def main():
         assert marker in setup, f"Campaign setup missing: {marker}"
 
     companies = [
-        "Emberline Compute", "Helix Circuit Labs", "ArcCurrent Systems", "StoneGrid Infrastructure",
-        "Meridian Node Group", "BlueLoop Compute", "SignalPeak Systems", "Parallax Digital Works",
-        "Lattice Energy Labs", "Epoch Harbor Holdings"
+        "VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining",
+        "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining",
+        "LatticeX Mining", "Epoch Vector Mining"
     ]
     for company in companies:
         assert company in profiles, f"Missing mining-company profile: {company}"
@@ -74,18 +76,19 @@ def main():
         assert marker in overworld, f"Live overworld missing gameplay feature: {marker}"
 
     town_markers = [
-        "TOWN_NAMES", "COMPANY_REPS", "PARTNER_REPS", "Emberline Basin", "Helix Row",
-        "ArcCurrent Junction", "StoneGrid Works", "Meridian Exchange", "BlueLoop Harbor",
-        "SignalPeak Heights", "Parallax Ward", "Lattice Reach", "Epoch Port",
+        "TOWN_NAMES", "COMPANY_REPS", "PARTNER_REPS", "VantaGrid City", "Neon Forge Row",
+        "ArcShift Junction", "IronVector Works", "Meridian Zero Exchange", "BlueNova Harbor",
+        "SignalFlux Heights", "Parallax Ward", "Lattice Reach", "Epoch Port",
         "rival_rep", "partner_rep", "scanner", "NEGOTIATE DEAL", "PROPOSE MERGER",
-        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"
+        "AcreX Land Market", "BUY 5 ACRES", "TOWN TRANSIT", "_travel_next_town",
+        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market"
     ]
     for marker in town_markers:
         assert marker in towns, f"Town/representative layer missing: {marker}"
 
     for marker in [
         "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "_end_quarter",
-        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count"
+        "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_has_land_market"
     ]:
         assert marker in validator or marker in overworld or marker in towns, f"Runtime validation missing: {marker}"
 
@@ -98,9 +101,10 @@ def main():
         assert Path(item).exists(), f"Missing support file: {item}"
 
     print(
-        "Hash Race smoke test passed: campaign setup, ten company towns, ten mining reps, nine partner reps, "
-        "futuristic scanner-visor techwear, interactive companies, partner deals, machines, land/power/energy, "
-        "lender ladder, Fed/BTC/land markets, rare crashes, one-time merger, quarterly settlement, and runtime validation are present."
+        "Hash Race smoke test passed: campaign setup, modern mining companies, ten towns, ten mining reps, "
+        "nine partner reps, futuristic scanner-visor techwear, land/machine/power markets, town transit, partner deals, "
+        "lender ladder, Fed/BTC/land markets, rare crashes, one-time merger, quarterly settlement, visible fallback, "
+        "and runtime validation are present."
     )
 
 
