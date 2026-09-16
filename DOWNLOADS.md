@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.027**
+Current public version target: **v0.028**
 
-- [Windows x64 — Hash Race v0.027](https://github.com/1freetech/HashRace/releases/download/v0.027/HashRace-v0.027-windows-x64.zip)
-- [Linux x64 — Hash Race v0.027](https://github.com/1freetech/HashRace/releases/download/v0.027/HashRace-v0.027-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.028](https://github.com/1freetech/HashRace/releases/download/v0.028/HashRace-v0.028-windows-x64.zip)
+- [Linux x64 — Hash Race v0.028](https://github.com/1freetech/HashRace/releases/download/v0.028/HashRace-v0.028-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.027 gameplay playability fix
+## v0.028 gameplay playability update
 
-Queued Life + Operations routines are now **smart routines**. The automatic monthly RECOVER, TRAIN and NETWORK queue checks the related operator rating before spending company cash. If the target need is already 85/100 or higher, the automatic routine skips the purchase instead of repeatedly charging the company for little or no benefit. RECOVER considers both Energy and Focus because it improves both. Manual routine buttons remain available for deliberate player choices. The Life + Site overview clearly shows the 85/100 smart-queue threshold.
+Life + Operations now has an **AUTO routine queue**. About once per simulated month, AUTO checks Energy, Focus and Social, finds the weakest rating below 85/100, and chooses RECOVER, TRAIN or NETWORK for that need. This reduces repetitive management without removing player control: NONE and all three fixed routines remain selectable, automatic spending still requires enough company cash, and no routine runs when the operator is already healthy enough.
 
-Queued routines still follow simulated elapsed time rather than turn count, so DAY, WEEK, MONTH and QUARTER turns have the same long-term routine opportunity rate. Energy, Focus, Social, Site Fit and other rating-style gameplay measures remain on the universal 0-100 scale.
+Queued routines continue to follow simulated elapsed time rather than turn count, so DAY, WEEK, MONTH and QUARTER turns have the same long-term routine opportunity rate. Energy, Focus, Social, Site Fit and other rating-style gameplay measures remain on the universal 0-100 scale.
 
 All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
 
