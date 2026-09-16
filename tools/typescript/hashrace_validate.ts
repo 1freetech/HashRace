@@ -10,16 +10,16 @@ type ContentContract = {
 
 const contract: ContentContract = {
   miners: [
-    "BlockForge Mining",
-    "Northstar Hash",
-    "VoltHash Mining",
-    "TerraHash Industries",
-    "Frontier Mining Co.",
-    "HydroBlock Mining",
-    "IronPeak Digital Mining",
-    "Atlas Hashworks",
-    "Cascade Mining Systems",
-    "DeepCore Bitcoin Mining",
+    "Emberline Compute",
+    "Helix Circuit Labs",
+    "ArcCurrent Systems",
+    "StoneGrid Infrastructure",
+    "Meridian Node Group",
+    "BlueLoop Compute",
+    "SignalPeak Systems",
+    "Parallax Digital Works",
+    "Lattice Energy Labs",
+    "Epoch Harbor Holdings",
   ],
   partnerSectors: [
     "AI",
@@ -67,7 +67,7 @@ function validateSource(source: string): void {
 function main(): void {
   const source = fs.readFileSync("Godot/scripts/main.gd", "utf8");
   validateSource(source);
-  console.log("Hash Race TypeScript validator passed: 10 Bitcoin miners and 10 outside partner sectors are intact.");
+  console.log("Hash Race TypeScript validator passed: current 10 mining competitors and 10 outside partner sectors are intact.");
 }
 
 try {
