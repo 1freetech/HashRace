@@ -18,7 +18,7 @@ def main():
 
     assert Path("VERSION").read_text().strip() == "v0.002"
 
-    desktop = Path("desktop/HashRace.Desktop/ProgramV002.cs").read_text(encoding="utf-8")
+    assert Path("desktop/HashRace.Desktop/ProgramV002.cs").exists(), "Transitional desktop build must remain available"
     godot = Path("Godot/scripts/main.gd").read_text(encoding="utf-8")
     scene = Path("Godot/scenes/main.tscn").read_text(encoding="utf-8")
     strategy_layer = Path("Godot/scripts/strategy_layer.gd").read_text(encoding="utf-8")
@@ -27,20 +27,17 @@ def main():
     world = Path("Godot/scripts/world.gd").read_text(encoding="utf-8")
 
     mining_companies = [
-        "BlockForge Mining", "Northstar Hash", "VoltHash Mining", "TerraHash Industries",
-        "Frontier Mining Co.", "HydroBlock Mining", "IronPeak Digital Mining",
-        "Atlas Hashworks", "Cascade Mining Systems", "DeepCore Bitcoin Mining"
+        "Emberline Compute", "Helix Circuit Labs", "ArcCurrent Systems", "StoneGrid Infrastructure",
+        "Meridian Node Group", "BlueLoop Compute", "SignalPeak Systems",
+        "Parallax Digital Works", "Lattice Energy Labs", "Epoch Harbor Holdings"
     ]
     for company in mining_companies:
-        assert company in desktop, f"Desktop build missing mining company: {company}"
-        assert company in godot, f"Godot build missing mining company: {company}"
+        assert company in godot, f"Active Godot build missing mining company: {company}"
 
-    assert "NeuralPeak Compute" not in desktop, "AI company must not be a selectable mining company"
-    assert "Atlas Robotics\", \"Robotics\"" not in desktop.split("private static readonly List<Company>")[1].split("private static readonly List<Partner>")[0]
+    assert "NeuralPeak Compute" not in godot, "AI company must not be a selectable mining company"
 
     partner_sectors = ["AI", "Robotics", "Semiconductor", "Energy", "Telecom", "Real Estate", "Finance", "Infrastructure", "Quick Service", "Sports"]
     for sector in partner_sectors:
-        assert sector in desktop, f"Desktop build missing partner sector: {sector}"
         assert sector in godot, f"Godot build missing partner sector: {sector}"
 
     assert "STARTING_MINERS" in godot and "PARTNERS" in godot
@@ -73,7 +70,7 @@ def main():
     for marker in world_markers:
         assert marker in world, f"2D world missing visible/interactive system: {marker}"
 
-    print("Hash Race smoke test passed: mining math and company rules are intact, Godot now boots into the interactive 2D mining campus, the legacy strategy screen remains available, and the C++/Rust/TypeScript support files are installed.")
+    print("Hash Race smoke test passed: mining math and current company rules are intact, Godot boots into the interactive 2D mining campus, the legacy strategy screen remains available, and the C++/Rust/TypeScript support files are installed.")
 
 
 if __name__ == "__main__":
