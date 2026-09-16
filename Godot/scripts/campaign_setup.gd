@@ -64,7 +64,7 @@ func build_menu() -> void:
     var subtitle := Label.new()
     subtitle.position = Vector2(40, 78)
     subtitle.size = Vector2(720, 42)
-    subtitle.text = "Pick your mining company and fixed game clock before Turn 1."
+    subtitle.text = "Pick your Bitcoin mining company and campaign length before Turn 1."
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     subtitle.add_theme_font_size_override("font_size", 15)
     subtitle.add_theme_color_override("font_color", WHITE)
@@ -109,7 +109,7 @@ func build_menu() -> void:
     years_option.size = Vector2(644, 46)
     years_option.add_theme_font_size_override("font_size", 15)
     for years in range(1, 21):
-        years_option.add_item("%d year%s  /  %d turns" % [years, "" if years == 1 else "s", years * 4], years)
+        years_option.add_item("%d year%s" % [years, "" if years == 1 else "s"], years)
     years_option.select(3)
     years_option.item_selected.connect(_on_clock_changed)
     panel.add_child(years_option)
@@ -125,7 +125,7 @@ func build_menu() -> void:
     var rule := Label.new()
     rule.position = Vector2(78, 570)
     rule.size = Vector2(644, 54)
-    rule.text = "1 TURN = 1 QUARTER  •  4 TURNS = 1 YEAR  •  HALVING EVERY 16 TURNS"
+    rule.text = "DEFAULT: 1 TURN = 1 MONTH  •  CHANGE IN GAME: DAY / WEEK / MONTH / QUARTER"
     rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     rule.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     rule.add_theme_font_size_override("font_size", 13)
@@ -149,15 +149,16 @@ func _on_company_changed(index: int) -> void:
 
 func _on_clock_changed(index: int) -> void:
     var years := years_option.get_item_id(index)
-    var turns := years * 4
-    var halving_count := int(turns / 16)
-    summary_label.text = "Selected clock: %d year%s / %d quarterly turns\nBitcoin halvings during campaign: %d\nFirst halving: end of Year 4 / Turn 16\nMaximum: 20 years / 80 turns" % [
-        years, "" if years == 1 else "s", turns, halving_count
+    var monthly_turns := years * 12
+    var halving_count := int(years / 4)
+    summary_label.text = "Selected campaign: %d year%s\nDefault month scale: about %d turns\nBitcoin halvings during campaign: %d\nTurn length can be changed to DAY, WEEK, MONTH, or QUARTER while playing." % [
+        years, "" if years == 1 else "s", monthly_turns, halving_count
     ]
 
 func start_campaign() -> void:
     var years := years_option.get_item_id(years_option.selected)
     get_tree().set_meta("hashrace_company_idx", company_option.get_item_id(company_option.selected))
     get_tree().set_meta("hashrace_campaign_years", years)
-    get_tree().set_meta("hashrace_campaign_turns", years * 4)
+    if get_tree().has_meta("hashrace_campaign_turns"):
+        get_tree().remove_meta("hashrace_campaign_turns")
     get_tree().change_scene_to_file("res://scenes/world.tscn")
