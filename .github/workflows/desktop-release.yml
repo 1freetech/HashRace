@@ -52,6 +52,13 @@ jobs:
           mkdir -p "$(dirname "$EXPORT_PATH")"
           godot --headless --path Godot --export-release "${{ matrix.preset }}" "$EXPORT_PATH"
 
+      - name: Verify exported Linux build boots
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          chmod +x build/linux/HashRace.x86_64
+          build/linux/HashRace.x86_64 --headless --quit-after 3
+
       - name: Package Windows build
         if: matrix.platform == 'windows-x64'
         shell: bash
@@ -81,6 +88,8 @@ jobs:
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Read version
         id: version
@@ -94,6 +103,17 @@ jobs:
           path: release
           merge-multiple: true
 
+      - name: Point release tag at this tested Godot build
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "$VERSION" "$GITHUB_SHA"
+          git push origin "refs/tags/$VERSION" --force
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,10 +122,10 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Current Godot Hash Race build with the interactive Bitcoin mining tech-town world, selectable campaign clock from 1 year/4 turns through 20 years/80 turns, quarterly turns with a cash preview and confirmation before advancing, 16-turn halvings, unique company starting strengths, machines/MW/land/energy/cooling/chip progression, NPC partnerships, hosting, asset-backed bank and government financing, debt repayment, and final campaign standings."
+          NOTES="Current Godot Hash Race v0.003 build from main. Includes the interactive Bitcoin mining tech-town world, selectable 1-20 year quarterly campaign clock, 16-turn halvings, company starting strengths, Local Joker Bank through federal infrastructure financing, Fed-sensitive BTC and land markets, rare dot-com/COVID-style crashes, one merger per mining company campaign, partner-specific boosts, hosting, energy advantages/disadvantages, clean/off-grid energy rewards, machines/MW/land/cooling/chip progression, debt repayment, and final standings."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
-            gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES"
+            gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
           else
-            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "Hash Race $VERSION" --notes "$NOTES"
+            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "Hash Race $VERSION" --notes "$NOTES" --latest
           fi
