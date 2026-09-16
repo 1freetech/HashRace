@@ -31,7 +31,8 @@ func _run() -> void:
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_player_rep_name",
         "debug_has_land_market", "debug_grid_navigation_ready", "debug_grid_path_exists",
         "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed",
-        "_open_entity", "_end_quarter"
+        "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
+        "debug_range_limited_path_exists", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
@@ -74,6 +75,22 @@ func _run() -> void:
     if int(scene.call("debug_tile_ops_changed")) <= 0:
         _fail("ported tilemap operations did not modify the live map")
         return
+    if not bool(scene.call("debug_rpg_collision_ready")):
+        _fail("RPG collision grid does not recognize a blocked world cell")
+        return
+    if int(scene.call("debug_scanner_reachable_count")) < 10:
+        _fail("scanner did not produce a useful reachable-area set")
+        return
+    var animation_state: String = String(scene.call("debug_rep_animation_state"))
+    if not animation_state.ends_with("_idle") and animation_state not in ["up", "down", "left", "right"]:
+        _fail("representative directional animation state is invalid")
+        return
+    if not bool(scene.call("debug_range_limited_path_exists")):
+        _fail("range-limited grid path could not be produced")
+        return
+    if scene.get_node_or_null("RPGStrategyLayer") == null:
+        _fail("scanner / strategy UI layer is missing")
+        return
     if String(scene.call("debug_player_company")) != "ArcShift Mining":
         _fail("campaign company selection did not reach the overworld")
         return
@@ -93,5 +110,5 @@ func _run() -> void:
         _fail("quarter settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: visible pixel-tile world initialized, ten towns, ten mining reps, nine partner reps, land market, scanner techwear, grid pathfinding, GB Studio paint helpers, Tilemap Studio terrain operations, dialogue actions, selected company, camera, and quarter settlement verified.")
+    print("HASH RACE OVERWORLD PASS: pixel-tile RPG strategy world initialized, collision-safe movement, directional rep state, reachable scanner grid, range-limited pathfinding, ten towns, ten mining reps, nine partner reps, land market, dialogue actions, camera, and quarter settlement verified.")
     quit(0)
