@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource path="res://scripts/world_grid.gd" type="Script" id="1_world"]
+[ext_resource path="res://scripts/world_gbc.gd" type="Script" id="1_world"]
 
-[node name="HashRaceGridTownNetwork" type="Node2D"]
+[node name="HashRacePixelTownNetwork" type="Node2D"]
 script = ExtResource("1_world")
 
 [node name="BootFallback" type="CanvasLayer" parent="."]
@@ -21,7 +21,7 @@ offset_right = 1110.0
 offset_bottom = 370.0
 theme_override_colors/font_color = Color(0.392, 1, 0.549, 1)
 theme_override_font_sizes/font_size = 32
-text = "HASH RACE // LOADING COMPANY WORLD"
+text = "HASH RACE // LOADING PIXEL COMPANY WORLD"
 horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="BootFallback"]
@@ -31,6 +31,6 @@ offset_right = 1110.0
 offset_bottom = 500.0
 theme_override_colors/font_color = Color(0.745, 0.91, 0.94, 1)
 theme_override_font_sizes/font_size = 16
-text = "Building mining towns, company reps, partner firms, roads and navigation grid...\n\nIf this screen remains, the world controller failed to initialize."
+text = "Building tiled mining towns, pixel company reps, partner firms, roads and navigation grid...\n\nIf this screen remains, the world controller failed to initialize."
 horizontal_alignment = 1
 vertical_alignment = 1
