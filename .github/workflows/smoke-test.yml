@@ -16,8 +16,10 @@ jobs:
           version: 4.7.2
           use-dotnet: false
           include-templates: false
-      - name: Boot the real 2D Godot world headlessly
+      - name: Boot opening campaign setup headlessly
         run: godot --headless --path Godot --quit-after 3
+      - name: Boot real tech-town campaign scene headlessly
+        run: godot --headless --path Godot res://scenes/world.tscn --quit-after 3
 
   python-contract:
     runs-on: ubuntu-latest
