@@ -5,6 +5,20 @@ on:
   pull_request:
 
 jobs:
+  godot-world-boot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+      - name: Boot the real 2D Godot world headlessly
+        run: godot --headless --path Godot --quit-after 3
+
   python-contract:
     runs-on: ubuntu-latest
     steps:
