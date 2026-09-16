@@ -1,4 +1,4 @@
-extends "res://scripts/world_gbc.gd"
+extends "res://scripts/world_rpg_strategy.gd"
 
 # Flexible season clock for Hash Race. One strategic turn can represent a day,
 # week, month, or quarter while all mining and operating economics remain based
@@ -45,15 +45,30 @@ func _install_turn_scale_control() -> void:
 
 func _cycle_turn_length() -> void:
     turn_length_idx = (turn_length_idx + 1) % TURN_LENGTHS.size()
+    live_quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button):
+        quarter_button.text = "END %s TURN" % turn_length_name()
     var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
     campaign_turns = (turn - 1) + int(ceil(remaining_days / turn_length_days()))
     _refresh_turn_scale_button()
     _refresh_ui()
-    _feedback("TURN LENGTH: 1 turn = %s (%.2f days). Mining output, power, operations, debt interest, and other time-based economics still use the same daily rates." % [turn_length_name(), turn_length_days()])
+    _feedback("TURN LENGTH: 1 turn = %s (%.2f days). Mining output, power, operations, debt interest, partner income, rivals, and market movement remain scaled to elapsed time." % [turn_length_name(), turn_length_days()])
 
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
         turn_scale_button.text = "TURN LENGTH: %s  [CHANGE]" % turn_length_name()
+    if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
+        quarter_button.text = "END %s TURN" % turn_length_name()
+
+func _project_scaled_profit(days: float) -> float:
+    var mined_btc: float = _btc_per_day() * days
+    var sold_btc: float = mined_btc * (1.0 - float(player["treasury_hold"]))
+    var recurring_income: float = float(player["recurring_income"]) * (days / 91.3125)
+    var revenue: float = sold_btc * btc_price + recurring_income
+    var power_cost: float = _machine_load_kw() * 24.0 * days * _effective_power_cost() * _uptime()
+    var ops_cost: float = float(player["machines"]) * 0.38 * days
+    var debt_cost: float = float(player["debt"]) * float(player["debt_rate"]) * (days / 365.0)
+    return revenue - power_cost - ops_cost - debt_cost
 
 func _end_quarter() -> void:
     if campaign_complete:
@@ -63,13 +78,25 @@ func _end_quarter() -> void:
     if days <= 0.0:
         campaign_complete = true
         return
+    if not live_quarter_confirmation_pending:
+        live_quarter_confirmation_pending = true
+        var projected_profit: float = _project_scaled_profit(days)
+        var projected_cash: float = float(player["cash"]) + projected_profit
+        quarter_button.text = "CONFIRM %s TURN" % turn_length_name()
+        var risk: String = ""
+        if projected_cash < 0.0:
+            risk = " DANGER: projected cash falls below $0."
+        elif projected_profit < 0.0:
+            risk = " Warning: this turn is projected to lose cash."
+        _feedback("%s PREVIEW: %.2f days • projected cash result $%d • projected ending cash $%d.%s Confirm to settle, or press Esc to cancel." % [turn_length_name(), days, int(projected_profit), int(projected_cash), risk])
+        return
 
+    live_quarter_confirmation_pending = false
+    quarter_button.text = "END %s TURN" % turn_length_name()
     var mined_btc: float = _btc_per_day() * days
     var mined_sats: float = mined_btc * SATS_PER_BTC
     var held_sats: float = mined_sats * float(player["treasury_hold"])
     var sold_btc: float = mined_btc * (1.0 - float(player["treasury_hold"]))
-    # Recurring partner income was authored as quarterly income, so prorate it
-    # rather than paying a full quarter's sponsorship every daily/monthly turn.
     var recurring_income: float = float(player["recurring_income"]) * (days / 91.3125)
     var revenue: float = sold_btc * btc_price + recurring_income
     var power_cost: float = _machine_load_kw() * 24.0 * days * _effective_power_cost() * _uptime()
@@ -107,6 +134,12 @@ func _end_quarter() -> void:
     _open_message("%s SETTLEMENT" % turn_length_name(), note)
     _refresh_ui()
     queue_redraw()
+
+func _cancel_live_quarter_confirmation() -> void:
+    live_quarter_confirmation_pending = false
+    if is_instance_valid(quarter_button) and not campaign_complete:
+        quarter_button.text = "END %s TURN" % turn_length_name()
+    _feedback("Turn settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _simulate_rivals_scaled(days: float) -> void:
     var scale: float = days / 91.3125
