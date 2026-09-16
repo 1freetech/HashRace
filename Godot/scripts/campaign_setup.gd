@@ -83,7 +83,7 @@ func build_menu() -> void:
     company_option.size = Vector2(644, 46)
     company_option.add_theme_font_size_override("font_size", 15)
     for i in range(Profiles.PROFILES.size()):
-        var profile := Profiles.PROFILES[i]
+        var profile: Dictionary = Profiles.PROFILES[i]
         company_option.add_item("%s  //  %s" % [profile["name"], profile["strengths"]], i)
     company_option.item_selected.connect(_on_company_changed)
     panel.add_child(company_option)
@@ -144,7 +144,7 @@ func build_menu() -> void:
     _on_clock_changed(years_option.selected)
 
 func _on_company_changed(index: int) -> void:
-    var profile := Profiles.PROFILES[index]
+    var profile: Dictionary = Profiles.PROFILES[index]
     company_label.text = "Starting strengths: %s\nYour company begins at Garage Town scale, but these advantages apply from Turn 1. Financing eligibility still depends on total assets." % profile["strengths"]
 
 func _on_clock_changed(index: int) -> void:
