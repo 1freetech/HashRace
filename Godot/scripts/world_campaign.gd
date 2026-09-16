@@ -10,6 +10,7 @@ const MAX_CAMPAIGN_YEARS := 20
 var campaign_years := DEFAULT_CAMPAIGN_YEARS
 var campaign_turns := DEFAULT_CAMPAIGN_YEARS * TURNS_PER_YEAR
 var campaign_complete := false
+var results_layer: CanvasLayer
 
 func _ready() -> void:
     if get_tree().has_meta("hashrace_company_idx"):
@@ -26,7 +27,7 @@ func _ready() -> void:
     selected_town_idx = player_town_idx
     player_pos = towns[player_town_idx]["center"] + Vector2(0, 220)
     camera.position = player_pos
-    rename_turn_button()
+    configure_campaign_buttons()
     var profile := Profiles.PROFILES[player_town_idx]
     update_hud("%s enters the race with %s strength. Campaign clock locked: %d year%s / %d quarterly turns." % [
         profile["name"], profile["strengths"], campaign_years, "" if campaign_years == 1 else "s", campaign_turns
@@ -137,13 +138,50 @@ func take_loan() -> void:
     town["cash"] = float(town["cash"]) + amount
     update_hud("%s financing approved: borrowed $%d at %.1f%%. Total debt $%d." % [offer["name"], int(amount), float(offer["rate"]) * 100.0, int(new_debt)])
 
-func rename_turn_button() -> void:
+func repay_loan() -> void:
+    var town := towns[player_town_idx]
+    var debt := float(town["debt"])
+    if debt <= 0.0:
+        update_hud("No debt to repay. Your company is currently debt-free.")
+        return
+    var operating_reserve := 10000.0
+    var available_cash := max(0.0, float(town["cash"]) - operating_reserve)
+    if available_cash < 1000.0:
+        update_hud("Keep at least $10,000 operating cash before making a debt payment.")
+        return
+    var target_payment := max(5000.0, debt * 0.25)
+    var payment := min(debt, min(available_cash, target_payment))
+    town["cash"] = float(town["cash"]) - payment
+    town["debt"] = debt - payment
+    if float(town["debt"]) <= 0.01:
+        town["debt"] = 0.0
+        town["debt_rate"] = 0.0
+        town["debt_source"] = "No lender"
+        update_hud("Debt fully repaid. The company is debt-free again.")
+    else:
+        update_hud("Repaid $%d of debt. Remaining balance: $%d at %.1f%% blended interest." % [
+            int(payment), int(town["debt"]), float(town.get("debt_rate", 0.0)) * 100.0
+        ])
+
+func disconnect_button(button: Button) -> void:
+    for connection in button.pressed.get_connections():
+        var callable: Callable = connection["callable"]
+        if button.pressed.is_connected(callable):
+            button.pressed.disconnect(callable)
+
+func configure_campaign_buttons() -> void:
     for node in find_children("*", "Button", true, false):
         var button := node as Button
-        if button != null and button.text == "END TURN +7D":
+        if button == null:
+            continue
+        if button.text == "END TURN +7D":
             button.text = "END QUARTER"
-        elif button != null and button.text == "TAKE ASSET LOAN":
+        elif button.text == "TAKE ASSET LOAN":
             button.text = "GET ASSET LOAN"
+        elif button.text == "OLD MANAGEMENT":
+            disconnect_button(button)
+            button.text = "REPAY LOAN"
+            button.pressed.connect(repay_loan)
 
 func update_hud(message: String = "") -> void:
     super(message)
@@ -167,11 +205,13 @@ func update_hud(message: String = "") -> void:
     var inspected := towns[selected_town_idx]
     selected_label.text += "\nStrength: %s" % String(inspected.get("strengths", "Balanced"))
     if selected_town_idx == player_town_idx:
-        selected_label.text += "\nFinancing: %s | %.1f%% blended" % [String(player.get("debt_source", "No lender")), float(player.get("debt_rate", 0.0)) * 100.0]
+        selected_label.text += "\nFinancing: %s | %.1f%% blended | Debt $%d" % [
+            String(player.get("debt_source", "No lender")), float(player.get("debt_rate", 0.0)) * 100.0, int(player["debt"])
+        ]
 
 func advance_turn() -> void:
     if campaign_complete:
-        update_hud("Campaign already complete. Start a new campaign to choose another game clock.")
+        update_hud("Campaign already complete. Start a new campaign from the results screen.")
         return
 
     var player := towns[player_town_idx]
@@ -205,6 +245,7 @@ func advance_turn() -> void:
             final_note += " A Bitcoin halving also occurred at the finish line."
         update_hud(final_note)
         rename_complete_button()
+        show_campaign_results()
         return
 
     turn += 1
@@ -232,6 +273,118 @@ func simulate_rivals() -> void:
             town["mw"] = float(town["mw"]) + 0.25
         if randf() < 0.18:
             town["acres"] = float(town["acres"]) + 5.0
+
+func final_standings() -> Array:
+    var standings: Array = []
+    for i in range(towns.size()):
+        var town := towns[i]
+        standings.append({
+            "idx": i,
+            "name": town["name"],
+            "assets": asset_value(town),
+            "cash": float(town["cash"]),
+            "sats": float(town["sats"]),
+            "mw": float(town["mw"]),
+            "machines": total_machines(town)
+        })
+    standings.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["assets"]) > float(b["assets"]))
+    return standings
+
+func show_campaign_results() -> void:
+    if is_instance_valid(results_layer):
+        return
+    var standings := final_standings()
+    var player_rank := 0
+    for i in range(standings.size()):
+        if int(standings[i]["idx"]) == player_town_idx:
+            player_rank = i + 1
+            break
+
+    results_layer = CanvasLayer.new()
+    results_layer.layer = 50
+    add_child(results_layer)
+
+    var shade := ColorRect.new()
+    shade.position = Vector2.ZERO
+    shade.size = Vector2(1440, 900)
+    shade.color = Color("02070bd9")
+    results_layer.add_child(shade)
+
+    var panel := Panel.new()
+    panel.position = Vector2(310, 70)
+    panel.size = Vector2(820, 760)
+    var style := StyleBoxFlat.new()
+    style.bg_color = Color("08131bf7")
+    style.border_width_left = 3
+    style.border_width_top = 3
+    style.border_width_right = 3
+    style.border_width_bottom = 3
+    style.border_color = GREEN if player_rank == 1 else CYAN
+    style.corner_radius_top_left = 14
+    style.corner_radius_top_right = 14
+    style.corner_radius_bottom_left = 14
+    style.corner_radius_bottom_right = 14
+    panel.add_theme_stylebox_override("panel", style)
+    results_layer.add_child(panel)
+
+    var title := Label.new()
+    title.position = Vector2(30, 24)
+    title.size = Vector2(760, 52)
+    title.text = "HASH RACE // FINAL STANDINGS"
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    title.add_theme_font_size_override("font_size", 28)
+    title.add_theme_color_override("font_color", GREEN if player_rank == 1 else CYAN)
+    panel.add_child(title)
+
+    var summary := Label.new()
+    summary.position = Vector2(40, 84)
+    summary.size = Vector2(740, 58)
+    summary.text = "Winner: %s   •   Your finish: #%d of %d   •   %d years / %d turns" % [
+        standings[0]["name"], player_rank, standings.size(), campaign_years, campaign_turns
+    ]
+    summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    summary.add_theme_font_size_override("font_size", 16)
+    summary.add_theme_color_override("font_color", WHITE)
+    panel.add_child(summary)
+
+    var table := Label.new()
+    table.position = Vector2(56, 154)
+    table.size = Vector2(708, 470)
+    var rows := "RANK   COMPANY                         TOTAL ASSETS       MW      MACHINES\n"
+    rows += "────────────────────────────────────────────────────────────────────────\n"
+    for i in range(standings.size()):
+        var row := standings[i]
+        var you := " ← YOU" if int(row["idx"]) == player_town_idx else ""
+        rows += "#%-5d %-30s $%-15d %6.2f   %7d%s\n" % [
+            i + 1, String(row["name"]), int(row["assets"]), float(row["mw"]), int(row["machines"]), you
+        ]
+    table.text = rows
+    table.add_theme_font_size_override("font_size", 14)
+    table.add_theme_color_override("font_color", Color("c9eaf1"))
+    panel.add_child(table)
+
+    var verdict := Label.new()
+    verdict.position = Vector2(50, 628)
+    verdict.size = Vector2(720, 42)
+    verdict.text = "You won the Hash Race." if player_rank == 1 else "Build more total company assets to move up the next race."
+    verdict.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    verdict.add_theme_font_size_override("font_size", 17)
+    verdict.add_theme_color_override("font_color", GREEN if player_rank == 1 else ORANGE)
+    panel.add_child(verdict)
+
+    var restart := Button.new()
+    restart.position = Vector2(240, 690)
+    restart.size = Vector2(340, 48)
+    restart.text = "START NEW CAMPAIGN"
+    restart.add_theme_font_size_override("font_size", 16)
+    restart.pressed.connect(start_new_campaign)
+    panel.add_child(restart)
+
+func start_new_campaign() -> void:
+    get_tree().remove_meta("hashrace_campaign_years")
+    get_tree().remove_meta("hashrace_campaign_turns")
+    get_tree().remove_meta("hashrace_company_idx")
+    get_tree().change_scene_to_file("res://scenes/campaign_setup.tscn")
 
 func rename_complete_button() -> void:
     for node in find_children("*", "Button", true, false):
