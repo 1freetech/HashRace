@@ -1,8 +1,8 @@
 extends "res://scripts/world_league_standings.gd"
 
-# v0.027: life/operations ratings have material gameplay consequences, queued
-# routines use elapsed time, and automatic routines avoid wasting company cash
-# when their target need is already near full. Ratings remain on the 0-100 scale.
+# v0.028: life/operations ratings have material gameplay consequences, queued
+# routines use elapsed time, and automatic routines now choose the weakest need
+# instead of forcing the player to micromanage one fixed monthly routine.
 
 const ROUTINE_INTERVAL_DAYS: float = 30.4375
 const AUTO_ROUTINE_NEED_THRESHOLD: float = 85.0
@@ -62,9 +62,9 @@ func _install_life_ops_ui() -> void:
     queue.position = Vector2(1080.0, 281.0)
     queue.size = Vector2(330.0, 34.0)
     queue.text = "QUEUE ROUTINE: NONE  [CHANGE]"
-    queue.tooltip_text = "Persist one smart routine. About monthly, it runs only when the related need is below 85/100 and cash allows."
+    queue.tooltip_text = "Choose NONE, RECOVER, TRAIN, NETWORK or AUTO. AUTO services the weakest need about monthly when it is below 85/100."
     queue.pressed.connect(func() -> void:
-        var options := ["NONE", "RECOVER", "TRAIN", "NETWORK"]
+        var options := ["NONE", "AUTO", "RECOVER", "TRAIN", "NETWORK"]
         queued_routine = String(options[(options.find(queued_routine) + 1) % options.size()])
         queued_routine_days = 0.0
         queue.text = "QUEUE ROUTINE: %s  [CHANGE]" % queued_routine
@@ -106,7 +106,7 @@ func _site_fit_score() -> int:
 func _open_life_overview() -> void:
     var routine_progress: int = int(round(clampf(queued_routine_days / ROUTINE_INTERVAL_DAYS * 100.0, 0.0, 100.0)))
     dialog_title.text = "OPERATOR LIFE + MINING SITE"
-    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\nSmart queue threshold: runs only when its target need is below %d/100. DAY, WEEK, MONTH and QUARTER turns keep the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress, int(AUTO_ROUTINE_NEED_THRESHOLD)]
+    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\nAUTO chooses the weakest need below %d/100. Fixed routines still run only when their target needs work. DAY, WEEK, MONTH and QUARTER turns keep the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress, int(AUTO_ROUTINE_NEED_THRESHOLD)]
     _set_actions([])
 
 func _spend_for_routine(cost: float) -> bool:
@@ -140,8 +140,19 @@ func _network_operator(silent: bool = false) -> bool:
     _refresh_ui()
     return true
 
+func _auto_routine_choice() -> String:
+    var lowest: float = minf(operator_energy, minf(operator_focus, operator_social))
+    if lowest >= AUTO_ROUTINE_NEED_THRESHOLD:
+        return "NONE"
+    if operator_energy <= operator_focus and operator_energy <= operator_social:
+        return "RECOVER"
+    if operator_focus <= operator_social:
+        return "TRAIN"
+    return "NETWORK"
+
 func _queued_routine_needed() -> bool:
     match queued_routine:
+        "AUTO": return _auto_routine_choice() != "NONE"
         "RECOVER": return operator_energy < AUTO_ROUTINE_NEED_THRESHOLD or operator_focus < AUTO_ROUTINE_NEED_THRESHOLD
         "TRAIN": return operator_focus < AUTO_ROUTINE_NEED_THRESHOLD
         "NETWORK": return operator_social < AUTO_ROUTINE_NEED_THRESHOLD
@@ -150,11 +161,12 @@ func _queued_routine_needed() -> bool:
 func _run_queued_routine() -> bool:
     if not _queued_routine_needed():
         return true
-    match queued_routine:
+    var routine_to_run: String = _auto_routine_choice() if queued_routine == "AUTO" else queued_routine
+    match routine_to_run:
         "RECOVER": return _recover_operator(true)
         "TRAIN": return _train_operator(true)
         "NETWORK": return _network_operator(true)
-    return false
+    return true
 
 func _apply_elapsed_life(days: float) -> void:
     var pressure: float = days / ROUTINE_INTERVAL_DAYS
