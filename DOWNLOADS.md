@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.024**
+Current public version target: **v0.025**
 
-- [Windows x64 — Hash Race v0.024](https://github.com/1freetech/HashRace/releases/download/v0.024/HashRace-v0.024-windows-x64.zip)
-- [Linux x64 — Hash Race v0.024](https://github.com/1freetech/HashRace/releases/download/v0.024/HashRace-v0.024-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.025](https://github.com/1freetech/HashRace/releases/download/v0.025/HashRace-v0.025-windows-x64.zip)
+- [Linux x64 — Hash Race v0.025](https://github.com/1freetech/HashRace/releases/download/v0.025/HashRace-v0.025-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.024 gameplay change
+## v0.025 reliability change
 
-Life management now changes the actual mining business instead of acting mainly as a status display. **Energy** modifies mining uptime by up to ±2.5 percentage points, **Focus** modifies research cost by up to ±8%, and **Social** modifies partner/deal cost by up to ±8%. The effects are deliberately bounded and combine with the existing mining-company culture effects rather than replacing them.
+The Life + Operations regression contract no longer hard-codes the old v0.023 release number. That stale assertion could make a healthy newer build fail simply because VERSION advanced. The contract now validates Hash Race's `v0.xxx` public-version format and continues checking the actual playable requirements: 0-100 Energy/Focus/Social, paid routines, persistent routine queue, elapsed-time decay, site fit, and the material uptime/research/partner effects introduced in v0.024. This is a small but important playability-pipeline fix because passing CI is required before a Godot desktop build is presented as downloadable.
 
-This makes RECOVER, TRAIN, NETWORK and the persistent routine queue real strategic decisions. Long MONTH or QUARTER turns create more operator pressure than DAY or WEEK turns, so a player can either spend money maintaining the operator or accept measurable operational penalties. All life, skill and strategy ratings remain on Hash Race's universal 0-100 scale. All ten league companies remain Bitcoin mining companies; outside industries remain NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
+All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
 
 ## Open-source simulation references
 
