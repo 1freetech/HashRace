@@ -1,16 +1,18 @@
 # Hash Race Downloads
 
-Current public version: **v0.006**
+Current public version target: **v0.007**
 
-- [Windows x64 — Hash Race v0.006](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-windows-x64.zip)
-- [Linux x64 — Hash Race v0.006](https://github.com/1freetech/HashRace/releases/download/v0.006/HashRace-v0.006-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.007](https://github.com/1freetech/HashRace/releases/download/v0.007/HashRace-v0.007-windows-x64.zip)
+- [Linux x64 — Hash Race v0.007](https://github.com/1freetech/HashRace/releases/download/v0.007/HashRace-v0.007-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
-These links are populated by the Godot release workflow after the versioned Windows and Linux exports pass the headless boot/export jobs. The repository should not describe a version as downloadable until its release assets exist.
+The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.006 gameplay change
+## v0.007 gameplay change
 
-The END QUARTER preview now acts like a simple front-office risk screen. Before the player commits roughly 91 days, Hash Race shows the projected quarterly cash result and projected ending cash. Losing quarters also show estimated operating-cost runway, while a quarter projected to push cash below zero gets a clear danger warning with practical recovery choices such as financing, selling BTC, cutting costs, or delaying expansion. The goal is to make long campaign turns easier to understand and reduce accidental bankruptcies without removing risk.
+The quarterly front-office screen now has a **SELL 25% BTC TREASURY** action. A mining company that has accumulated sats can convert one quarter of those holdings to operating cash at the current simulated BTC price before ending the quarter. The action makes the existing cash-danger preview useful: instead of merely warning the player to sell BTC, the game now provides the control needed to do it. A sale cancels any pending END QUARTER confirmation so the player can review the improved cash position before advancing time.
+
+The competitive model remains unchanged: all ten selectable/rival companies are Bitcoin miners. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service, and sports organizations remain outside NPC partners and suppliers.
 
 ## Build stack
 
