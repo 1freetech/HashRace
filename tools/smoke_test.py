@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Dependency-free checks for Hash Race mining math, campaign setup, company identities, financing, Godot world, and polyglot support."""
 from pathlib import Path
+import re
 
 
 def power_kw(hashrate_th, efficiency_jth):
@@ -16,7 +17,8 @@ def main():
     assert power_kw(100.0, 10.0) < power_kw(100.0, 20.0)
     assert abs(btc_per_day(1000.0, 100000.0, 25.0) - 36.0) < 1e-9
 
-    assert Path("VERSION").read_text().strip() == "v0.002"
+    version = Path("VERSION").read_text().strip()
+    assert re.fullmatch(r"v0\.\d{3}", version), "Public version must use the v0.001 sequential format"
     assert Path("desktop/HashRace.Desktop/ProgramV002.cs").exists(), "Transitional desktop build must remain available"
 
     godot = Path("Godot/scripts/main.gd").read_text(encoding="utf-8")
@@ -28,6 +30,7 @@ def main():
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
     world = Path("Godot/scripts/world_v2.gd").read_text(encoding="utf-8")
     campaign = Path("Godot/scripts/world_campaign.gd").read_text(encoding="utf-8")
+    playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 
     mining_companies = [
@@ -50,7 +53,7 @@ def main():
         Path("native/cpp/hashrace_core.cpp"), Path("native/rust/hashrace_balance.rs"),
         Path("tools/typescript/hashrace_validate.ts"), Path("docs/LANGUAGE_STACK.md"),
         Path("docs/ECONOMY_MODEL.md"), Path("Godot/scripts/company_profiles.gd"),
-        Path("Godot/scripts/world_campaign.gd"), Path("Godot/scripts/campaign_setup.gd"),
+        Path("Godot/scripts/world_campaign.gd"), Path("Godot/scripts/world_playability.gd"), Path("Godot/scripts/campaign_setup.gd"),
     ]
     for path in required_support_files:
         assert path.exists(), f"Missing support file: {path}"
@@ -66,7 +69,9 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project, "Godot must boot into the new-campaign setup menu"
     assert "campaign_setup.gd" in setup_scene, "Campaign setup scene must load its setup script"
-    assert "world_campaign.gd" in world_scene, "Live world scene must load the fixed quarterly campaign controller"
+    assert "world_playability.gd" in world_scene, "Live world scene must load the playability-safe quarterly campaign controller"
+    for marker in ["CONFIRM END QUARTER", "projected_quarter_cash_result", "Quarter preview:"]:
+        assert marker in playability, f"Quarter confirmation layer missing playability safeguard: {marker}"
 
     setup_markers = [
         "MINING COMPANY", "CAMPAIGN LENGTH", "1 TURN = 1 QUARTER", "HALVING EVERY 16 TURNS",
@@ -102,7 +107,7 @@ def main():
     for lender in ["Community Bank", "Commercial Bank", "Infrastructure Bank", "State Development Fund", "Strategic Infrastructure Program"]:
         assert lender in profiles, f"Asset-tier lender missing: {lender}"
 
-    print("Hash Race smoke test passed: the opening company/clock menu, quarterly campaign, halving clock, ten tech towns, company strengths, two-way asset financing, final standings/winner screen, seven-stat economy, sites, energy/cooling/chips, partners, hosting, mining math, and polyglot support are present.")
+    print("Hash Race smoke test passed: the opening company/clock menu, quarterly campaign with cash preview/confirmation, halving clock, ten tech towns, company strengths, two-way asset financing, final standings/winner screen, seven-stat economy, sites, energy/cooling/chips, partners, hosting, mining math, and polyglot support are present.")
 
 
 if __name__ == "__main__":
