@@ -2,190 +2,111 @@
 
 ## Core idea
 
-Hash Race is a 2D Bitcoin mining strategy game about building a technology company that can survive, expand, partner, acquire rivals, and win the hardware race.
+Hash Race is a 2D Bitcoin mining strategy game about building the strongest mining company over many simulated years. Every selectable company and every league rival is a Bitcoin miner. The player competes on hashrate, J/TH, power cost, uptime, facilities, R&D, capital allocation, partnerships, acquisitions, and long-term company value.
 
-The player is not only buying miners. The player is running a company over many simulated years. Every important decision competes for the same money: ASICs, R&D, power capacity, partnerships, acquisitions, and survival.
+The game uses original companies, art, names, maps, events, interfaces, and rules. Its broad design influences come from empire strategy, property/deal games, hardware evolution, life-sim management, city-building infrastructure, and sports franchise modes.
 
-The design borrows broad strategy ideas from empire games, business board games, city builders, open-world management games, and sports franchise modes. Hash Race must use original companies, art, names, maps, interfaces, events, and game rules rather than copying protected content from those games.
+## Non-negotiable company rule
+
+**Playable companies = Bitcoin mining companies. Rival companies = Bitcoin mining companies.**
+
+AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, food/retail, and sports organizations belong to the external NPC partnership economy. They can become suppliers, sponsors, landlords, financiers, technology allies, customers, or strategic partners, but they are not part of the starting mining league.
 
 ## Primary gameplay pillars
 
-### 1. Civilization-style long game
+### Long technology race
 
-The company moves through technology eras instead of simply leveling up.
+The player moves through Garage, Industrial ASIC, Infrastructure, Hyperscale, and Exahash eras. Rivals continue to improve while the player makes decisions. R&D should eventually split into silicon, boards, PSU/power delivery, firmware, cooling, packaging, networking, reliability, and facility design.
 
-- Garage Era
-- Industrial ASIC Era
-- Infrastructure Era
-- Hyperscale Era
-- Exahash Era
+### Property, deals, and acquisitions
 
-R&D changes what hardware is possible. Partnerships change which path is easiest. Rivals continue researching while the player makes decisions, so standing still means falling behind.
+Money competes for ASICs, sites, land, expansion, partnerships, research, debt service, and acquisitions. Buying another miner can change the standings immediately but can also leave the player overleveraged or stuck with inefficient hardware.
 
-### 2. Monopoly-style company control
+### Physical infrastructure
 
-Money can be used to buy productive assets or entire rival companies.
+Hashrate is limited by physical power and cooling. Sites have MW limits. Future maps add substations, transformers, PDUs, cooling, water, network capacity, rack/floor space, repair areas, staff, reliability, local power prices, and multiple regions.
 
-- Buy ASICs
-- Sell old ASICs
-- Expand mining sites
-- Acquire weaker competitors
-- Build company value
-- Use finance partnerships to improve deal economics
-- Eventually add negotiation, debt, stock ownership, hostile bids, and sellout offers
+### Hardware evolution
 
-An acquisition should feel like buying a valuable property in a business game: it costs a lot now but can change the whole board.
+ASIC generations should feel collectible and exciting while remaining grounded in mining metrics. Machines move from inefficient TH/s-class hardware toward PH/s and EH/s-class systems while J/TH declines. The player chooses when to keep old hardware, sell it, repurpose it, or retire it.
 
-### 3. SimCity-style infrastructure
+### Franchise mode
 
-Hashrate cannot grow forever inside an unlimited imaginary building.
+Mining companies compete like franchises in a league. Track seasons, standings, company value, hashrate, J/TH, prestige/OVR, rivalries, historical records, staff, budgets, owner goals, awards, engineering talent, scouting, contracts, and dynasty records.
 
-Every facility has a power capacity in MW. New miners consume part of that capacity. The player must expand the site before the fleet can grow past its physical limits.
+### Living world
 
-Future facility systems should include:
+World events create outages, grid opportunities, site deals, financing, component shortages, maintenance failures, sponsor offers, network problems, and technology breakthroughs. Future top-down maps can let the player inspect facilities, walk a campus, visit partner locations, and interact with engineers and executives without turning the game into an action game.
 
-- Electrical service and substations
-- Transformers and PDUs
-- Cooling capacity
-- Water for hydro systems
-- Network capacity
-- Rack and floor space
-- Repair areas
-- Reliability
-- Local energy prices
-- Multiple cities and sites
+## Ten starting Bitcoin mining companies
 
-### 4. Sports-franchise management
+| Company | Mining identity | Main starting advantage |
+| --- | --- | --- |
+| BlockForge Mining | Low-cost operator | Cheaper power and larger opening fleet |
+| Northstar Hash | R&D miner | Faster research |
+| VoltHash Mining | Grid optimizer | Lower effective electricity burden |
+| TerraHash Industries | Site scaler | More land/capacity leverage |
+| Frontier Mining Co. | Consolidator | More cash and cheaper acquisitions |
+| HydroBlock Mining | Cooling specialist | Higher uptime and better initial efficiency |
+| IronPeak Digital Mining | Reliability operator | Better uptime and stable operations |
+| Atlas Hashworks | Balanced industrial miner | Small advantages across several systems |
+| Cascade Mining Systems | Efficiency specialist | Best opening J/TH profile |
+| DeepCore Bitcoin Mining | Capital-heavy scaler | More cash and site-growth leverage |
 
-Each mining company functions like a franchise competing in a league.
+The player selects one. The other nine remain active AI-controlled Bitcoin mining competitors.
 
-The game tracks:
+## External NPC partnerships
 
-- Franchise OVR rating
-- League rank
-- Company value
-- Technology generation
-- Hashrate
-- Efficiency
-- Partnerships
-- Acquisitions
-- Seasons
+Partnerships are effectively a second technology/business tree. They must change real game systems.
 
-A new season begins every 365 game days. Long-term play should eventually include historical records, awards, rivalries, owner goals, yearly budgets, front-office staff, engineering staff, scouting, and company legacy records.
-
-### 5. Living-world flavor
-
-The game world should occasionally create opportunities and problems outside the normal menu loop.
-
-Current prototype events include:
-
-- AI compute demand
-- Grid load-management payments
-- Semiconductor breakthroughs
-- Maintenance failures
-- Regional development/site opportunities
-- Investor financing
-- Property development deals
-- Retail branding opportunities
-- Telecom outages
-- Sports sponsorship opportunities
-
-Future 2D maps can allow the player to move through facilities, visit partner companies, inspect racks, meet engineers, and interact with business opportunities. The open-world influence should add personality without turning Hash Race into an action game.
-
-## Ten starting companies
-
-All ten companies are fictional and original. They are inspired by broad real-world technology sectors rather than using real company names, logos, or assets.
-
-| Company | Sector | Main advantage | Natural partnership |
-| --- | --- | --- | --- |
-| BlockForge Mining | Bitcoin mining | More starting miners and cheaper power | Energy |
-| NeuralPeak Compute | AI compute | Faster R&D | AI |
-| Atlas Robotics | Robotics | Better uptime and operations | Robotics |
-| VoltRiver Energy | Energy | Very low effective power cost | Energy |
-| SilicaWorks | Semiconductors | Better ASIC efficiency | Semiconductor |
-| CoreVector Systems | CPU/systems | Balanced engineering company | Semiconductor |
-| SkyStack Compute | Cloud infrastructure | Large starting site | Infrastructure |
-| IonDrive Automation | Autonomy/technology | Strong uptime and flexible R&D | Robotics |
-| OpenCircuit Labs | Open technology | Fastest base research | AI |
-| Frontier Holdings | Capital/acquisitions | More cash and cheaper buyouts | Finance |
-
-The player chooses one company. The other nine enter the world as AI competitors with the same general strengths and weaknesses.
-
-## Strategic partnerships
-
-Partnerships are the second technology tree. They should be powerful enough that choosing partners changes the player's strategy.
-
-### AI — Neural Compute Alliance
-
+### AI — NeuralPeak AI
 - Faster R&D
-- Additional compute-contract revenue
-- Helps a technology-first company reach new ASIC generations early
+- Compute-contract revenue
+- Future predictive maintenance and market-forecast tools
 
-### Robotics — Autonomous Operations Group
-
+### Robotics — Atlas Robotics
 - Higher uptime
-- Lower operating costs
-- Makes large facilities easier to maintain
+- Lower operations cost
+- Future autonomous inspection and repair
 
-### Energy — Grid Power Consortium
-
-- Lower electricity cost
-- Makes older or less efficient hardware remain profitable longer
-
-### Semiconductor — Advanced Foundry Access
-
+### Semiconductor — SilicaWorks Foundry
 - Better effective J/TH
-- Faster R&D
-- Strong path toward sub-1 J/TH hardware
+- Faster ASIC research
+- Future node/process access and tape-out events
 
-### Finance — Strategic Capital Partners
-
-- Lower acquisition prices
-- Future versions can add debt, equity, IPOs, and takeover financing
-
-### Infrastructure — Hyperscale Infrastructure Pact
-
-- More effective site capacity
-- Cheaper site expansion
-- Strong path toward PH/s and EH/s scale
-
-### Real Estate — MetroLand Development Group
-
-- Cheaper land and site expansion
-- More effective usable site capacity
-- Future versions can add leases, land appreciation, zoning, taxes, and property portfolios
-
-### Quick Service — QuickBite Franchise Network
-
-- Creates steady non-mining commercial income
-- Adds brand visibility and retail sponsorship opportunities
-- Future versions can add branded locations, franchise deals, and heat-reuse partnerships
+### Energy — VoltRiver Energy
+- Lower electricity price
+- Grid-response opportunities
+- Future PPAs, storage, generation, curtailment, and heat reuse
 
 ### Telecom — FiberGrid Communications
+- Higher network uptime
+- Future carrier redundancy, private fiber, latency, and outage systems
 
-- Better network uptime
-- Lower operating costs
-- Future versions can add carrier redundancy, latency, bandwidth, network outages, and private fiber builds
+### Real Estate — MetroLand Development
+- Cheaper land/site expansion
+- More usable capacity
+- Future leases, zoning, taxes, land appreciation, and property portfolios
+
+### Finance — Frontier Capital
+- Cheaper acquisitions and better deal access
+- Future debt, equity, IPOs, covenants, and takeover financing
+
+### Infrastructure — SkyStack Infrastructure
+- Larger sites and cheaper expansions
+- Future modular data centers, substations, construction schedules, and commissioning
+
+### Quick Service / Retail — QuickBite Franchise Network
+- Recurring non-mining cash flow
+- Brand visibility
+- Future franchise, location, sponsorship, and heat-reuse opportunities
 
 ### Sports — Pro Sports Alliance
-
-- Adds sponsorship income
-- Adds franchise prestige and OVR value
-- Future versions can add team sponsorships, league partnerships, naming rights, stadium deals, and seasonal marketing events
-
-Partnerships require minimum company value, technology progress, and cash. A small early-game company cannot instantly sign every major partner.
-
-## Partnership philosophy
-
-Hash Race partnerships do not need to stay inside Bitcoin or technology. A successful company can become a broader business empire.
-
-A mining company might partner with an AI company for research, an energy company for cheaper electricity, a real-estate developer for land, a telecom provider for connectivity, a food franchise for commercial cash flow, or a sports organization for sponsorship and brand power.
-
-The important design rule is that every partnership must change a real game system. Partnerships should never be badges that only decorate the UI.
+- Sponsorship revenue
+- Franchise prestige
+- Future team/league partnerships, naming rights, seasonal marketing, and venue deals
 
 ## Mining economics
-
-Hashrate produces a share of the simulated Bitcoin network reward. Electricity, uptime, equipment efficiency, network hashrate, and the Bitcoin price determine whether that hashrate is profitable.
 
 Core formulas remain grounded in mining concepts:
 
@@ -193,57 +114,36 @@ Core formulas remain grounded in mining concepts:
 
 `BTC/day = company hashrate ÷ network hashrate × blocks/day × block subsidy × uptime`
 
-Partnerships and company traits modify business results without replacing the underlying mining math.
+Electricity, uptime, equipment efficiency, network hashrate, block subsidy, Bitcoin price, fees, and operating costs determine whether capacity is actually profitable.
 
-## Hardware evolution
+## Engine architecture
 
-The first prototype has nine hardware generations:
+The primary engine is **Godot 4.7.2 stable**. Most new gameplay work should use GDScript because it is tightly integrated with Godot and fast to iterate. Existing useful C# systems are preserved and can be ported or integrated. C++ through GDExtension is reserved for measured performance bottlenecks.
 
-1. Gen 1 Prototype
-2. Gen 2 Hashbox
-3. Gen 3 Performance ASIC
-4. Gen 4 Efficient ASIC
-5. Gen 5 Hydro ASIC
-6. Gen 6 PH Node
-7. Gen 7 10 PH Rack
-8. Gen 8 100 PH Core
-9. Gen 9 EH Engine
+This is intentionally a hybrid migration. Gameplay quality and iteration speed matter more than rewriting working systems just to use one language everywhere.
 
-Future research should split into separate engineering trees for silicon, boards, power supplies, firmware, cooling, packaging, networking, and facility design.
+References:
+
+- https://github.com/godotengine/godot
+- https://godotengine.org/download/archive/
+- https://docs.godotengine.org/en/stable/getting_started/step_by_step/scripting_languages.html
+- https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_basics.html
+- https://arxiv.org/abs/2401.01909
+- https://arxiv.org/abs/2606.19830
 
 ## Dynasty goals
 
-Hash Race should not have only one victory screen. The player builds a legacy across several goals:
-
-1. Become the #1 company by value.
-2. Reach 1 PH/s.
-3. Reach 10 PH/s.
-4. Reach 100 PH/s.
-5. Reach 1 EH/s.
-6. Unlock sub-10 J/TH hardware.
-7. Unlock sub-5 J/TH hardware.
-8. Unlock sub-1 J/TH hardware.
-9. Build at least three major strategic partnerships.
-10. Acquire rival companies when it strengthens the empire.
-
-Reaching #1, 1 EH/s, and at least three partnerships is currently treated as the first dynasty milestone.
-
-## Visual direction
-
-Desktop remains 2D first.
-
-The eventual playable world should use a top-down facility/campus view with readable rooms, sites, racks, machines, substations, cooling systems, engineers, executives, partner locations, and company headquarters.
-
-Hardware evolution should feel exciting and collectible, but all machines, characters, interfaces, animations, names, and art should be original to Hash Race.
+Hash Race should not have only one victory screen. Long-term goals include becoming #1 by company value, reaching 1 PH/s, 10 PH/s, 100 PH/s and 1 EH/s, unlocking sub-10/sub-5/sub-1 J/TH hardware, building multiple strategic partnerships, acquiring rivals, surviving downturns, and setting long-term season records.
 
 ## Immediate build order
 
-1. Keep the company/partnership economy stable.
-2. Add a real 2D facility map and physical rack placement.
-3. Split R&D into engineering branches.
-4. Give rivals stronger personalities and strategic behavior.
-5. Add staff/front-office management.
-6. Add multiple sites, regions, and power markets.
-7. Add negotiation and sellout systems.
-8. Add season history, records, awards, and rivalries.
-9. Add mobile-friendly UI after desktop gameplay is proven.
+1. Keep the corrected miner-versus-miner company model stable.
+2. Make the Godot build directly playable and visually readable.
+3. Add a real top-down facility map and rack placement.
+4. Split R&D into engineering branches.
+5. Give rival miners stronger personalities and long-term strategies.
+6. Add staff/front-office management and contracts.
+7. Add multiple sites, regions, and power markets.
+8. Add negotiation, debt, sellout, and takeover systems.
+9. Add season history, awards, rivalries, and dynasty records.
+10. Add mobile-friendly UI after the desktop loop is proven.

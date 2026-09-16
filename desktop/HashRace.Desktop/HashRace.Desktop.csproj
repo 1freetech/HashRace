@@ -7,5 +7,9 @@
     <AssemblyName>HashRace</AssemblyName>
     <RootNamespace>HashRaceDesktop</RootNamespace>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ProgramV002.cs" />
+  </ItemGroup>
 </Project>

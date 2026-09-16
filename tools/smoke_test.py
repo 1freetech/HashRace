@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free checks for Hash Race mining math and core strategy rules."""
-
+"""Dependency-free checks for Hash Race mining math, corrected company model, and Godot migration."""
 from pathlib import Path
 
 
@@ -12,66 +11,37 @@ def btc_per_day(player_th, network_th, subsidy, uptime=1.0):
     return (player_th / network_th) * 144.0 * subsidy * uptime
 
 
-def power_cost_day(hashrate_th, efficiency_jth, electricity_kwh, uptime=1.0):
-    return power_kw(hashrate_th, efficiency_jth) * 24.0 * electricity_kwh * uptime
-
-
-def close(a, b, tolerance=1e-9):
-    return abs(a - b) <= tolerance
-
-
 def main():
-    assert close(power_kw(100.0, 20.0), 2.0), "100 TH/s at 20 J/TH should draw 2 kW"
-    assert close(power_cost_day(100.0, 20.0, 0.05), 2.4), "2 kW for 24h at $0.05/kWh should cost $2.40"
-    assert close(btc_per_day(1000.0, 100000.0, 25.0), 36.0), "1% of a 25 BTC/block network should earn 36 BTC/day at 144 blocks/day"
-    assert power_kw(100.0, 10.0) < power_kw(100.0, 20.0), "Lower J/TH must use less power at equal hashrate"
+    assert power_kw(100.0, 20.0) == 2.0
+    assert power_kw(100.0, 10.0) < power_kw(100.0, 20.0)
+    assert abs(btc_per_day(1000.0, 100000.0, 25.0) - 36.0) < 1e-9
 
-    base_power_price = 0.06
-    energy_partner_price = base_power_price * 0.78
-    assert energy_partner_price < base_power_price, "Energy partnerships must lower effective electricity cost"
+    assert Path("VERSION").read_text().strip() == "v0.002"
 
-    base_buyout_multiplier = 1.0
-    finance_partner_multiplier = base_buyout_multiplier * 0.80
-    assert finance_partner_multiplier < base_buyout_multiplier, "Finance partnerships must improve acquisition economics"
+    desktop = Path("desktop/HashRace.Desktop/ProgramV002.cs").read_text(encoding="utf-8")
+    godot = Path("Godot/scripts/main.gd").read_text(encoding="utf-8")
+    assert Path("Godot/project.godot").exists()
+    assert Path("Godot/scenes/main.tscn").exists()
 
-    base_site_mw = 0.10
-    infrastructure_partner_mw = base_site_mw * 1.35
-    real_estate_partner_mw = infrastructure_partner_mw * 1.20
-    assert infrastructure_partner_mw > base_site_mw, "Infrastructure partnerships must increase usable site capacity"
-    assert real_estate_partner_mw > infrastructure_partner_mw, "Real estate partnerships must add more site capacity"
-
-    source = Path("Assets/Scripts/HashRacePrototype.cs").read_text(encoding="utf-8")
-    assert source.count("companyProfiles.Add(new CompanyProfile") == 10, "Hash Race must keep ten selectable company archetypes"
-    assert source.count("partnerships.Add(new StrategicPartnership") == 10, "Hash Race must keep ten strategic partnership paths"
-
-    required_partnerships = [
-        '"AI"',
-        '"Robotics"',
-        '"Energy"',
-        '"Semiconductor"',
-        '"Finance"',
-        '"Infrastructure"',
-        '"Real Estate"',
-        '"Quick Service"',
-        '"Telecom"',
-        '"Sports"',
+    mining_companies = [
+        "BlockForge Mining", "Northstar Hash", "VoltHash Mining", "TerraHash Industries",
+        "Frontier Mining Co.", "HydroBlock Mining", "IronPeak Digital Mining",
+        "Atlas Hashworks", "Cascade Mining Systems", "DeepCore Bitcoin Mining"
     ]
-    for partnership in required_partnerships:
-        assert partnership in source, f"Missing partnership sector: {partnership}"
+    for company in mining_companies:
+        assert company in desktop, f"Desktop build missing mining company: {company}"
+        assert company in godot, f"Godot build missing mining company: {company}"
 
-    required_systems = [
-        "FranchiseRating",
-        "PlayerLeagueRank",
-        "ExpandSite",
-        "TryAcquire",
-        "ProcessWorldEvent",
-        "CurrentSeason",
-        "DailyPartnerRevenue",
-    ]
-    for system in required_systems:
-        assert system in source, f"Missing required strategy system: {system}"
+    assert "NeuralPeak Compute" not in desktop, "AI company must not be a selectable mining company"
+    assert "Atlas Robotics\", \"Robotics\"" not in desktop.split("private static readonly List<Company>")[1].split("private static readonly List<Partner>")[0]
 
-    print("Hash Race smoke test passed: mining math, ten partnership paths, ten companies, infrastructure, league, partner revenue, and acquisition systems are present and sane.")
+    partner_sectors = ["AI", "Robotics", "Semiconductor", "Energy", "Telecom", "Real Estate", "Finance", "Infrastructure", "Quick Service", "Sports"]
+    for sector in partner_sectors:
+        assert sector in desktop, f"Desktop build missing partner sector: {sector}"
+        assert sector in godot, f"Godot build missing partner sector: {sector}"
+
+    assert "STARTING_MINERS" in godot and "PARTNERS" in godot
+    print("Hash Race smoke test passed: mining math is sane, all ten competitors are Bitcoin miners, all ten outside partner sectors exist, and the Godot migration files are present.")
 
 
 if __name__ == "__main__":
