@@ -222,6 +222,10 @@ namespace HashRace
             partnerships.Add(new StrategicPartnership("Semiconductor", "Advanced Foundry Access", "10% better ASIC J/TH and 15% faster R&D.", 80000, 70000, 2));
             partnerships.Add(new StrategicPartnership("Finance", "Strategic Capital Partners", "20% cheaper acquisitions and stronger deal access.", 100000, 90000, 3));
             partnerships.Add(new StrategicPartnership("Infrastructure", "Hyperscale Infrastructure Pact", "35% more site capacity and 25% cheaper expansions.", 125000, 120000, 3));
+            partnerships.Add(new StrategicPartnership("Real Estate", "MetroLand Development Group", "35% cheaper site expansion and 20% more usable site capacity.", 70000, 60000, 2));
+            partnerships.Add(new StrategicPartnership("Quick Service", "QuickBite Franchise Network", "Adds steady commercial cash flow from brand and retail deals.", 55000, 45000, 1));
+            partnerships.Add(new StrategicPartnership("Telecom", "FiberGrid Communications", "+1% uptime and 10% lower operating costs through stronger connectivity.", 65000, 50000, 2));
+            partnerships.Add(new StrategicPartnership("Sports", "Pro Sports Alliance", "Adds sponsorship income and a +5 franchise OVR prestige bonus.", 150000, 150000, 3));
         }
 
         private void SelectCompany(CompanyProfile profile)
@@ -273,9 +277,10 @@ namespace HashRace
         private void ProcessOneDay()
         {
             double revenue = DailyRevenue();
+            double partnerRevenue = DailyPartnerRevenue();
             double power = DailyPowerCost();
             double operations = DailyOperatingCost();
-            cash += revenue - power - operations;
+            cash += revenue + partnerRevenue - power - operations;
 
             MoveMarket();
             MoveRivals();
@@ -348,11 +353,15 @@ namespace HashRace
             else if (rival.Partnership == "Semiconductor") rival.EfficiencyJTH *= 0.93;
             else if (rival.Partnership == "Finance") rival.Cash += 9000.0;
             else if (rival.Partnership == "Infrastructure") rival.HashrateTH *= 1.10;
+            else if (rival.Partnership == "Real Estate") rival.Cash += 6000.0;
+            else if (rival.Partnership == "Quick Service") rival.Cash += 7000.0;
+            else if (rival.Partnership == "Telecom") rival.HashrateTH *= 1.04;
+            else if (rival.Partnership == "Sports") rival.Cash += 12000.0;
         }
 
         private void ProcessWorldEvent()
         {
-            int eventId = rng.Next(0, 6);
+            int eventId = rng.Next(0, 10);
             double scale = Math.Max(1000.0, CompanyValue() * 0.015);
 
             if (eventId == 0)
@@ -385,11 +394,35 @@ namespace HashRace
                 siteCapacityMW += addedMW;
                 eventText = "WORLD EVENT: A regional development deal added " + addedMW.ToString("0.000") + " MW of site capacity.";
             }
-            else
+            else if (eventId == 5)
             {
                 double deal = scale * (HasPartnership("Finance") ? 1.7 : 1.0);
                 cash += deal;
                 eventText = "WORLD EVENT: Investors backed your expansion with " + Money(deal) + ".";
+            }
+            else if (eventId == 6)
+            {
+                double addedMW = HasPartnership("Real Estate") ? 0.035 : 0.010;
+                siteCapacityMW += addedMW;
+                eventText = "WORLD EVENT: A property development opportunity added " + addedMW.ToString("0.000") + " MW of future site room.";
+            }
+            else if (eventId == 7)
+            {
+                double deal = scale * (HasPartnership("Quick Service") ? 1.8 : 0.7);
+                cash += deal;
+                eventText = "WORLD EVENT: A retail branding deal paid " + Money(deal) + ".";
+            }
+            else if (eventId == 8)
+            {
+                double cost = scale * (HasPartnership("Telecom") ? 0.35 : 0.85);
+                cash -= cost;
+                eventText = "WORLD EVENT: A network outage caused business losses of " + Money(cost) + ". Telecom partnerships reduce this risk.";
+            }
+            else
+            {
+                double sponsorship = scale * (HasPartnership("Sports") ? 2.0 : 0.6);
+                cash += sponsorship;
+                eventText = "WORLD EVENT: A sports sponsorship opportunity produced " + Money(sponsorship) + " in brand income.";
             }
         }
 
@@ -450,6 +483,7 @@ namespace HashRace
         {
             double value = baseUptime;
             if (HasPartnership("Robotics")) value += 0.020;
+            if (HasPartnership("Telecom")) value += 0.010;
             return Math.Min(0.999, value);
         }
 
@@ -479,7 +513,10 @@ namespace HashRace
 
         private double SiteCapacityEffectiveMW()
         {
-            return siteCapacityMW * (HasPartnership("Infrastructure") ? 1.35 : 1.0);
+            double value = siteCapacityMW;
+            if (HasPartnership("Infrastructure")) value *= 1.35;
+            if (HasPartnership("Real Estate")) value *= 1.20;
+            return value;
         }
 
         private double TotalHashrateTH()
@@ -521,6 +558,16 @@ namespace HashRace
             return DailyBitcoin() * bitcoinPrice * RevenueMultiplier();
         }
 
+        private double DailyPartnerRevenue()
+        {
+            double revenue = 0.0;
+            if (HasPartnership("Quick Service"))
+                revenue += Math.Min(25000.0, Math.Max(100.0, CompanyValue() * 0.00020));
+            if (HasPartnership("Sports"))
+                revenue += Math.Min(40000.0, Math.Max(150.0, CompanyValue() * 0.00025));
+            return revenue;
+        }
+
         private double DailyPowerCost()
         {
             double cost = 0.0;
@@ -536,6 +583,7 @@ namespace HashRace
         {
             double cost = 2.0 * TotalMachineCount() + TotalHashrateTH() * 0.005;
             if (HasPartnership("Robotics")) cost *= 0.75;
+            if (HasPartnership("Telecom")) cost *= 0.90;
             return cost;
         }
 
@@ -545,6 +593,7 @@ namespace HashRace
             for (int i = 0; i < fleet.Length; i++) hardware += fleet[i] * generations[i].PurchasePrice * 0.55;
             double partnerValue = ActivePartnershipCount() * 15000.0;
             double siteValue = SiteCapacityEffectiveMW() * 250000.0;
+            if (HasPartnership("Real Estate")) siteValue *= 1.15;
             return Math.Max(0.0, cash) + hardware + researchProgress * 0.5 + partnerValue + siteValue;
         }
 
@@ -555,7 +604,8 @@ namespace HashRace
             double efficiencyScore = Math.Max(0.0, 20.0 - FleetEfficiencyJTH() * 0.18);
             double partnerScore = ActivePartnershipCount() * 3.0;
             double valueScore = Math.Min(15.0, Math.Log10(Math.Max(10.0, CompanyValue())) * 2.5);
-            return (int)Math.Max(40.0, Math.Min(99.0, 42.0 + hashScore + techScore + efficiencyScore + partnerScore + valueScore));
+            double sportsBonus = HasPartnership("Sports") ? 5.0 : 0.0;
+            return (int)Math.Max(40.0, Math.Min(99.0, 42.0 + hashScore + techScore + efficiencyScore + partnerScore + valueScore + sportsBonus));
         }
 
         private int RivalRating(RivalCompany rival)
@@ -665,6 +715,7 @@ namespace HashRace
         {
             double cost = 15000.0 * Math.Pow(1.85, siteExpansionLevel);
             if (HasPartnership("Infrastructure")) cost *= 0.75;
+            if (HasPartnership("Real Estate")) cost *= 0.65;
             if (cash < cost)
             {
                 eventText = "You need " + Money(cost) + " to expand the site.";
@@ -768,7 +819,8 @@ namespace HashRace
             GUILayout.Label("Uptime: " + (EffectiveUptime() * 100.0).ToString("0.0") + "%");
             GUILayout.Label("Machines: " + TotalMachineCount());
             GUILayout.Space(8);
-            GUILayout.Label("Revenue/day: " + Money(DailyRevenue()));
+            GUILayout.Label("Mining revenue/day: " + Money(DailyRevenue()));
+            GUILayout.Label("Partner revenue/day: " + Money(DailyPartnerRevenue()));
             GUILayout.Label("Power/day: " + Money(DailyPowerCost()));
             GUILayout.Label("Ops/day: " + Money(DailyOperatingCost()));
             GUILayout.Label("Electricity: $" + EffectiveElectricityPrice().ToString("0.000") + "/kWh");
@@ -843,7 +895,7 @@ namespace HashRace
         {
             GUILayout.BeginVertical(GUI.skin.box, GUILayout.Width(width * 0.33f));
             GUILayout.Label("STRATEGIC PARTNERSHIPS");
-            GUILayout.Label("Partnerships are a second technology tree. They change how your company wins.");
+            GUILayout.Label("Partnerships are a second technology tree. Tech, property, retail, telecom, and sports deals can all change how your company wins.");
             partnershipScroll = GUILayout.BeginScrollView(partnershipScroll);
             for (int i = 0; i < partnerships.Count; i++)
             {
