@@ -8,6 +8,10 @@ func _fail(message: String) -> void:
     quit(1)
 
 func _run() -> void:
+    if not ClassDB.class_exists(&"HashRaceRuntime"):
+        _fail("HashRaceRuntime GDExtension class is not loaded")
+        return
+
     set_meta("hashrace_company_idx", 2)
     set_meta("hashrace_campaign_years", 3)
     set_meta("hashrace_campaign_turns", 12)
@@ -35,12 +39,34 @@ func _run() -> void:
         "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
         "debug_range_limited_path_exists", "debug_company_personality_ready", "debug_rival_personality_count",
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
-        "debug_culture_effects_summary", "_open_entity", "_end_quarter"
+        "debug_culture_effects_summary", "debug_native_runtime_ready", "debug_native_settlement_ready",
+        "debug_native_inventory", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
             _fail("missing overworld method: %s" % method_name)
             return
+
+    if not bool(scene.call("debug_native_runtime_ready")):
+        _fail("C++ runtime did not become authoritative")
+        return
+    if not bool(scene.call("debug_native_settlement_ready")):
+        _fail("live turn settlement is not routed through C++")
+        return
+    if not scene.has_meta("hashrace_native_state_authority") or String(scene.get_meta("hashrace_native_state_authority")) != "C++":
+        _fail("world does not advertise C++ as state authority")
+        return
+    if String(scene.get_meta("hashrace_native_runtime_revision", "")) != "v0.046-cpp-authoritative":
+        _fail("unexpected native runtime revision")
+        return
+    var native_inventory: Array = scene.call("debug_native_inventory") as Array
+    if native_inventory.is_empty():
+        _fail("C++ native fleet inventory is empty")
+        return
+    var player_state: Dictionary = scene.get("player") as Dictionary
+    if not bool(player_state.get("native_runtime", false)):
+        _fail("GDScript player mirror is not marked as a C++ snapshot")
+        return
 
     if not bool(scene.call("debug_world_ready")):
         _fail("overworld did not initialize player/entities/camera")
@@ -135,10 +161,17 @@ func _run() -> void:
     if not bool(treasury_controls.call("debug_live_treasury_ready")):
         _fail("live BTC treasury liquidity buttons did not initialize")
         return
+    if not treasury_controls.has_method("debug_native_treasury_ready") or not bool(treasury_controls.call("debug_native_treasury_ready")):
+        _fail("BTC treasury controls are not writing through C++")
+        return
 
     scene.call("_open_entity", 1)
     await process_frame
     var start_turn: int = int(scene.get("turn"))
+    var start_elapsed: float = float(scene.get("elapsed_campaign_days"))
+    var start_player: Dictionary = scene.get("player") as Dictionary
+    var start_cash: float = float(start_player.get("cash", 0.0))
+    var start_sats: float = float(start_player.get("sats", 0.0))
     scene.call("_end_quarter")
     await process_frame
     if int(scene.get("turn")) != start_turn:
@@ -150,8 +183,18 @@ func _run() -> void:
     scene.call("_end_quarter")
     await process_frame
     if int(scene.get("turn")) != start_turn + 1:
-        _fail("confirmed turn settlement did not advance the turn")
+        _fail("confirmed C++ turn settlement did not advance the turn")
+        return
+    if float(scene.get("elapsed_campaign_days")) <= start_elapsed:
+        _fail("C++ runtime did not advance elapsed campaign days")
+        return
+    var settled_player: Dictionary = scene.get("player") as Dictionary
+    if float(settled_player.get("cash", 0.0)) == start_cash and float(settled_player.get("sats", 0.0)) == start_sats:
+        _fail("C++ settlement did not change cash or BTC treasury state")
+        return
+    if not bool(settled_player.get("native_runtime", false)):
+        _fail("post-settlement player state is not a native snapshot")
         return
 
-    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, nine-source 2D visual stack, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
+    print("HASH RACE OVERWORLD PASS: C++ is authoritative for mining/economy state, native inventory and flexible-turn settlement; Godot world, collision-safe movement, scanner navigation, ten mining towns, partner firms, 2D visual stack, 0-100 company personalities, treasury controls, dialogue, camera and settlement are verified.")
     quit(0)
