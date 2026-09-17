@@ -4,6 +4,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 
 world_scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+world_v059 = (ROOT / "Godot/scripts/world_v059.gd").read_text(encoding="utf-8")
 world_v055 = (ROOT / "Godot/scripts/world_v055.gd").read_text(encoding="utf-8")
 landscape = (ROOT / "Godot/scripts/world_pixel_landscape.gd").read_text(encoding="utf-8")
 compact = (ROOT / "Godot/scripts/world_ui_compact.gd").read_text(encoding="utf-8")
@@ -11,7 +12,8 @@ texture_spacing = (ROOT / "Godot/scripts/world_texture_spacing.gd").read_text(en
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
-assert 'res://scripts/world_v055.gd' in world_scene, "Live scene must boot through the current v0.055 composition layer"
+assert 'res://scripts/world_v059.gd' in world_scene, "Live scene must boot through the current v0.059 infrastructure composition layer"
+assert 'extends "res://scripts/world_v055.gd"' in world_v059, "v0.059 must retain the procedural-building composition chain"
 assert 'extends "res://scripts/world_v053.gd"' in world_v055, "v0.055 must retain the v0.053 character/detail composition chain"
 assert 'extends "res://scripts/world_ui_compact.gd"' in texture_spacing, "Current visual chain must retain the compact control center"
 
@@ -47,4 +49,14 @@ for marker in [
 ]:
     assert marker in compact, marker
 
-print("pixel landscape + compact UI contract: PASS")
+for marker in [
+    "_draw_site_container",
+    "_draw_micro_server_rack",
+    "_draw_transformer_bank",
+    "_draw_campus_data_bus",
+    "_draw_cable_bundle",
+    "debug_infrastructure_detail_ready",
+]:
+    assert marker in world_v059, marker
+
+print("pixel landscape + compact UI + data-center infrastructure contract: PASS")

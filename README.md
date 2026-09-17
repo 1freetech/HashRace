@@ -6,14 +6,14 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.057**.
+The latest verified public desktop release is **v0.059**.
 
-- **[Windows x64 — Hash Race v0.057](https://github.com/1freetech/HashRace/releases/download/v0.057/HashRace-v0.057-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.057](https://github.com/1freetech/HashRace/releases/download/v0.057/HashRace-v0.057-linux-x64.tar.gz)**
-- **[Hash Race v0.057 release page](https://github.com/1freetech/HashRace/releases/tag/v0.057)**
+- **[Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.057-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.057-linux-x64.tar.gz)**
+- **[Hash Race v0.059 release page](https://github.com/1freetech/HashRace/releases/tag/v0.059)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.057 includes the current tested Godot strategy-RPG build with flexible day, week, month, and quarter turns, direct keyboard turn-length controls, treasury risk previews, and the upgraded procedural pixel overworld. The ten fictional league competitors remain Bitcoin mining companies; outside industries remain NPC partners and suppliers.
+v0.059 adds a visible data-center infrastructure pass to the tested Godot strategy-RPG build. Mining towns now show compact multi-rack compute pods, server sleds, cooling fans, power cabinets, status LEDs, network switches, cable trays, and short blue/green/orange cable bundles based on the supplied pixel-rack references. The new detail replaces simpler industrial blocks without adding extra map labels, and the brightest cable/switch detail is proximity-gated to keep the overworld readable.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository is now moving simulation-heavy state, inventory, mining math, machine generations, research, partnerships, acquisitions, and long-run economic calculations into a tested C++20 core. Large obsolete C# simulation prototypes are being retired instead of maintained in parallel.
 

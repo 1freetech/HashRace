@@ -48,6 +48,13 @@ func _capture() -> void:
         _fail("v0.053 character detail controller reported not ready")
         return
 
+    if not scene.has_method("debug_infrastructure_detail_ready"):
+        _fail("v0.059 infrastructure detail controller is not active")
+        return
+    if not bool(scene.call("debug_infrastructure_detail_ready")):
+        _fail("v0.059 infrastructure detail controller reported not ready")
+        return
+
     # Remove HUD/dialog panels from this proof so the rendered game art itself
     # is visible. The normal release screenshot still proves the full HUD.
     for child in scene.get_children():

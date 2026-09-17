@@ -41,7 +41,7 @@ func _run() -> void:
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
         "debug_culture_effects_summary", "debug_texture_spacing_ready", "debug_clean_layout_min_spacing",
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
-        "debug_character_outfit", "debug_paid_outfits_use_game_cash", "_choose_outfit", "_open_entity", "_end_quarter"
+        "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready", "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
@@ -139,6 +139,11 @@ func _run() -> void:
         _fail("interactive buildings are still too tightly clumped")
         return
 
+    # v0.059 data-center infrastructure contract.
+    if not bool(scene.call("debug_infrastructure_detail_ready")):
+        _fail("detailed rack, cooling and network infrastructure layer did not initialize")
+        return
+
     # v0.052 character customization contract.
     if not bool(scene.call("debug_character_customization_ready")):
         _fail("character wardrobe did not initialize")
@@ -196,5 +201,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.052 verified wider building spacing, richer pixel textures, cleaner map text, neon character labels, skin tone and gender/presentation customization, cash-priced outfit skins, collision-safe movement, ten mining towns, partner firms, company personalities, treasury controls, dialogue actions, camera, and turn settlement.")
+    print("HASH RACE OVERWORLD PASS: v0.059 verified wider building spacing, richer pixel textures, detailed rack/cooling/network infrastructure, cleaner map text, neon character labels, character customization, collision-safe movement, ten mining towns, partner firms, company personalities, treasury controls, dialogue actions, camera, and turn settlement.")
     quit(0)

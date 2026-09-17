@@ -1,13 +1,21 @@
 # Hash Race Downloads
 
-Current verified public version: **v0.055**
+Current verified public version: **v0.059**
 
-- [Windows x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-windows-x64.zip)
-- [Linux x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-linux-x64.tar.gz)
-- [Hash Race v0.055 release](https://github.com/1freetech/HashRace/releases/tag/v0.055)
+- [Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.055-windows-x64.zip)
+- [Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.055-linux-x64.tar.gz)
+- [Hash Race v0.059 release](https://github.com/1freetech/HashRace/releases/tag/v0.059)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above are published only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot, rendered-frame proof, export, packaging, and playable-build checks.
+
+## v0.059 data-center infrastructure update
+
+The mining-town infrastructure now uses a denser procedural rack style based on the supplied Godot drawing code and pixel references. Each compute pod contains four visible rack faces with individual server sleds, intake grilles, multi-color activity LEDs, company-color service accents, cooling fans, and short colored patch leads.
+
+The neighboring power equipment is now drawn as vented electrical/cooling cabinets with fan faces, hazard striping, live status lights, and top hardware. A compact network switch and a three-lane blue/green/orange cable tray appear around the town being explored, so the site reads as connected compute infrastructure without filling the whole map with cords or text.
+
+The release gate now requires the v0.059 infrastructure controller to initialize before the close-up render proof and packaged desktop builds are published.
 
 ## v0.055 procedural-building update
 

@@ -172,7 +172,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION ships the current tested Godot strategy-RPG build. The ten fictional league competitors are all Bitcoin mining companies; outside industries remain NPC partners and suppliers. This release materially upgrades the 2D pixel rendering with larger multi-shade company representatives, hard hats and field gear, textured terrain, industrial mining containers, transformer banks, fences, cooling equipment, facade detail, and a dedicated close-up render proof. Windows and Linux packages plus both rendered PNG proofs are CI verified before release."
+          NOTES="Hash Race $VERSION ships the current tested Godot strategy-RPG build with the new data-center infrastructure graphics pass. Mining towns now render compact multi-rack compute pods, server sleds, cooling fans, vented power cabinets, activity LEDs, network switches, cable trays, and restrained blue/green/orange cable bundles adapted from the supplied pixel-rack references and Godot drawing approach. The detail replaces simpler industrial blocks without adding extra map text. Windows and Linux packages plus rendered overworld and close-up PNG proofs are CI verified before release."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
