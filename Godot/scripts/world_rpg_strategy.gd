@@ -177,7 +177,6 @@ func _draw() -> void:
     if scanner_overlay_enabled:
         _draw_scanner_overlay()
     _draw_direction_state()
-    _draw_nearby_notice()
 
 func _draw_scanner_overlay() -> void:
     if grid_nav == null:
