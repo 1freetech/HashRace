@@ -5,6 +5,8 @@ extends RefCounted
 # Python-Monsters entity/player implementation by Clear Code Projects:
 # https://github.com/clear-code-projects/Python-Monsters
 
+const MAX_COLLISION_STEP: float = 16.0
+
 static func normalized_input(raw: Vector2) -> Vector2:
     # Prevent diagonal keyboard movement from being ~41% faster than cardinal movement.
     # Analog inputs below full magnitude keep their strength for controller precision.
@@ -31,15 +33,26 @@ static func face_target(origin: Vector2, target: Vector2, previous: String = "do
     return "down" if relation.y > 0.0 else "up"
 
 static func resolve_axis_motion(nav, origin: Vector2, requested_delta: Vector2) -> Vector2:
+    # Split unusually large frame movement into small collision probes. This keeps
+    # the representative from tunnelling through a thin wall or water boundary
+    # after a frame hitch while preserving the existing axis-slide feel.
+    if nav == null:
+        return origin
+    var distance: float = requested_delta.length()
+    if distance <= 0.001:
+        return origin
+    var steps: int = maxi(1, int(ceil(distance / MAX_COLLISION_STEP)))
+    var step_delta: Vector2 = requested_delta / float(steps)
     var result: Vector2 = origin
-    if absf(requested_delta.x) > 0.001:
-        var x_candidate: Vector2 = Vector2(origin.x + requested_delta.x, origin.y)
-        if nav != null and nav.world_is_walkable(x_candidate):
-            result.x = x_candidate.x
-    if absf(requested_delta.y) > 0.001:
-        var y_candidate: Vector2 = Vector2(result.x, origin.y + requested_delta.y)
-        if nav != null and nav.world_is_walkable(y_candidate):
-            result.y = y_candidate.y
+    for _step in range(steps):
+        if absf(step_delta.x) > 0.001:
+            var x_candidate: Vector2 = Vector2(result.x + step_delta.x, result.y)
+            if nav.world_is_walkable(x_candidate):
+                result.x = x_candidate.x
+        if absf(step_delta.y) > 0.001:
+            var y_candidate: Vector2 = Vector2(result.x, result.y + step_delta.y)
+            if nav.world_is_walkable(y_candidate):
+                result.y = y_candidate.y
     return result
 
 static func is_moving(motion: Vector2) -> bool:
@@ -49,3 +62,6 @@ static func debug_equal_speed() -> bool:
     var cardinal: Vector2 = normalized_input(Vector2(1.0, 0.0))
     var diagonal: Vector2 = normalized_input(Vector2(1.0, 1.0))
     return absf(cardinal.length() - diagonal.length()) < 0.001
+
+static func debug_collision_substeps() -> bool:
+    return MAX_COLLISION_STEP > 0.0 and int(ceil(65.0 / MAX_COLLISION_STEP)) >= 5
