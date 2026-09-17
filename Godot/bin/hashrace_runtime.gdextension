@@ -1,0 +1,10 @@
+[configuration]
+entry_symbol = "hashrace_library_init"
+compatibility_minimum = "4.7"
+reloadable = false
+
+[libraries]
+windows.x86_64.single.debug = "./windows/hashrace_runtime.windows.template_debug.x86_64.dll"
+windows.x86_64.single.release = "./windows/hashrace_runtime.windows.template_release.x86_64.dll"
+linux.x86_64.single.debug = "./linux/libhashrace_runtime.linux.template_debug.x86_64.so"
+linux.x86_64.single.release = "./linux/libhashrace_runtime.linux.template_release.x86_64.so"
