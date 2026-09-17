@@ -31,7 +31,8 @@ func _run() -> void:
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_player_rep_name",
         "debug_has_land_market", "debug_grid_navigation_ready", "debug_grid_path_exists",
         "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed",
-        "debug_visual_stack_ready", "debug_visual_reference_count",
+        "debug_visual_stack_ready", "debug_visual_reference_count", "debug_visual_detail_ready",
+        "debug_visual_upgrade_ready", "debug_player_sprite_ready",
         "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
         "debug_range_limited_path_exists", "debug_company_personality_ready", "debug_rival_personality_count",
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
@@ -79,10 +80,22 @@ func _run() -> void:
         _fail("ported tilemap operations did not modify the live map")
         return
     if not bool(scene.call("debug_visual_stack_ready")):
-        _fail("nine-source 2D visual stack contract failed")
+        _fail("eleven-source 2D visual stack contract failed")
         return
-    if int(scene.call("debug_visual_reference_count")) != 9:
-        _fail("expected exactly nine 2D visual reference techniques")
+    if int(scene.call("debug_visual_reference_count")) != 11:
+        _fail("expected exactly eleven 2D visual reference techniques")
+        return
+    if not bool(scene.call("debug_visual_detail_ready")):
+        _fail("base visual-detail layer did not initialize")
+        return
+    if not bool(scene.call("debug_visual_upgrade_ready")):
+        _fail("v0.046 layered terrain/building visual upgrade did not initialize")
+        return
+    if not bool(scene.call("debug_player_sprite_ready")):
+        _fail("v0.046 detailed player sprite did not initialize")
+        return
+    if int(scene.get_meta("hashrace_visual_upgrade_revision", 0)) < 1:
+        _fail("visual-upgrade revision metadata is missing")
         return
     if not bool(scene.call("debug_rpg_collision_ready")):
         _fail("RPG collision grid does not recognize a blocked world cell")
@@ -153,5 +166,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, nine-source 2D visual stack, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
+    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, eleven-source 2D visual stack, layered terrain, campus buildings, grass-step interaction, detailed player art, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
     quit(0)
