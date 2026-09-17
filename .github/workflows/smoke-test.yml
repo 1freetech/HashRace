@@ -90,9 +90,14 @@ jobs:
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
-      - name: Compile C++ mining core
-        run: g++ -std=c++20 -Wall -Wextra -pedantic native/cpp/hashrace_core.cpp -o /tmp/hashrace_cpp
-      - name: Run C++ mining core checks
+      - name: Compile C++ simulation, inventory, catalogs and core checks
+        run: >-
+          g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
+          native/cpp/hashrace_catalog.cpp
+          native/cpp/hashrace_simulation.cpp
+          native/cpp/hashrace_core.cpp
+          -o /tmp/hashrace_cpp
+      - name: Run C++ simulation checks
         run: /tmp/hashrace_cpp
 
   rust-balance:
