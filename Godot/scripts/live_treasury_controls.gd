@@ -99,14 +99,24 @@ func _player() -> Dictionary:
 func _btc_price() -> float:
     return float(world.get("btc_price"))
 
-func _projected_end_cash() -> float:
-    var player := _player()
-    var profit: float = 0.0
+func _projected_turn_profit() -> float:
     if world.has_method("turn_length_days") and world.has_method("_project_scaled_profit"):
-        profit = float(world.call("_project_scaled_profit", float(world.call("turn_length_days"))))
-    else:
-        profit = float(world.call("_project_live_quarter_profit"))
-    return float(player.get("cash", 0.0)) + profit
+        return float(world.call("_project_scaled_profit", float(world.call("turn_length_days"))))
+    return float(world.call("_project_live_quarter_profit"))
+
+func _projected_end_cash() -> float:
+    return float(_player().get("cash", 0.0)) + _projected_turn_profit()
+
+func _projected_risk(projected_profit: float, projected_end_cash: float) -> String:
+    if world.has_method("_quarter_preview_risk"):
+        return String(world.call("_quarter_preview_risk", projected_profit, projected_end_cash))
+    if projected_end_cash < 0.0:
+        return "DANGER: INSOLVENT"
+    if projected_end_cash < OPERATING_RESERVE:
+        return "CRITICAL: LOW RESERVE"
+    if projected_profit < 0.0:
+        return "WARNING: CASH BURN"
+    return "READY"
 
 func _on_hold_policy_changed(value: float) -> void:
     var player := _player()
@@ -188,9 +198,12 @@ func _refresh_status() -> void:
     var player := _player()
     var held_sats := float(player.get("sats", 0.0))
     var hold_percent: int = clampi(int(round(float(player.get("treasury_hold", 0.30)) * 100.0)), 0, 100)
+    var projected_profit := _projected_turn_profit()
+    var projected_end := float(player.get("cash", 0.0)) + projected_profit
+    var risk := _projected_risk(projected_profit, projected_end)
     if is_instance_valid(hold_policy_label):
         hold_policy_label.text = "BTC HOLD POLICY: %d / 100" % hold_percent
-    status_label.text = "Held: %d sats  •  BTC $%d\nProjected turn-end cash: $%d  •  reserve $%d" % [int(held_sats), int(_btc_price()), int(_projected_end_cash()), int(OPERATING_RESERVE)]
+    status_label.text = "Held: %d sats  •  BTC $%d  •  %s\nProjected turn-end cash: $%d  •  reserve $%d" % [int(held_sats), int(_btc_price()), risk, int(projected_end), int(OPERATING_RESERVE)]
 
 func debug_live_treasury_ready() -> bool:
     return is_instance_valid(hold_policy_slider) and is_instance_valid(sell_button) and is_instance_valid(auto_fund_button)
