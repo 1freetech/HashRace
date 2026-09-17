@@ -1,13 +1,8 @@
 extends "res://scripts/world_gbc.gd"
 
-# RPG + strategy presentation layer.
-# Uses the CC0 Python-Monsters movement helper for directional state and
-# axis-separated collision while keeping Hash Race's quarterly company economy.
-# The reachable-grid overlay is an original Hash Race implementation inspired by
-# common turn-based tactics navigation patterns.
-
 const RPGMovement = preload("res://scripts/rpg_movement.gd")
 const SCANNER_RANGE_CELLS: int = 7
+const INTERACT_RANGE: float = 92.0
 
 var rep_facing: String = "down"
 var rep_animation_state: String = "down_idle"
@@ -16,6 +11,7 @@ var scanner_overlay_enabled: bool = true
 var scanner_cells: Array[Vector2i] = []
 var scanner_button: Button
 var phase_label: Label
+var interact_label: Label
 var last_scanner_cell: Vector2i = Vector2i(-999, -999)
 var live_quarter_confirmation_pending: bool = false
 
@@ -23,10 +19,7 @@ func _ready() -> void:
     super._ready()
     _install_rpg_strategy_ui()
     _refresh_scanner_cells(true)
-    _open_message(
-        "COMPANY FIELD MODE // %s" % _current_town_name(),
-        "Explore like an RPG, plan like a strategy game. Movement now respects buildings and water. Your scanner visor shows reachable grid cells; press R to toggle it, E to talk, T for town transit, and end the quarter only after your company plan is ready."
-    )
+    _open_message("COMPANY FIELD MODE // %s" % _current_town_name(), "Explore like an RPG, plan like a strategy game. Walk near a company, partner, property, or deal target and press E to interact. R toggles the scanner and T opens town transit.")
     queue_redraw()
 
 func _install_rpg_strategy_ui() -> void:
@@ -48,6 +41,13 @@ func _install_rpg_strategy_ui() -> void:
     phase_label.add_theme_font_size_override("font_size", 12)
     phase_label.add_theme_color_override("font_color", Color("8cecff"))
     layer.add_child(phase_label)
+    interact_label = Label.new()
+    interact_label.position = Vector2(418.0, 118.0)
+    interact_label.size = Vector2(500.0, 30.0)
+    interact_label.text = ""
+    interact_label.add_theme_font_size_override("font_size", 12)
+    interact_label.add_theme_color_override("font_color", Color("8affbd"))
+    layer.add_child(interact_label)
 
 func _process(delta: float) -> void:
     var before: Vector2 = rep_pos
@@ -71,6 +71,7 @@ func _process(delta: float) -> void:
     else:
         rep_animation_state = RPGMovement.animation_state(rep_facing, false)
     _refresh_scanner_cells(false)
+    _refresh_interaction_prompt()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey:
@@ -86,11 +87,34 @@ func _unhandled_input(event: InputEvent) -> void:
                 return
             if key_event.keycode == KEY_E or key_event.keycode == KEY_ENTER or key_event.keycode == KEY_SPACE:
                 var idx: int = _nearest_entity()
-                if idx >= 0:
+                if idx >= 0 and _entity_in_interact_range(idx):
                     var entity: Dictionary = entities[idx]
                     rep_facing = RPGMovement.face_target(rep_pos, entity["pos"], rep_facing)
                     rep_animation_state = RPGMovement.animation_state(rep_facing, false)
+                    _open_entity(idx)
+                    get_viewport().set_input_as_handled()
+                    return
+                _feedback("Move closer to a company, partner, property, or deal target to interact.")
+                get_viewport().set_input_as_handled()
+                return
     super._unhandled_input(event)
+
+func _entity_in_interact_range(idx: int) -> bool:
+    if idx < 0 or idx >= entities.size():
+        return false
+    var entity: Dictionary = entities[idx]
+    return rep_pos.distance_to(Vector2(entity["pos"])) <= INTERACT_RANGE
+
+func _refresh_interaction_prompt() -> void:
+    if not is_instance_valid(interact_label):
+        return
+    var idx: int = _nearest_entity()
+    if idx < 0 or not _entity_in_interact_range(idx):
+        interact_label.text = ""
+        return
+    var entity: Dictionary = entities[idx]
+    var label: String = String(entity.get("name", entity.get("label", "target")))
+    interact_label.text = "[E] INTERACT // %s" % label.to_upper()
 
 func _project_live_quarter_profit() -> float:
     var mined_btc: float = _btc_per_day() * QUARTER_DAYS
@@ -175,38 +199,9 @@ func _draw_direction_state() -> void:
     var tip: Vector2 = rep_pos + direction * 30.0
     draw_line(rep_pos + direction * 17.0, tip, Color("8affbd"), 3.0)
     draw_circle(tip, 3.0, Color("d7fff0"))
-    if not rep_animation_state.ends_with("_idle"):
-        var bob: float = sin(rep_step_phase) * 3.0
-        draw_rect(Rect2(rep_pos + Vector2(-10.0, 21.0 + bob), Vector2(7.0, 4.0)), Color("071014"), true)
-        draw_rect(Rect2(rep_pos + Vector2(3.0, 21.0 - bob), Vector2(7.0, 4.0)), Color("071014"), true)
 
-func _draw_nearby_notice() -> void:
-    var idx: int = _nearest_entity()
-    if idx < 0: return
-    var entity: Dictionary = entities[idx]
-    var kind: String = String(entity["kind"])
-    if kind != "rival_rep" and kind != "partner_rep": return
-    var pos: Vector2 = entity["pos"]
-    var bubble: Rect2 = Rect2(pos + Vector2(-12.0, -76.0), Vector2(24.0, 24.0))
-    draw_rect(bubble, Color("f4ffed"), true)
-    draw_rect(bubble, Color("071014"), false, 2.0)
-    draw_string(ThemeDB.fallback_font, pos + Vector2(-4.0, -58.0), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("071014"))
+func debug_interaction_range_ready() -> bool:
+    return INTERACT_RANGE >= 80.0 and INTERACT_RANGE <= 120.0
 
-func debug_rpg_collision_ready() -> bool:
-    if grid_nav == null: return false
-    return not grid_nav.world_is_walkable(Vector2(100.0, 1800.0))
-
-func debug_scanner_reachable_count() -> int:
-    return scanner_cells.size()
-
-func debug_rep_animation_state() -> String:
-    return rep_animation_state
-
-func debug_range_limited_path_exists() -> bool:
-    if grid_nav == null: return false
-    var start: Vector2 = rep_pos
-    var reachable: Array[Vector2i] = grid_nav.reachable_cells(start, 5)
-    if reachable.size() < 2: return false
-    var destination: Vector2 = grid_nav.cell_to_world(reachable[reachable.size() - 1])
-    var path: Array[Vector2] = grid_nav.find_path_in_range(start, destination, reachable)
-    return not path.is_empty()
+func debug_interaction_prompt_ready() -> bool:
+    return is_instance_valid(interact_label)
