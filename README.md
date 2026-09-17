@@ -6,9 +6,11 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 ## Play Hash Race
 
-The current public desktop release is **v0.044**.
+The latest verified public desktop release is **v0.051**. Development has advanced to **v0.054**; its links will replace these only after the Windows and Linux release files are actually published and verified.
 
-- **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
+- **[Windows x64 — Hash Race v0.051](https://github.com/1freetech/HashRace/releases/download/v0.051/HashRace-v0.051-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.051](https://github.com/1freetech/HashRace/releases/download/v0.051/HashRace-v0.051-linux-x64.tar.gz)**
+- **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository is now moving simulation-heavy state, inventory, mining math, machine generations, research, partnerships, acquisitions, and long-run economic calculations into a tested C++20 core. Large obsolete C# simulation prototypes are being retired instead of maintained in parallel.
 
@@ -152,6 +154,8 @@ The representative can move with keyboard controls or click-to-pathfind around b
 - **E / Enter / Space** — interact
 - **T** — travel between mining towns
 - **R** — toggle scanner grid
+- **C** — cycle Day / Week / Month / Quarter turn length
+- **Q** — preview the current turn before settlement
 - **Turn Length control** — cycle Day / Week / Month / Quarter
 - **END TURN** — preview and then confirm settlement for the selected turn length
 - **BTC Hold slider** — set the hold policy anywhere from 0–100
@@ -209,4 +213,4 @@ The C++ core is intended to absorb the most data-heavy and simulation-heavy syst
 
 ## Versioning
 
-Development versions use the `v0.001` format and increase by `0.001` for each completed repository/game update. A version is considered a public downloadable release only after its release assets have been built and published.
+Development versions use the `v0.001` format and increase by `0.001` for each completed repository/game update. A version is considered a public downloadable release only after its release assets have been built and published. Every completed public release must have its verified Windows and Linux download links refreshed in this README.
