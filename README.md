@@ -25,14 +25,13 @@ A campaign includes mining, buying hardware, securing power, acquiring land, imp
 
 ## Flexible turn system
 
-A campaign is selected in years. The default strategic turn is **one month**, but the live game can switch between:
+A campaign is selected in years. The default strategic turn is **one month**, but the live game now uses three clear time references:
 
-- **Day**
-- **Week**
-- **Month**
-- **Quarter**
+- **Day** — one turn represents one day
+- **Month** — one turn represents one average month
+- **Year** — one turn represents one year
 
-Changing turn length changes how often the player makes decisions. Mining output, power cost, debt interest, recurring income, halvings, market movement, rival behavior, and company-culture development are all scaled by elapsed days so the underlying economics remain consistent.
+Changing turn length changes how often the player makes decisions, not the economic rules. Mining output, power cost, debt interest, recurring income, halvings, market movement, rival behavior, and company-culture development remain scaled by elapsed days. The turn preview also consolidates cash flow into **Money In**, **Money Out**, **Net**, and **Cash After**, while BTC mined/held/sold remains visible separately.
 
 ## Ten Bitcoin mining companies
 
@@ -136,7 +135,7 @@ Additional economic assumptions are documented in [docs/ECONOMY_MODEL.md](docs/E
 
 The BTC hold policy uses the game's universal strategy scale and is adjustable from **0 to 100** in one-point steps. The player can therefore choose any hold/sell balance instead of selecting from a small set of presets.
 
-Treasury controls remain tied to the flexible turn system so projected income and liquidity use the currently selected day/week/month/quarter duration.
+Treasury controls remain tied to the flexible turn system so projected income and liquidity use the currently selected day/month/year duration.
 
 ## Financing
 
@@ -158,12 +157,11 @@ The representative can move with keyboard controls or click-to-pathfind around b
 - **T** — travel between mining towns
 - **R** — toggle scanner grid
 - **1** — Day turns
-- **2** — Week turns
-- **3** — Month turns
-- **4** — Quarter turns
-- **C** — cycle Day / Week / Month / Quarter turn length
+- **2** — Month turns
+- **3** — Year turns
+- **C** — cycle Day / Month / Year turn length
 - **Q** — preview the current turn before settlement
-- **Turn Length control** — cycle Day / Week / Month / Quarter
+- **Turn Length control** — cycle Day / Month / Year
 - **END TURN** — preview and then confirm settlement for the selected turn length
 - **BTC Hold slider** — set the hold policy anywhere from 0–100
 
