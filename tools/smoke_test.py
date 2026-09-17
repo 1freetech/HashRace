@@ -43,13 +43,14 @@ def main():
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
     texture_spacing = Path("Godot/scripts/world_texture_spacing.gd").read_text(encoding="utf-8")
     customization = Path("Godot/scripts/world_customization.gd").read_text(encoding="utf-8")
+    character_detail = Path("Godot/scripts/world_character_detail.gd").read_text(encoding="utf-8")
     character_catalog = Path("Godot/scripts/character_customization.gd").read_text(encoding="utf-8")
     building_placer = Path("Godot/scripts/building_placer.gd").read_text(encoding="utf-8")
     workflow = Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v052.gd" in world_scene
+    assert "world_v053.gd" in world_scene
     assert "world_company_effects.gd" in world_scene, "Live world must retain material company-culture gameplay effects"
     assert "BootFallback" in world_scene
     assert 'extends "res://scripts/world_overworld.gd"' in towns
@@ -59,6 +60,7 @@ def main():
     assert 'extends "res://scripts/world_rpg_strategy.gd"' in time_scale
     assert 'extends "res://scripts/world_time_scale.gd"' in company_ai
     assert 'extends "res://scripts/world_company_ai.gd"' in company_effects
+    assert 'extends "res://scripts/world_customization.gd"' in character_detail
     assert "validate_overworld.gd" in workflow
 
     require(setup, [
@@ -100,12 +102,17 @@ def main():
         "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"
     ], "v0.052 visual spacing layer")
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
-    require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"'], "Character catalog")
+    require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"', 'Color("e9eeee")', 'Color("e07a2f")', 'Color("39ff75")'], "Character catalog")
     require(customization, [
         "CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender",
         "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_customization_ready",
         "debug_paid_outfits_use_game_cash"
     ], "Character customization")
+    require(character_detail, [
+        "CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep",
+        "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots",
+        "debug_character_detail_ready"
+    ], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready"], "Runtime validator")
 
     required_support = [
@@ -114,12 +121,13 @@ def main():
         "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd",
         "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
         "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
-        "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v052.gd"
+        "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd",
+        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd"
     ]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: v0.052 keeps the Bitcoin mining strategy simulation while adding spaced buildings, richer pixel terrain, cleaner labels, neon character names, free identity customization and cash-priced outfit skins.")
+    print("Hash Race smoke test passed: v0.053 keeps the Bitcoin mining strategy simulation while adding spaced buildings, richer pixel terrain, cleaner neon character labels, and a shared high-detail procedural player/NPC build with spiky hair, headset, scanner visor, layered armor, gloves, knee pads and boots.")
 
 
 if __name__ == "__main__":
