@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_target_composition.gd -> world_player_sprite.gd -> world_visual_detail.gd -> world_burnout.gd -> world_life_ops.gd -> world_league_standings.gd -> world_company_effects.gd preserves the league, life, company effects, flexible time, RPG, mining simulation, visual detail, animated player character, and procedural campus target composition.
-[ext_resource path="res://scripts/world_target_composition.gd" type="Script" id="1_world"]
+; world_ui_compact.gd -> world_pixel_landscape.gd -> world_target_composition.gd -> world_player_sprite.gd -> world_visual_detail.gd -> world_burnout.gd -> world_life_ops.gd -> world_league_standings.gd -> world_company_effects.gd preserves the mining league, life systems, flexible time, RPG movement, detailed operator, procedural campus, dense pixel landscape and compact on-demand UI.
+[ext_resource path="res://scripts/world_ui_compact.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
@@ -26,7 +26,7 @@ offset_right = 1110.0
 offset_bottom = 370.0
 theme_override_colors/font_color = Color(0.392, 1, 0.549, 1)
 theme_override_font_sizes/font_size = 32
-text = "HASH RACE // LOADING RPG STRATEGY WORLD"
+text = "HASH RACE // LOADING PIXEL LANDSCAPE"
 horizontal_alignment = 1
 
 [node name="Status" type="Label" parent="BootFallback"]
@@ -36,5 +36,5 @@ offset_right = 1110.0
 offset_bottom = 500.0
 theme_override_colors/font_color = Color(0.745, 0.91, 0.94, 1)
 theme_override_font_sizes/font_size = 16
-text = "Building target-style mining campuses, animated operator, league standings, life + operations, burnout risk, scanner navigation, flexible turns, dynamic company personalities, material rating effects, strategy UI, collision grid, and detailed pixel-art mining sites...\n\nIf this screen remains, the world controller failed to initialize."
+text = "Building dense code-generated terrain, visible campus walkways, roads, water, mining facilities, animated operator, ten-miner league and compact control-center UI...\n\nIf this screen remains, the world controller failed to initialize."
 horizontal_alignment = 1
