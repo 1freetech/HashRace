@@ -26,12 +26,17 @@ void test_inventory_model() {
     const auto generations = default_generations();
     FleetInventory fleet;
 
+    assert(generations[0].model_name == "Garage ASIC");
+    assert(near(generations[1].hashrate_th, 104.0));
+    assert(near(generations[2].efficiency_jth, 17.5));
+    assert(near(generations[4].hashrate_th, 335.0));
+
     assert(fleet.add(0, CoolingType::Air, 10));
     assert(fleet.add(2, CoolingType::Hydro, 4, 92, 95));
-    assert(fleet.add(4, CoolingType::Immersion, 2, 88, 100));
+    assert(fleet.add(4, CoolingType::Hydro, 2, 88, 100));
     assert(fleet.count_all() == 16);
     assert(fleet.count_generation(0) == 10);
-    assert(fleet.count_cooling(CoolingType::Hydro) == 4);
+    assert(fleet.count_cooling(CoolingType::Hydro) == 6);
     assert(fleet.total_hashrate_th(generations) > 0.0);
     assert(fleet.weighted_efficiency_jth(generations) > 0.0);
     assert(fleet.power_kw(generations) > 0.0);
@@ -82,8 +87,7 @@ void test_machine_purchase_and_capacity() {
     assert(sim.player().fleet.count_all() == before + 2);
     assert(sim.player().cash_usd < cash_before);
 
-    const auto wrong_cooling = sim.buy_miner(0, CoolingType::Immersion, 1);
-    assert(!wrong_cooling.ok);
+    assert(!sim.cooling_supported(sim.generations()[4], CoolingType::Air));
     const auto locked_generation = sim.buy_miner(3, CoolingType::Air, 1);
     assert(!locked_generation.ok);
 }
@@ -93,7 +97,8 @@ void test_research_unlock() {
     Simulation sim(23);
     assert(sim.start_company(9).ok);
     assert(sim.player().unlocked_generation == 1);
-    const auto research = sim.fund_research(18000.0);
+    assert(sim.advance_day(1).ok);
+    const auto research = sim.fund_research(25000.0);
     assert(research.ok);
     assert(sim.player().unlocked_generation == 2);
     assert(sim.player().research_progress_usd == 0.0);
