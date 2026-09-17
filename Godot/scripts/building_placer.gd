@@ -34,7 +34,7 @@ const RIVAL_POSITIONS: Array[Vector2] = [
     Vector2(2490.0, 1600.0),
     Vector2(800.0, 1650.0),
     Vector2(1500.0, 1650.0),
-    Vector2(2200.0, 1650.0)
+    Vector2(2150.0, 1650.0)
 ]
 
 static func desired_position(entity: Dictionary) -> Vector2:
