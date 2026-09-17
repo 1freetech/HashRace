@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.028**
+Current public version target: **v0.029**
 
-- [Windows x64 — Hash Race v0.028](https://github.com/1freetech/HashRace/releases/download/v0.028/HashRace-v0.028-windows-x64.zip)
-- [Linux x64 — Hash Race v0.028](https://github.com/1freetech/HashRace/releases/download/v0.028/HashRace-v0.028-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.029](https://github.com/1freetech/HashRace/releases/download/v0.029/HashRace-v0.029-windows-x64.zip)
+- [Linux x64 — Hash Race v0.029](https://github.com/1freetech/HashRace/releases/download/v0.029/HashRace-v0.029-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.028 gameplay playability update
+## v0.029 gameplay playability update
 
-Life + Operations now has an **AUTO routine queue**. About once per simulated month, AUTO checks Energy, Focus and Social, finds the weakest rating below 85/100, and chooses RECOVER, TRAIN or NETWORK for that need. This reduces repetitive management without removing player control: NONE and all three fixed routines remain selectable, automatic spending still requires enough company cash, and no routine runs when the operator is already healthy enough.
+Life + Operations now includes **BURNOUT RISK** on the shared 0-100 rating scale. When Energy or Focus falls below 35/100, burnout begins to rise. At extreme burnout the operator can lose up to three percentage points of mining uptime, giving RECOVER and TRAIN a direct operational purpose instead of making the life ratings feel decorative.
 
-Queued routines continue to follow simulated elapsed time rather than turn count, so DAY, WEEK, MONTH and QUARTER turns have the same long-term routine opportunity rate. Energy, Focus, Social, Site Fit and other rating-style gameplay measures remain on the universal 0-100 scale.
+The live Life + Site display shows burnout risk and its current uptime penalty. Healthy Energy and Focus create no burnout penalty. The existing AUTO routine queue, elapsed-time normalization, flexible DAY/WEEK/MONTH/QUARTER turns, Site Fit, treasury strategy, league standings and company effects remain in place.
 
 All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
 
