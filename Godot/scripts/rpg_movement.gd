@@ -4,7 +4,13 @@ extends RefCounted
 # Direction-state and axis-separated collision ideas are adapted from the CC0
 # Python-Monsters entity/player implementation by Clear Code Projects:
 # https://github.com/clear-code-projects/Python-Monsters
-# The original code is CC0 and explicitly permits commercial reuse.
+
+static func normalized_input(raw: Vector2) -> Vector2:
+    # Prevent diagonal keyboard movement from being ~41% faster than cardinal movement.
+    # Analog inputs below full magnitude keep their strength for controller precision.
+    if raw.length_squared() > 1.0:
+        return raw.normalized()
+    return raw
 
 static func facing_from_motion(motion: Vector2, previous: String = "down") -> String:
     if motion.length_squared() <= 0.0001:
@@ -25,8 +31,6 @@ static func face_target(origin: Vector2, target: Vector2, previous: String = "do
     return "down" if relation.y > 0.0 else "up"
 
 static func resolve_axis_motion(nav, origin: Vector2, requested_delta: Vector2) -> Vector2:
-    # Match the classic RPG approach used by Python-Monsters: resolve one axis,
-    # then the other. The Godot navigation grid is the collision authority.
     var result: Vector2 = origin
     if absf(requested_delta.x) > 0.001:
         var x_candidate: Vector2 = Vector2(origin.x + requested_delta.x, origin.y)
@@ -40,3 +44,8 @@ static func resolve_axis_motion(nav, origin: Vector2, requested_delta: Vector2) 
 
 static func is_moving(motion: Vector2) -> bool:
     return motion.length_squared() > 0.0001
+
+static func debug_equal_speed() -> bool:
+    var cardinal: Vector2 = normalized_input(Vector2(1.0, 0.0))
+    var diagonal: Vector2 = normalized_input(Vector2(1.0, 1.0))
+    return absf(cardinal.length() - diagonal.length()) < 0.001
