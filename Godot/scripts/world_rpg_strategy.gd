@@ -54,6 +54,7 @@ func _process(delta: float) -> void:
     super._process(delta)
     var requested_motion: Vector2 = rep_pos - before
     if RPGMovement.is_moving(requested_motion):
+        _invalidate_quarter_preview("Quarter preview cancelled because your field position changed.")
         var corrected: Vector2 = RPGMovement.resolve_axis_motion(grid_nav, before, requested_motion)
         if corrected != rep_pos:
             rep_pos = corrected
@@ -82,12 +83,14 @@ func _unhandled_input(event: InputEvent) -> void:
                 get_viewport().set_input_as_handled()
                 return
             if key_event.keycode == KEY_R:
+                _invalidate_quarter_preview("Quarter preview cancelled because the field plan changed.")
                 _toggle_scanner_overlay()
                 get_viewport().set_input_as_handled()
                 return
             if key_event.keycode == KEY_E or key_event.keycode == KEY_ENTER or key_event.keycode == KEY_SPACE:
                 var idx: int = _nearest_entity()
                 if idx >= 0 and _entity_in_interact_range(idx):
+                    _invalidate_quarter_preview("Quarter preview cancelled because you opened a new interaction.")
                     var entity: Dictionary = entities[idx]
                     rep_facing = RPGMovement.face_target(rep_pos, entity["pos"], rep_facing)
                     rep_animation_state = RPGMovement.animation_state(rep_facing, false)
@@ -145,11 +148,16 @@ func _end_quarter() -> void:
     quarter_button.text = "END QUARTER"
     super._end_quarter()
 
-func _cancel_live_quarter_confirmation() -> void:
+func _invalidate_quarter_preview(reason: String) -> void:
+    if not live_quarter_confirmation_pending:
+        return
     live_quarter_confirmation_pending = false
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END QUARTER"
-    _feedback("Quarter settlement cancelled. Keep planning, dealing, or building before advancing time.")
+    _feedback(reason)
+
+func _cancel_live_quarter_confirmation() -> void:
+    _invalidate_quarter_preview("Quarter settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _toggle_scanner_overlay() -> void:
     scanner_overlay_enabled = not scanner_overlay_enabled
