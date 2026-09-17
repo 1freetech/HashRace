@@ -30,11 +30,18 @@ for marker in [
 
 for marker in [
     "BURNOUT_START_RATING: float = 35.0",
+    "HIGH_BURNOUT_RISK: int = 50",
     "MAX_BURNOUT_UPTIME_PENALTY: float = 0.03",
     "func _burnout_risk() -> int",
     "clampf((energy_deficit + focus_deficit) * 0.5 * 100.0, 0.0, 100.0)",
     "func _burnout_uptime_penalty() -> float",
     "super._life_uptime_adjustment() - _burnout_uptime_penalty()",
+    "func _auto_routine_choice() -> String",
+    "if _burnout_risk() >= HIGH_BURNOUT_RISK",
+    'return "RECOVER"',
+    "return super._auto_routine_choice()",
+    "AUTO prioritizes RECOVER",
+    "AUTO→RECOVER",
     "BURNOUT RISK %d/100",
     "BURNOUT %d/100",
     "debug_burnout_ready"
@@ -46,5 +53,6 @@ assert life.count("100.0") >= 8
 assert "match queued_routine:" not in life.split("func _apply_elapsed_life", 1)[1].split("func _end_quarter", 1)[0], "Elapsed-life settlement must not execute a queued routine directly once per turn"
 assert life.index("if not _queued_routine_needed()") < life.index('var routine_to_run: String = _auto_routine_choice() if queued_routine == "AUTO" else queued_routine'), "Automatic routines must check need before choosing and spending"
 assert 'var options := ["NONE", "AUTO", "RECOVER", "TRAIN", "NETWORK"]' in life, "AUTO must be a player-selectable queue option"
+assert burnout.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < burnout.index("return super._auto_routine_choice()"), "High burnout must be checked before normal AUTO routine selection"
 
-print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, AUTO selects the weakest need, and low Energy/Focus create bounded burnout risk that can reduce mining uptime.")
+print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, AUTO protects high-burnout operators with recovery, and burnout remains bounded while reducing mining uptime.")
