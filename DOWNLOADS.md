@@ -1,20 +1,21 @@
 # Hash Race Downloads
 
-Current public version target: **v0.053**
+Current verified public version: **v0.055**
 
-- [Windows x64 — Hash Race v0.053](https://github.com/1freetech/HashRace/releases/download/v0.053/HashRace-v0.053-windows-x64.zip)
-- [Linux x64 — Hash Race v0.053](https://github.com/1freetech/HashRace/releases/download/v0.053/HashRace-v0.053-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-windows-x64.zip)
+- [Linux x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-linux-x64.tar.gz)
+- [Hash Race v0.055 release](https://github.com/1freetech/HashRace/releases/tag/v0.055)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
-The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot, rendered-frame proof, export and packaging checks. Do not treat a version as downloadable until its release assets exist.
+The version-specific links above are published only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot, rendered-frame proof, export, packaging, and playable-build checks.
 
-## v0.053 character-detail update
+## v0.055 procedural-building update
 
-The player and world representatives now share a higher-detail procedural pixel character build. The new construction adds a stronger spiky-hair silhouette, white headset/ear protection, layered face shading, a neon one-eye scanner visor, articulated suit panels, shoulder guards, knee pads, gloves, boots and a readable chest mark. The default Operator Suit uses the approved light shell, orange armor pads and neon-green scanner palette.
+The live overworld now renders facilities from code-generated 96×128 RGBA pixel textures instead of relying on flat building blocks. Headquarters, partner offices, machine markets, power buildings, banks, and land offices each receive a distinct facade style with foundations, roofs, windows or equipment intakes, doors, masonry or panel detail, shadows, and company-colored accents.
 
-NPC representatives use the same detailed body construction rather than falling back to the older low-detail worker shape. Their company or partner accent colors are applied to armor trim and field-ID pixels, so they remain visually distinct while matching the player's detail level. The existing neon-green name labels remain directly above every character.
+The new renderer uses transparent building backgrounds so facilities sit naturally on the existing terrain instead of carrying a sky-colored rectangle. Nearest-neighbor filtering keeps the pixel edges crisp, while a texture cache avoids rebuilding the same facade every draw. The wider campus spacing and proximity-gated building labels remain in place to keep the map readable.
 
-The renderer remains original GDScript and uses the existing nearest-neighbor pixel pipeline. No protected character artwork or sprite sheets are included.
+The v0.055 release includes CI-rendered overworld and close-up visual proofs. Windows and Linux exports both passed the release gate, and the exported Linux binary was boot-tested before publication.
 
 ## Open-source simulation references
 
