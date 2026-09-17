@@ -205,3 +205,28 @@ func debug_interaction_range_ready() -> bool:
 
 func debug_interaction_prompt_ready() -> bool:
     return is_instance_valid(interact_label)
+
+func debug_rpg_collision_ready() -> bool:
+    if grid_nav == null or entities.is_empty():
+        return false
+    var first_entity: Dictionary = entities[0]
+    var blocked_pos: Vector2 = first_entity["pos"]
+    return not grid_nav.world_is_walkable(blocked_pos)
+
+func debug_scanner_reachable_count() -> int:
+    if grid_nav == null:
+        return 0
+    return grid_nav.reachable_cells(rep_pos, SCANNER_RANGE_CELLS).size()
+
+func debug_rep_animation_state() -> String:
+    return rep_animation_state
+
+func debug_range_limited_path_exists() -> bool:
+    if grid_nav == null:
+        return false
+    var reachable: Array[Vector2i] = grid_nav.reachable_cells(rep_pos, SCANNER_RANGE_CELLS)
+    if reachable.size() < 2:
+        return false
+    var destination: Vector2 = grid_nav.cell_to_world(reachable[reachable.size() - 1])
+    var path: Array[Vector2] = grid_nav.find_path_in_range(rep_pos, destination, reachable)
+    return not path.is_empty()
