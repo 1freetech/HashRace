@@ -1,18 +1,18 @@
 # Hash Race Downloads
 
-Current public version target: **v0.031**
+Current public version target: **v0.033**
 
-- [Windows x64 — Hash Race v0.031](https://github.com/1freetech/HashRace/releases/download/v0.031/HashRace-v0.031-windows-x64.zip)
-- [Linux x64 — Hash Race v0.031](https://github.com/1freetech/HashRace/releases/download/v0.031/HashRace-v0.031-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.033](https://github.com/1freetech/HashRace/releases/download/v0.033/HashRace-v0.033-windows-x64.zip)
+- [Linux x64 — Hash Race v0.033](https://github.com/1freetech/HashRace/releases/download/v0.033/HashRace-v0.033-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
 
-## v0.031 gameplay playability update
+## v0.033 gameplay playability update
 
-AUTO Life + Operations management is now burnout-safe. When burnout reaches 50/100, AUTO prioritizes RECOVER before TRAIN or NETWORK. This prevents automatic management from choosing a lower Social rating while an exhausted operator is already losing mining uptime.
+High burnout now protects the player from an easy self-defeating action. When Burnout Risk reaches 50/100, manual TRAIN is temporarily locked and the game tells the player to RECOVER first. This prevents a training click from spending company cash, draining more Energy, increasing burnout and reducing Bitcoin-mining uptime while the operator is already exhausted.
 
-The Life + Site display shows `AUTO→RECOVER` while this protection is active. Burnout remains on the shared 0-100 scale and can still reduce uptime by up to three percentage points. Manual RECOVER, TRAIN and NETWORK controls remain available, and normal AUTO behavior returns when burnout drops below the danger point.
+The Life + Site display shows `TRAIN LOCKED` during the danger state. AUTO still chooses RECOVER at high burnout, and normal manual training returns when Burnout Risk falls below 50/100. Energy, Focus, Social and Burnout remain on the shared 0-100 scale.
 
 All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
 
