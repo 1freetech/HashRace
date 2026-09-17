@@ -46,16 +46,34 @@ func _install_turn_scale_control() -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey:
         var key_event: InputEventKey = event as InputEventKey
-        if key_event.pressed and not key_event.echo and key_event.keycode == KEY_C:
-            _cycle_turn_length()
-            get_viewport().set_input_as_handled()
-            return
+        if key_event.pressed and not key_event.echo:
+            if key_event.keycode == KEY_C:
+                _cycle_turn_length()
+                get_viewport().set_input_as_handled()
+                return
+            var direct_turn_idx: int = -1
+            match key_event.keycode:
+                KEY_1: direct_turn_idx = 0
+                KEY_2: direct_turn_idx = 1
+                KEY_3: direct_turn_idx = 2
+                KEY_4: direct_turn_idx = 3
+            if direct_turn_idx >= 0:
+                _set_turn_length(direct_turn_idx)
+                get_viewport().set_input_as_handled()
+                return
     super._unhandled_input(event)
 
 func _cycle_turn_length() -> void:
+    _set_turn_length((turn_length_idx + 1) % TURN_LENGTHS.size())
+
+func _set_turn_length(new_idx: int) -> void:
+    new_idx = clampi(new_idx, 0, TURN_LENGTHS.size() - 1)
+    if new_idx == turn_length_idx:
+        _feedback("TURN LENGTH: already set to %s (%.2f days)." % [turn_length_name(), turn_length_days()])
+        return
     if live_quarter_confirmation_pending:
         _invalidate_quarter_preview("Turn preview cancelled because the turn length changed.")
-    turn_length_idx = (turn_length_idx + 1) % TURN_LENGTHS.size()
+    turn_length_idx = new_idx
     if is_instance_valid(quarter_button):
         quarter_button.text = "END %s TURN" % turn_length_name()
     var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
@@ -66,7 +84,7 @@ func _cycle_turn_length() -> void:
 
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text = "TURN LENGTH: %s  [C]" % turn_length_name()
+        turn_scale_button.text = "TURN: %s  [1 DAY • 2 WEEK • 3 MONTH • 4 QTR • C CYCLE]" % turn_length_name()
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
