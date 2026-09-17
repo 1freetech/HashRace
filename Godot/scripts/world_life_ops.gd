@@ -1,8 +1,8 @@
 extends "res://scripts/world_league_standings.gd"
 
-# v0.028: life/operations ratings have material gameplay consequences, queued
-# routines use elapsed time, and automatic routines now choose the weakest need
-# instead of forcing the player to micromanage one fixed monthly routine.
+# v0.034: life/operations ratings have material gameplay consequences, queued
+# routines use elapsed time, and manual routines refuse wasteful spending when
+# their target needs are already at the 85/100 maintenance threshold.
 
 const ROUTINE_INTERVAL_DAYS: float = 30.4375
 const AUTO_ROUTINE_NEED_THRESHOLD: float = 85.0
@@ -41,21 +41,21 @@ func _install_life_ops_ui() -> void:
     recover.position = Vector2(1080.0, 242.0)
     recover.size = Vector2(105.0, 34.0)
     recover.text = "RECOVER"
-    recover.tooltip_text = "$500: restore energy and focus."
+    recover.tooltip_text = "$500: restore energy and focus when either needs maintenance."
     recover.pressed.connect(_recover_operator)
     layer.add_child(recover)
     var train := Button.new()
     train.position = Vector2(1190.0, 242.0)
     train.size = Vector2(105.0, 34.0)
     train.text = "TRAIN"
-    train.tooltip_text = "$1,500: improve focus for technical work."
+    train.tooltip_text = "$1,500: improve focus for technical work when Focus is below 85/100."
     train.pressed.connect(_train_operator)
     layer.add_child(train)
     var network := Button.new()
     network.position = Vector2(1300.0, 242.0)
     network.size = Vector2(110.0, 34.0)
     network.text = "NETWORK"
-    network.tooltip_text = "$1,000: restore social capacity for partner work."
+    network.tooltip_text = "$1,000: restore social capacity when Social is below 85/100."
     network.pressed.connect(_network_operator)
     layer.add_child(network)
     var queue := Button.new()
@@ -106,7 +106,7 @@ func _site_fit_score() -> int:
 func _open_life_overview() -> void:
     var routine_progress: int = int(round(clampf(queued_routine_days / ROUTINE_INTERVAL_DAYS * 100.0, 0.0, 100.0)))
     dialog_title.text = "OPERATOR LIFE + MINING SITE"
-    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\nAUTO chooses the weakest need below %d/100. Fixed routines still run only when their target needs work. DAY, WEEK, MONTH and QUARTER turns keep the same long-term routine rate." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress, int(AUTO_ROUTINE_NEED_THRESHOLD)]
+    dialog_text.text = "Operator ratings (0-100)\nEnergy %d  •  Focus %d  •  Social %d  •  Overall %d\n\nLIVE EFFECTS\nUptime %+0.1f%%  •  Research cost x%.3f  •  Partner cost x%.3f\n\nFacility preview\nMachines %d  •  Power %.2f MW  •  Land %.1f acres  •  Site fit %d/100\n\nQueued routine: %s  •  monthly progress %d/100\nAUTO chooses the weakest need below %d/100. Manual and fixed routines only spend company cash when their target needs maintenance." % [int(operator_energy), int(operator_focus), int(operator_social), int(_life_score()), _life_uptime_adjustment() * 100.0, _life_research_cost_multiplier(), _life_partner_cost_multiplier(), int(player.get("machines", 0)), float(player.get("mw", 0.0)), float(player.get("acres", 0.0)), _site_fit_score(), queued_routine, routine_progress, int(AUTO_ROUTINE_NEED_THRESHOLD)]
     _set_actions([])
 
 func _spend_for_routine(cost: float) -> bool:
@@ -117,6 +117,9 @@ func _spend_for_routine(cost: float) -> bool:
     return true
 
 func _recover_operator(silent: bool = false) -> bool:
+    if operator_energy >= AUTO_ROUTINE_NEED_THRESHOLD and operator_focus >= AUTO_ROUTINE_NEED_THRESHOLD:
+        if not silent: _feedback("RECOVER NOT NEEDED: Energy and Focus are already at or above 85/100.")
+        return false
     if not _spend_for_routine(500.0): return false
     operator_energy = minf(100.0, operator_energy + 24.0)
     operator_focus = minf(100.0, operator_focus + 8.0)
@@ -125,6 +128,9 @@ func _recover_operator(silent: bool = false) -> bool:
     return true
 
 func _train_operator(silent: bool = false) -> bool:
+    if operator_focus >= AUTO_ROUTINE_NEED_THRESHOLD:
+        if not silent: _feedback("TRAIN NOT NEEDED: Focus is already at or above 85/100.")
+        return false
     if not _spend_for_routine(1500.0): return false
     operator_focus = minf(100.0, operator_focus + 18.0)
     operator_energy = maxf(0.0, operator_energy - 5.0)
@@ -133,6 +139,9 @@ func _train_operator(silent: bool = false) -> bool:
     return true
 
 func _network_operator(silent: bool = false) -> bool:
+    if operator_social >= AUTO_ROUTINE_NEED_THRESHOLD:
+        if not silent: _feedback("NETWORK NOT NEEDED: Social is already at or above 85/100.")
+        return false
     if not _spend_for_routine(1000.0): return false
     operator_social = minf(100.0, operator_social + 22.0)
     operator_energy = maxf(0.0, operator_energy - 3.0)
