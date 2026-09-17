@@ -11,6 +11,9 @@ func _run() -> void:
     set_meta("hashrace_company_idx", 2)
     set_meta("hashrace_campaign_years", 3)
     set_meta("hashrace_campaign_turns", 12)
+    set_meta("hashrace_character_skin_tone", 4)
+    set_meta("hashrace_character_gender", 1)
+    set_meta("hashrace_character_outfit", 0)
 
     var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
     if packed == null:
@@ -25,6 +28,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     await process_frame
+    await process_frame
 
     var required_methods: Array = [
         "debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_player_company",
@@ -35,7 +39,9 @@ func _run() -> void:
         "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
         "debug_range_limited_path_exists", "debug_company_personality_ready", "debug_rival_personality_count",
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
-        "debug_culture_effects_summary", "_open_entity", "_end_quarter"
+        "debug_culture_effects_summary", "debug_texture_spacing_ready", "debug_clean_layout_min_spacing",
+        "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
+        "debug_character_outfit", "debug_paid_outfits_use_game_cash", "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
         if not scene.has_method(method_name):
@@ -124,6 +130,43 @@ func _run() -> void:
     if String(scene.call("debug_culture_effects_summary")).is_empty():
         _fail("company gameplay-effect summary is missing")
         return
+
+    # v0.052 visual/readability contract.
+    if not bool(scene.call("debug_texture_spacing_ready")):
+        _fail("wider-spaced textured overworld did not initialize")
+        return
+    if float(scene.call("debug_clean_layout_min_spacing")) < 300.0:
+        _fail("interactive buildings are still too tightly clumped")
+        return
+
+    # v0.052 character customization contract.
+    if not bool(scene.call("debug_character_customization_ready")):
+        _fail("character wardrobe did not initialize")
+        return
+    if int(scene.call("debug_character_skin_tone")) != 4:
+        _fail("campaign skin tone choice did not reach the playable sprite")
+        return
+    if int(scene.call("debug_character_gender")) != 1:
+        _fail("campaign gender/presentation choice did not reach the playable sprite")
+        return
+    if int(scene.call("debug_character_outfit")) != 0:
+        _fail("starter outfit did not initialize")
+        return
+    if not bool(scene.call("debug_paid_outfits_use_game_cash")):
+        _fail("paid outfit catalog contains a free non-starter skin")
+        return
+
+    var cash_before_skin: float = float(scene.get("player")["cash"])
+    scene.call("_choose_outfit", 1)
+    await process_frame
+    if int(scene.call("debug_character_outfit")) != 1:
+        _fail("purchased outfit skin did not equip")
+        return
+    var cash_after_skin: float = float(scene.get("player")["cash"])
+    if cash_after_skin >= cash_before_skin:
+        _fail("paid outfit skin did not deduct in-game cash")
+        return
+
     if scene.get_node_or_null("BootFallback") != null:
         _fail("loading fallback remained after successful world initialization")
         return
@@ -153,5 +196,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, nine-source 2D visual stack, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
+    print("HASH RACE OVERWORLD PASS: v0.052 verified wider building spacing, richer pixel textures, cleaner map text, neon character labels, skin tone and gender/presentation customization, cash-priced outfit skins, collision-safe movement, ten mining towns, partner firms, company personalities, treasury controls, dialogue actions, camera, and turn settlement.")
     quit(0)
