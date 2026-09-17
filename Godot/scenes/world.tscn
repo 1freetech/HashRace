@@ -1,8 +1,8 @@
 [gd_scene load_steps=3 format=3]
 
-; world_native_runtime.gd now sits above the full live visual/UI stack. C++ owns mining/economic state; GDScript renders and controls the world.
-[ext_resource path="res://scripts/world_native_runtime.gd" type="Script" id="1_world"]
-[ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
+; v0.046 boots through world_native_settlement.gd. C++ owns mining/economic state and settlement; GDScript renders and controls the world.
+[ext_resource path="res://scripts/world_native_settlement.gd" type="Script" id="1_world"]
+[ext_resource path="res://scripts/live_treasury_native.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
 script = ExtResource("1_world")
