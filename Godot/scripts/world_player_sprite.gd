@@ -1,6 +1,6 @@
 extends "res://scripts/world_visual_detail.gd"
 
-# v0.038 stable neon operator. Kept deliberately simple for Godot 4.7.2.
+# v0.039 stable animated neon operator for Godot 4.7.2.
 const PX: float = 4.0
 const SKIN := Color("9a5d3c")
 const SKIN_HI := Color("c47b4c")
@@ -20,14 +20,25 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
     _draw_hashrace_player(pos)
 
 func _draw_hashrace_player(pos: Vector2) -> void:
-    var o: Vector2 = VisualStack.snap_to_pixel(pos)
-    draw_ellipse_shadow(o + Vector2(0.0, 40.0), 25.0, 8.0)
-    _part(o,-5,5,4,5,BLACK)
-    _part(o,1,5,4,5,BLACK)
-    _part(o,-4,5,3,4,ARMOR)
-    _part(o,1,5,3,4,ARMOR)
-    _part(o,-5,8,4,2,NEON)
-    _part(o,1,8,4,2,NEON)
+    var moving: bool = not rep_animation_state.ends_with("_idle")
+    var wave: float = sin(rep_step_phase)
+    var step: int = 0
+    var bob: float = 0.0
+    if moving:
+        step = 1 if wave >= 0.0 else -1
+        bob = -2.0 if absf(wave) > 0.55 else 0.0
+    var o: Vector2 = VisualStack.snap_to_pixel(pos + Vector2(0.0, bob))
+    var left_leg: int = step
+    var right_leg: int = -step
+    var left_arm: int = -step
+    var right_arm: int = step
+    draw_ellipse_shadow(VisualStack.snap_to_pixel(pos + Vector2(0.0, 40.0)), 25.0, 8.0)
+    _part(o,-5,5+left_leg,4,5,BLACK)
+    _part(o,1,5+right_leg,4,5,BLACK)
+    _part(o,-4,5+left_leg,3,4,ARMOR)
+    _part(o,1,5+right_leg,3,4,ARMOR)
+    _part(o,-5,8+left_leg,4,2,NEON)
+    _part(o,1,8+right_leg,4,2,NEON)
     _part(o,-7,-3,14,9,BLACK)
     _part(o,-6,-2,12,7,ARMOR)
     _part(o,-5,2,10,3,ARMOR_HI)
@@ -35,14 +46,14 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     _part(o,-3,0,6,3,ARMOR)
     _part(o,-6,-2,2,2,NEON)
     _part(o,4,-2,2,2,NEON)
-    _part(o,-8,-1,3,6,BLACK)
-    _part(o,5,-1,3,6,BLACK)
-    _part(o,-7,0,2,3,ARMOR_HI)
-    _part(o,5,0,2,3,ARMOR_HI)
-    _part(o,-7,1,1,2,NEON)
-    _part(o,6,1,1,2,NEON)
-    _part(o,-7,4,2,2,SKIN)
-    _part(o,5,4,2,2,SKIN)
+    _part(o,-8,-1+left_arm,3,6,BLACK)
+    _part(o,5,-1+right_arm,3,6,BLACK)
+    _part(o,-7,0+left_arm,2,3,ARMOR_HI)
+    _part(o,5,0+right_arm,2,3,ARMOR_HI)
+    _part(o,-7,1+left_arm,1,2,NEON)
+    _part(o,6,1+right_arm,1,2,NEON)
+    _part(o,-7,4+left_arm,2,2,SKIN)
+    _part(o,5,4+right_arm,2,2,SKIN)
     _part(o,-5,-11,10,7,BLACK)
     _part(o,-4,-10,8,6,SKIN)
     _part(o,-3,-9,2,1,SKIN_HI)
@@ -79,4 +90,4 @@ func _part(o: Vector2, x: int, y: int, w: int, h: int, color: Color) -> void:
     draw_rect(Rect2(o + Vector2(float(x) * PX, float(y) * PX), Vector2(float(w) * PX, float(h) * PX)), color, true)
 
 func debug_player_sprite_ready() -> bool:
-    return PX == 4.0 and NEON.g > 0.9
+    return PX == 4.0 and NEON.g > 0.9 and rep_animation_state.length() > 0
