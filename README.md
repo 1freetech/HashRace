@@ -6,14 +6,14 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.055**.
+The latest verified public desktop release is **v0.057**.
 
-- **[Windows x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-linux-x64.tar.gz)**
-- **[Hash Race v0.055 release page](https://github.com/1freetech/HashRace/releases/tag/v0.055)**
+- **[Windows x64 — Hash Race v0.057](https://github.com/1freetech/HashRace/releases/download/v0.057/HashRace-v0.057-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.057](https://github.com/1freetech/HashRace/releases/download/v0.057/HashRace-v0.057-linux-x64.tar.gz)**
+- **[Hash Race v0.057 release page](https://github.com/1freetech/HashRace/releases/tag/v0.057)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.055 adds code-generated detailed building facades to the live overworld. Headquarters, partner offices, machine markets, power facilities, banks, and land offices now use transparent procedural pixel textures with roofs, foundations, windows or equipment intakes, doors, masonry or panel detail, shadows, and company-colored accents. The wider campus spacing and proximity-gated labels remain in place so the map stays readable.
+v0.057 includes the current tested Godot strategy-RPG build with flexible day, week, month, and quarter turns, direct keyboard turn-length controls, treasury risk previews, and the upgraded procedural pixel overworld. The ten fictional league competitors remain Bitcoin mining companies; outside industries remain NPC partners and suppliers.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository is now moving simulation-heavy state, inventory, mining math, machine generations, research, partnerships, acquisitions, and long-run economic calculations into a tested C++20 core. Large obsolete C# simulation prototypes are being retired instead of maintained in parallel.
 
@@ -157,6 +157,10 @@ The representative can move with keyboard controls or click-to-pathfind around b
 - **E / Enter / Space** — interact
 - **T** — travel between mining towns
 - **R** — toggle scanner grid
+- **1** — Day turns
+- **2** — Week turns
+- **3** — Month turns
+- **4** — Quarter turns
 - **C** — cycle Day / Week / Month / Quarter turn length
 - **Q** — preview the current turn before settlement
 - **Turn Length control** — cycle Day / Week / Month / Quarter
