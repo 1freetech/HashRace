@@ -88,15 +88,26 @@ func _refresh_turn_scale_button() -> void:
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
-func _project_scaled_profit(days: float) -> float:
+func _scaled_financial_preview(days: float) -> Dictionary:
     var mined_btc: float = _btc_per_day() * days
     var sold_btc: float = mined_btc * (1.0 - float(player["treasury_hold"]))
+    var mining_revenue: float = sold_btc * btc_price
     var recurring_income: float = float(player["recurring_income"]) * (days / 91.3125)
-    var revenue: float = sold_btc * btc_price + recurring_income
     var power_cost: float = _machine_load_kw() * 24.0 * days * _effective_power_cost() * _uptime()
     var ops_cost: float = float(player["machines"]) * 0.38 * days
     var debt_cost: float = float(player["debt"]) * float(player["debt_rate"]) * (days / 365.0)
-    return revenue - power_cost - ops_cost - debt_cost
+    var profit: float = mining_revenue + recurring_income - power_cost - ops_cost - debt_cost
+    return {
+        "mining_revenue": mining_revenue,
+        "partner_income": recurring_income,
+        "power_cost": power_cost,
+        "ops_cost": ops_cost,
+        "debt_cost": debt_cost,
+        "profit": profit
+    }
+
+func _project_scaled_profit(days: float) -> float:
+    return float(_scaled_financial_preview(days)["profit"])
 
 func _end_quarter() -> void:
     if campaign_complete:
@@ -108,13 +119,14 @@ func _end_quarter() -> void:
         return
     if not live_quarter_confirmation_pending:
         live_quarter_confirmation_pending = true
-        var projected_profit: float = _project_scaled_profit(days)
+        var preview: Dictionary = _scaled_financial_preview(days)
+        var projected_profit: float = float(preview["profit"])
         var projected_cash: float = float(player["cash"]) + projected_profit
         var risk: String = _quarter_preview_risk(projected_profit, projected_cash)
         quarter_button.text = "CONFIRM %s TURN" % turn_length_name()
         if is_instance_valid(phase_label):
             phase_label.text = "%s PREVIEW: %s" % [turn_length_name(), risk]
-        _feedback("%s PREVIEW [%s]: %.2f days • projected cash result $%d • projected ending cash $%d. Confirm to settle, or press Esc to cancel." % [turn_length_name(), risk, days, int(projected_profit), int(projected_cash)])
+        _feedback("%s PREVIEW [%s]: %.2f days • mining +$%d • partners +$%d • power -$%d • ops -$%d • debt -$%d • net $%d • ending cash $%d. Confirm to settle, or press Esc to cancel." % [turn_length_name(), risk, days, int(preview["mining_revenue"]), int(preview["partner_income"]), int(preview["power_cost"]), int(preview["ops_cost"]), int(preview["debt_cost"]), int(projected_profit), int(projected_cash)])
         return
 
     live_quarter_confirmation_pending = false
@@ -124,13 +136,8 @@ func _end_quarter() -> void:
     var mined_btc: float = _btc_per_day() * days
     var mined_sats: float = mined_btc * SATS_PER_BTC
     var held_sats: float = mined_sats * float(player["treasury_hold"])
-    var sold_btc: float = mined_btc * (1.0 - float(player["treasury_hold"]))
-    var recurring_income: float = float(player["recurring_income"]) * (days / 91.3125)
-    var revenue: float = sold_btc * btc_price + recurring_income
-    var power_cost: float = _machine_load_kw() * 24.0 * days * _effective_power_cost() * _uptime()
-    var ops_cost: float = float(player["machines"]) * 0.38 * days
-    var debt_cost: float = float(player["debt"]) * float(player["debt_rate"]) * (days / 365.0)
-    var profit: float = revenue - power_cost - ops_cost - debt_cost
+    var preview: Dictionary = _scaled_financial_preview(days)
+    var profit: float = float(preview["profit"])
     player["sats"] = float(player["sats"]) + held_sats
     player["cash"] = float(player["cash"]) + profit
     player["last_profit"] = profit
