@@ -120,7 +120,7 @@ func _end_quarter() -> void:
     live_quarter_confirmation_pending = false
     quarter_button.text = "END %s TURN" % turn_length_name()
     if is_instance_valid(phase_label):
-        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
+        phase_label.text = "%s PHASE: PLAN • DEAL • BUILD" % turn_length_name()
     var mined_btc: float = _btc_per_day() * days
     var mined_sats: float = mined_btc * SATS_PER_BTC
     var held_sats: float = mined_sats * float(player["treasury_hold"])
@@ -170,7 +170,7 @@ func _cancel_live_quarter_confirmation() -> void:
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
     if is_instance_valid(phase_label):
-        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
+        phase_label.text = "%s PHASE: PLAN • DEAL • BUILD" % turn_length_name()
     _feedback("Turn settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _simulate_rivals_scaled(days: float) -> void:
