@@ -43,6 +43,15 @@ func _install_turn_scale_control() -> void:
     layer.add_child(turn_scale_button)
     _refresh_turn_scale_button()
 
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey:
+        var key_event: InputEventKey = event as InputEventKey
+        if key_event.pressed and not key_event.echo and key_event.keycode == KEY_C:
+            _cycle_turn_length()
+            get_viewport().set_input_as_handled()
+            return
+    super._unhandled_input(event)
+
 func _cycle_turn_length() -> void:
     if live_quarter_confirmation_pending:
         _invalidate_quarter_preview("Turn preview cancelled because the turn length changed.")
@@ -57,7 +66,7 @@ func _cycle_turn_length() -> void:
 
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text = "TURN LENGTH: %s  [CHANGE]" % turn_length_name()
+        turn_scale_button.text = "TURN LENGTH: %s  [C]" % turn_length_name()
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
