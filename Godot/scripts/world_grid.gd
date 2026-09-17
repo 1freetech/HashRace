@@ -71,9 +71,13 @@ func _rebuild_navigation_grid() -> void:
         # deliver the player to the front door rather than inside the building.
         grid_nav.carve_world_point(pos + Vector2(0.0, bottom_height + 44.0), 0)
 
-    # Keep the player spawn and central road junction guaranteed walkable.
-    grid_nav.carve_world_point(Vector2(1500.0, 1290.0), 1)
-    grid_nav.carve_world_point(Vector2(1500.0, 990.0), 1)
+    # The wider v0.052+ layout placed buildings on the old fixed carve points.
+    # Carve only the live HQ front-door spawn and a known-open road junction so
+    # the navigation helper never punches a walkable hole through a building.
+    if not entities.is_empty():
+        var hq_pos: Vector2 = entities[0]["pos"]
+        grid_nav.carve_world_point(hq_pos + Vector2(0.0, 170.0), 0)
+    grid_nav.carve_world_point(Vector2(1200.0, 990.0), 1)
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton:
