@@ -44,8 +44,9 @@ func _install_turn_scale_control() -> void:
     _refresh_turn_scale_button()
 
 func _cycle_turn_length() -> void:
+    if live_quarter_confirmation_pending:
+        _invalidate_quarter_preview("Turn preview cancelled because the turn length changed.")
     turn_length_idx = (turn_length_idx + 1) % TURN_LENGTHS.size()
-    live_quarter_confirmation_pending = false
     if is_instance_valid(quarter_button):
         quarter_button.text = "END %s TURN" % turn_length_name()
     var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
@@ -82,17 +83,17 @@ func _end_quarter() -> void:
         live_quarter_confirmation_pending = true
         var projected_profit: float = _project_scaled_profit(days)
         var projected_cash: float = float(player["cash"]) + projected_profit
+        var risk: String = _quarter_preview_risk(projected_profit, projected_cash)
         quarter_button.text = "CONFIRM %s TURN" % turn_length_name()
-        var risk: String = ""
-        if projected_cash < 0.0:
-            risk = " DANGER: projected cash falls below $0."
-        elif projected_profit < 0.0:
-            risk = " Warning: this turn is projected to lose cash."
-        _feedback("%s PREVIEW: %.2f days • projected cash result $%d • projected ending cash $%d.%s Confirm to settle, or press Esc to cancel." % [turn_length_name(), days, int(projected_profit), int(projected_cash), risk])
+        if is_instance_valid(phase_label):
+            phase_label.text = "%s PREVIEW: %s" % [turn_length_name(), risk]
+        _feedback("%s PREVIEW [%s]: %.2f days • projected cash result $%d • projected ending cash $%d. Confirm to settle, or press Esc to cancel." % [turn_length_name(), risk, days, int(projected_profit), int(projected_cash)])
         return
 
     live_quarter_confirmation_pending = false
     quarter_button.text = "END %s TURN" % turn_length_name()
+    if is_instance_valid(phase_label):
+        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
     var mined_btc: float = _btc_per_day() * days
     var mined_sats: float = mined_btc * SATS_PER_BTC
     var held_sats: float = mined_sats * float(player["treasury_hold"])
@@ -136,9 +137,13 @@ func _end_quarter() -> void:
     queue_redraw()
 
 func _cancel_live_quarter_confirmation() -> void:
+    if not live_quarter_confirmation_pending:
+        return
     live_quarter_confirmation_pending = false
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
+    if is_instance_valid(phase_label):
+        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
     _feedback("Turn settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _simulate_rivals_scaled(days: float) -> void:
