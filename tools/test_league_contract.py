@@ -4,9 +4,11 @@ from pathlib import Path
 
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 league = Path("Godot/scripts/world_league_standings.gd").read_text(encoding="utf-8")
+life_ops = Path("Godot/scripts/world_life_ops.gd").read_text(encoding="utf-8")
 profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 
-assert "world_league_standings.gd" in scene, "Live Godot world must boot through the league standings layer"
+assert "world_v053.gd" in scene, "Live Godot world must boot through the current visual/gameplay composition layer"
+assert 'extends "res://scripts/world_league_standings.gd"' in life_ops, "Current gameplay chain must retain the league standings layer"
 assert 'extends "res://scripts/world_company_effects.gd"' in league, "League must preserve company effects and the full gameplay inheritance chain"
 for marker in ["LEAGUE #", "STANDINGS", "_league_rows", "_player_league_rank", "BITCOIN MINING LEAGUE // STANDINGS", "rows.size() == 10", "debug_league_standings_ready"]:
     assert marker in league, f"League standings missing: {marker}"
