@@ -160,6 +160,8 @@ func auto_fund_safe_quarter() -> void:
     var new_end := _projected_end_cash()
     if new_end < 0.0:
         _feedback("Sold all available %d sats for $%d, but projected turn-end cash is still $%d. Financing or cost cuts are still required." % [int(sats_to_sell), int(raised), int(new_end)])
+    elif new_end < OPERATING_RESERVE:
+        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is only $%d, below the $%d reserve target. Seek financing, cut costs, or improve mining economics before advancing." % [int(sats_to_sell), int(raised), int(new_end), int(OPERATING_RESERVE)])
     else:
         _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end)])
     _refresh_status()
