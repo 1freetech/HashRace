@@ -22,7 +22,7 @@ const PARTNER_POSITIONS: Array[Vector2] = [
     Vector2(520.0, 1390.0),
     Vector2(1120.0, 1390.0),
     Vector2(1880.0, 1390.0),
-    Vector2(2480.0, 1390.0)
+    Vector2(2740.0, 1390.0)
 ]
 
 const RIVAL_POSITIONS: Array[Vector2] = [
