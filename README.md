@@ -6,11 +6,14 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.051**. Development has advanced to **v0.054**; its links will replace these only after the Windows and Linux release files are actually published and verified.
+The latest verified public desktop release is **v0.055**.
 
-- **[Windows x64 — Hash Race v0.051](https://github.com/1freetech/HashRace/releases/download/v0.051/HashRace-v0.051-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.051](https://github.com/1freetech/HashRace/releases/download/v0.051/HashRace-v0.051-linux-x64.tar.gz)**
+- **[Windows x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.055](https://github.com/1freetech/HashRace/releases/download/v0.055/HashRace-v0.055-linux-x64.tar.gz)**
+- **[Hash Race v0.055 release page](https://github.com/1freetech/HashRace/releases/tag/v0.055)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
+
+v0.055 adds code-generated detailed building facades to the live overworld. Headquarters, partner offices, machine markets, power facilities, banks, and land offices now use transparent procedural pixel textures with roofs, foundations, windows or equipment intakes, doors, masonry or panel detail, shadows, and company-colored accents. The wider campus spacing and proximity-gated labels remain in place so the map stays readable.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository is now moving simulation-heavy state, inventory, mining math, machine generations, research, partnerships, acquisitions, and long-run economic calculations into a tested C++20 core. Large obsolete C# simulation prototypes are being retired instead of maintained in parallel.
 
