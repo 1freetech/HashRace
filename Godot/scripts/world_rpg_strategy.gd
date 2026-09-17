@@ -19,7 +19,7 @@ func _ready() -> void:
     super._ready()
     _install_rpg_strategy_ui()
     _refresh_scanner_cells(true)
-    _open_message("COMPANY FIELD MODE // %s" % _current_town_name(), "Explore like an RPG, plan like a strategy game. Walk near a company, partner, property, or deal target and press E to interact. R toggles the scanner, T opens town transit, and Q previews the quarter before you commit.")
+    _open_message("COMPANY FIELD MODE // %s" % _current_town_name(), "Explore like an RPG, plan like a strategy game. Walk near a company, partner, property, or deal target and press E to interact. R toggles the scanner, T opens town transit, and Q previews the next turn before you commit.")
     queue_redraw()
 
 func _install_rpg_strategy_ui() -> void:
@@ -37,7 +37,7 @@ func _install_rpg_strategy_ui() -> void:
     phase_label = Label.new()
     phase_label.position = Vector2(418.0, 92.0)
     phase_label.size = Vector2(330.0, 34.0)
-    phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
+    phase_label.text = "TURN PHASE: PLAN • DEAL • BUILD"
     phase_label.add_theme_font_size_override("font_size", 12)
     phase_label.add_theme_color_override("font_color", Color("8cecff"))
     layer.add_child(phase_label)
@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
     super._process(delta)
     var requested_motion: Vector2 = rep_pos - before
     if RPGMovement.is_moving(requested_motion):
-        _invalidate_quarter_preview("Quarter preview cancelled because your field position changed.")
+        _invalidate_quarter_preview("Turn preview cancelled because your field position changed.")
         var corrected: Vector2 = RPGMovement.resolve_axis_motion(grid_nav, before, requested_motion)
         if corrected != rep_pos:
             rep_pos = corrected
@@ -84,20 +84,20 @@ func _unhandled_input(event: InputEvent) -> void:
                 return
             if key_event.keycode == KEY_Q:
                 if live_quarter_confirmation_pending:
-                    _feedback("Quarter preview is already open. Use CONFIRM END QUARTER to settle, or press Esc to cancel.")
+                    _feedback("Turn preview is already open. Use the CONFIRM button to settle, or press Esc to cancel.")
                 else:
                     _end_quarter()
                 get_viewport().set_input_as_handled()
                 return
             if key_event.keycode == KEY_R:
-                _invalidate_quarter_preview("Quarter preview cancelled because the field plan changed.")
+                _invalidate_quarter_preview("Turn preview cancelled because the field plan changed.")
                 _toggle_scanner_overlay()
                 get_viewport().set_input_as_handled()
                 return
             if key_event.keycode == KEY_E or key_event.keycode == KEY_ENTER or key_event.keycode == KEY_SPACE:
                 var idx: int = _nearest_entity()
                 if idx >= 0 and _entity_in_interact_range(idx):
-                    _invalidate_quarter_preview("Quarter preview cancelled because you opened a new interaction.")
+                    _invalidate_quarter_preview("Turn preview cancelled because you opened a new interaction.")
                     var entity: Dictionary = entities[idx]
                     rep_facing = RPGMovement.face_target(rep_pos, entity["pos"], rep_facing)
                     rep_animation_state = RPGMovement.animation_state(rep_facing, false)
@@ -154,12 +154,12 @@ func _end_quarter() -> void:
         var projected_cash: float = float(player["cash"]) + projected_profit
         var risk: String = _quarter_preview_risk(projected_profit, projected_cash)
         quarter_button.text = "CONFIRM END QUARTER"
-        phase_label.text = "QUARTER PREVIEW: %s" % risk
-        _feedback("QUARTER PREVIEW [%s]: projected cash result $%d • projected ending cash $%d. Click CONFIRM END QUARTER to settle about 91 days, or press Esc to cancel." % [risk, int(projected_profit), int(projected_cash)])
+        phase_label.text = "TURN PREVIEW: %s" % risk
+        _feedback("TURN PREVIEW [%s]: projected cash result $%d • projected ending cash $%d. Use the CONFIRM button to settle, or press Esc to cancel." % [risk, int(projected_profit), int(projected_cash)])
         return
     live_quarter_confirmation_pending = false
     quarter_button.text = "END QUARTER"
-    phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
+    phase_label.text = "TURN PHASE: PLAN • DEAL • BUILD"
     super._end_quarter()
 
 func _invalidate_quarter_preview(reason: String) -> void:
@@ -169,11 +169,11 @@ func _invalidate_quarter_preview(reason: String) -> void:
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END QUARTER"
     if is_instance_valid(phase_label):
-        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
+        phase_label.text = "TURN PHASE: PLAN • DEAL • BUILD"
     _feedback(reason)
 
 func _cancel_live_quarter_confirmation() -> void:
-    _invalidate_quarter_preview("Quarter settlement cancelled. Keep planning, dealing, or building before advancing time.")
+    _invalidate_quarter_preview("Turn settlement cancelled. Keep planning, dealing, or building before advancing time.")
 
 func _toggle_scanner_overlay() -> void:
     scanner_overlay_enabled = not scanner_overlay_enabled
