@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_burnout.gd -> world_life_ops.gd -> world_league_standings.gd -> world_company_effects.gd preserves the league, life, company effects, flexible time, RPG and mining simulation inheritance chain.
-[ext_resource path="res://scripts/world_burnout.gd" type="Script" id="1_world"]
+; world_visual_detail.gd -> world_burnout.gd -> world_life_ops.gd -> world_league_standings.gd -> world_company_effects.gd preserves the league, life, company effects, flexible time, RPG, mining simulation, and visual-detail inheritance chain.
+[ext_resource path="res://scripts/world_visual_detail.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
@@ -36,5 +36,5 @@ offset_right = 1110.0
 offset_bottom = 500.0
 theme_override_colors/font_color = Color(0.745, 0.91, 0.94, 1)
 theme_override_font_sizes/font_size = 16
-text = "Building mining towns, league standings, life + operations, burnout risk, scanner navigation, flexible turns, dynamic company personalities, material rating effects, strategy UI and collision grid...\n\nIf this screen remains, the world controller failed to initialize."
+text = "Building mining towns, league standings, life + operations, burnout risk, scanner navigation, flexible turns, dynamic company personalities, material rating effects, strategy UI, collision grid, and detailed pixel-art mining sites...\n\nIf this screen remains, the world controller failed to initialize."
 horizontal_alignment = 1
