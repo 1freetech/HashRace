@@ -4,11 +4,13 @@ from pathlib import Path
 import re
 
 life = Path("Godot/scripts/world_life_ops.gd").read_text(encoding="utf-8")
+burnout = Path("Godot/scripts/world_burnout.gd").read_text(encoding="utf-8")
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = Path("VERSION").read_text().strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-assert "world_life_ops.gd" in scene
+assert "world_burnout.gd" in scene
+assert 'extends "res://scripts/world_life_ops.gd"' in burnout
 assert 'extends "res://scripts/world_league_standings.gd"' in life
 for marker in [
     "operator_energy", "operator_focus", "operator_social", "_life_score",
@@ -26,10 +28,23 @@ for marker in [
 ]:
     assert marker in life, f"Life + Operations missing: {marker}"
 
+for marker in [
+    "BURNOUT_START_RATING: float = 35.0",
+    "MAX_BURNOUT_UPTIME_PENALTY: float = 0.03",
+    "func _burnout_risk() -> int",
+    "clampf((energy_deficit + focus_deficit) * 0.5 * 100.0, 0.0, 100.0)",
+    "func _burnout_uptime_penalty() -> float",
+    "super._life_uptime_adjustment() - _burnout_uptime_penalty()",
+    "BURNOUT RISK %d/100",
+    "BURNOUT %d/100",
+    "debug_burnout_ready"
+]:
+    assert marker in burnout, f"Burnout gameplay missing: {marker}"
+
 assert "clampf((operator_energy + operator_focus + operator_social) / 3.0, 0.0, 100.0)" in life
 assert life.count("100.0") >= 8
 assert "match queued_routine:" not in life.split("func _apply_elapsed_life", 1)[1].split("func _end_quarter", 1)[0], "Elapsed-life settlement must not execute a queued routine directly once per turn"
 assert life.index("if not _queued_routine_needed()") < life.index('var routine_to_run: String = _auto_routine_choice() if queued_routine == "AUTO" else queued_routine'), "Automatic routines must check need before choosing and spending"
 assert 'var options := ["NONE", "AUTO", "RECOVER", "TRAIN", "NETWORK"]' in life, "AUTO must be a player-selectable queue option"
 
-print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, and AUTO selects the weakest need before spending company cash.")
+print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, AUTO selects the weakest need, and low Energy/Focus create bounded burnout risk that can reduce mining uptime.")
