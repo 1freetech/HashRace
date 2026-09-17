@@ -5,11 +5,13 @@ import re
 
 life = Path("Godot/scripts/world_life_ops.gd").read_text(encoding="utf-8")
 burnout = Path("Godot/scripts/world_burnout.gd").read_text(encoding="utf-8")
+visual_detail = Path("Godot/scripts/world_visual_detail.gd").read_text(encoding="utf-8")
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = Path("VERSION").read_text().strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-assert "world_burnout.gd" in scene
+assert "world_v053.gd" in scene, "Live scene must boot through the current composition layer"
+assert 'extends "res://scripts/world_burnout.gd"' in visual_detail, "Current visual/gameplay chain must retain burnout and life operations"
 assert 'extends "res://scripts/world_life_ops.gd"' in burnout
 assert 'extends "res://scripts/world_league_standings.gd"' in life
 for marker in [
