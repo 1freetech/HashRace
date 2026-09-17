@@ -40,6 +40,12 @@ for marker in [
     "if _burnout_risk() >= HIGH_BURNOUT_RISK",
     'return "RECOVER"',
     "return super._auto_routine_choice()",
+    "func _train_operator(silent: bool = false) -> bool",
+    "TRAIN BLOCKED: burnout is %d/100",
+    "return super._train_operator(silent)",
+    "TRAIN LOCKED — RECOVER FIRST",
+    "manual TRAIN is locked until recovery",
+    "TRAIN LOCKED",
     "AUTO prioritizes RECOVER",
     "AUTO→RECOVER",
     "BURNOUT RISK %d/100",
@@ -54,5 +60,7 @@ assert "match queued_routine:" not in life.split("func _apply_elapsed_life", 1)[
 assert life.index("if not _queued_routine_needed()") < life.index('var routine_to_run: String = _auto_routine_choice() if queued_routine == "AUTO" else queued_routine'), "Automatic routines must check need before choosing and spending"
 assert 'var options := ["NONE", "AUTO", "RECOVER", "TRAIN", "NETWORK"]' in life, "AUTO must be a player-selectable queue option"
 assert burnout.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < burnout.index("return super._auto_routine_choice()"), "High burnout must be checked before normal AUTO routine selection"
+train_override = burnout.split("func _train_operator", 1)[1].split("func _open_life_overview", 1)[0]
+assert train_override.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < train_override.index("return super._train_operator(silent)"), "Unsafe manual training must be blocked before cash is spent or Energy is drained"
 
-print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, AUTO protects high-burnout operators with recovery, and burnout remains bounded while reducing mining uptime.")
+print(f"Hash Race {version} life + operations contract passed: 0-100 needs remain material, queued routines are elapsed-time normalized, AUTO protects high-burnout operators, and unsafe manual training is blocked until recovery.")
