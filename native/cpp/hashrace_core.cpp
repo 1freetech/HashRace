@@ -87,7 +87,7 @@ void test_machine_purchase_and_capacity() {
     assert(sim.player().fleet.count_all() == before + 2);
     assert(sim.player().cash_usd < cash_before);
 
-    assert(!sim.cooling_supported(sim.generations()[4], CoolingType::Air));
+    assert(!sim.generations()[4].supports_air);
     const auto locked_generation = sim.buy_miner(3, CoolingType::Air, 1);
     assert(!locked_generation.ok);
 }
