@@ -1,20 +1,20 @@
 # Hash Race Downloads
 
-Current public version target: **v0.035**
+Current public version target: **v0.053**
 
-- [Windows x64 — Hash Race v0.035](https://github.com/1freetech/HashRace/releases/download/v0.035/HashRace-v0.035-windows-x64.zip)
-- [Linux x64 — Hash Race v0.035](https://github.com/1freetech/HashRace/releases/download/v0.035/HashRace-v0.035-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.053](https://github.com/1freetech/HashRace/releases/download/v0.053/HashRace-v0.053-windows-x64.zip)
+- [Linux x64 — Hash Race v0.053](https://github.com/1freetech/HashRace/releases/download/v0.053/HashRace-v0.053-linux-x64.tar.gz)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
-The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot/export checks and publishes both assets. Do not treat a version as downloadable until its release assets exist.
+The version-specific links above become live only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot, rendered-frame proof, export and packaging checks. Do not treat a version as downloadable until its release assets exist.
 
-## v0.035 gameplay and visual update
+## v0.053 character-detail update
 
-The playable Godot world now uses an original Game Boy Color-style Hash Race operator based on the approved character direction. The player has brown skin, rounded textured dark hair, a sleek white and graphite futuristic field suit, orange mining-tech accents and a bright green one-eye scanner. The design is drawn procedurally in GDScript so it stays crisp with the existing pixel renderer and does not depend on protected character artwork.
+The player and world representatives now share a higher-detail procedural pixel character build. The new construction adds a stronger spiky-hair silhouette, white headset/ear protection, layered face shading, a neon one-eye scanner visor, articulated suit panels, shoulder guards, knee pads, gloves, boots and a readable chest mark. The default Operator Suit uses the approved light shell, orange armor pads and neon-green scanner palette.
 
-The character is animated by the existing RPG movement code. Walking left, right, up and down changes the character direction; moving alternates the legs and arms and adds a pixel-step bob, while stopping returns the operator to an idle state. Rival mining-company representatives and external NPC partner representatives keep their existing presentation, so the player remains visually distinct without changing the ten-miner company model.
+NPC representatives use the same detailed body construction rather than falling back to the older low-detail worker shape. Their company or partner accent colors are applied to armor trim and field-ID pixels, so they remain visually distinct while matching the player's detail level. The existing neon-green name labels remain directly above every character.
 
-All ten league companies remain Bitcoin mining companies. AI, robotics, semiconductor, energy, telecom, real-estate, finance, infrastructure, retail/quick-service and sports organizations remain external NPC partners, suppliers, sponsors, landlords, financiers or strategic allies.
+The renderer remains original GDScript and uses the existing nearest-neighbor pixel pipeline. No protected character artwork or sprite sheets are included.
 
 ## Open-source simulation references
 

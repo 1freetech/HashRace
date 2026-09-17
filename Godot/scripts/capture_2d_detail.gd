@@ -13,6 +13,9 @@ func _capture() -> void:
     set_meta("hashrace_company_idx", 0)
     set_meta("hashrace_campaign_years", 4)
     set_meta("hashrace_campaign_turns", 16)
+    set_meta("hashrace_character_skin_tone", 2)
+    set_meta("hashrace_character_gender", 0)
+    set_meta("hashrace_character_outfit", 0)
 
     var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
     if packed == null:
@@ -37,6 +40,12 @@ func _capture() -> void:
         return
     if not bool(scene.call("debug_visual_detail_ready")):
         _fail("visual detail controller reported not ready")
+        return
+    if not scene.has_method("debug_character_detail_ready"):
+        _fail("v0.053 character detail controller is not active")
+        return
+    if not bool(scene.call("debug_character_detail_ready")):
+        _fail("v0.053 character detail controller reported not ready")
         return
 
     # Remove HUD/dialog panels from this proof so the rendered game art itself
@@ -106,8 +115,9 @@ func _capture() -> void:
         _fail("close-up still looks too flat: local contrast transition ratio %.3f" % transition_ratio)
         return
 
-    print("HASH RACE 2D DETAIL PROOF PASS: %dx%d PNG, %d sampled colors, local contrast %.1f%%, visual detail revision %d. Saved %s" % [
+    print("HASH RACE 2D DETAIL PROOF PASS: %dx%d PNG, %d sampled colors, local contrast %.1f%%, visual detail revision %d, character detail revision %d. Saved %s" % [
         image.get_width(), image.get_height(), histogram.size(), transition_ratio * 100.0,
-        int(scene.get_meta("hashrace_visual_detail_revision", 0)), output_file
+        int(scene.get_meta("hashrace_visual_detail_revision", 0)),
+        int(scene.get_meta("hashrace_character_detail_revision", 0)), output_file
     ])
     quit(0)

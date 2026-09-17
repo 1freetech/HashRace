@@ -22,8 +22,10 @@ const GENDERS: Array = [
 
 # Skin tone and gender/presentation are free identity choices. Outfit skins are
 # gameplay cosmetics purchased with company cash after the campaign begins.
+# v0.053 updates the starter Operator Suit to the approved light shell + orange
+# armor-pad palette while retaining its neon-green scanner display.
 const OUTFITS: Array = [
-    {"id":"operator", "name":"Operator Suit", "cost":0.0, "primary":Color("101923"), "secondary":Color("26383d"), "neon":Color("39ff75")},
+    {"id":"operator", "name":"Operator Suit", "cost":0.0, "primary":Color("e9eeee"), "secondary":Color("e07a2f"), "neon":Color("39ff75")},
     {"id":"grid_runner", "name":"Grid Runner", "cost":12000.0, "primary":Color("17273a"), "secondary":Color("315d78"), "neon":Color("52e7ff")},
     {"id":"silicon_tech", "name":"Silicon Tech", "cost":18000.0, "primary":Color("21182f"), "secondary":Color("60447a"), "neon":Color("bd8cff")},
     {"id":"hydro_tech", "name":"Hydro Tech", "cost":24000.0, "primary":Color("0f2930"), "secondary":Color("276b75"), "neon":Color("4df0ff")},
