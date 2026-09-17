@@ -47,7 +47,7 @@ func _draw_hashrace_player(pos: Vector2) -> void:
 func _legs(o: Vector2, s: int) -> void:
     _p(o,-4,5,8,2,SUIT_BLACK)
     _p(o,-3,5,6,1,NEON_DARK)
-    for side_index: int in [-1,1]:
+    for side_index in [-1,1]:
         var x: int = -4 if side_index < 0 else 1
         var dy: int = s if side_index < 0 else -s
         _p(o,x,6+dy,3,3,BLACK)
@@ -74,7 +74,7 @@ func _torso(o: Vector2, swing: int, back: bool) -> void:
     _p(o,-1,0,2,1,NEON)
     _p(o,-4,4,8,2,BLACK)
     _p(o,-3,4,6,1,SUIT_HI)
-    for side_index: int in [-1,1]:
+    for side_index in [-1,1]:
         var x: int = -8 if side_index < 0 else 6
         var dy: int = swing if side_index < 0 else -swing
         _p(o,x,-1+dy,3,5,BLACK)
@@ -103,7 +103,7 @@ func _hair(o: Vector2, back: bool) -> void:
     _p(o,-6,-12,2,4,HAIR)
     _p(o,4,-12,2,4,HAIR)
     var tufts: Array[Vector2i] = [Vector2i(-5,-15),Vector2i(-3,-16),Vector2i(-1,-15),Vector2i(1,-17),Vector2i(3,-16),Vector2i(5,-14)]
-    for i: int in range(tufts.size()):
+    for i in range(tufts.size()):
         var t: Vector2i = tufts[i]
         _p(o,t.x,t.y,2,4,HAIR)
         _p(o,t.x+1,t.y+1,1,2,HAIR_MID)
