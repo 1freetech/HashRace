@@ -1,19 +1,18 @@
 extends "res://scripts/world_rpg_strategy.gd"
 
 # Flexible season clock for Hash Race. One strategic turn can represent a day,
-# week, month, or quarter while all mining and operating economics remain based
+# month, or year while all mining and operating economics remain based
 # on the same per-day metrics.
 
 const TURN_LENGTHS: Array = [
     {"name": "DAY", "days": 1.0},
-    {"name": "WEEK", "days": 7.0},
     {"name": "MONTH", "days": 30.4375},
-    {"name": "QUARTER", "days": 91.3125}
+    {"name": "YEAR", "days": 365.25}
 ]
 const DAYS_PER_YEAR: float = 365.25
 const HALVING_DAYS: float = 1461.0
 
-var turn_length_idx: int = 2
+var turn_length_idx: int = 1
 var elapsed_campaign_days: float = 0.0
 var next_halving_day: float = HALVING_DAYS
 var turn_scale_button: Button
@@ -56,7 +55,6 @@ func _unhandled_input(event: InputEvent) -> void:
                 KEY_1: direct_turn_idx = 0
                 KEY_2: direct_turn_idx = 1
                 KEY_3: direct_turn_idx = 2
-                KEY_4: direct_turn_idx = 3
             if direct_turn_idx >= 0:
                 _set_turn_length(direct_turn_idx)
                 get_viewport().set_input_as_handled()
@@ -84,7 +82,7 @@ func _set_turn_length(new_idx: int) -> void:
 
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text = "TURN: %s  [1 DAY • 2 WEEK • 3 MONTH • 4 QTR • C CYCLE]" % turn_length_name()
+        turn_scale_button.text = "TURN: %s  [1 DAY • 2 MONTH • 3 YEAR • C CYCLE]" % turn_length_name()
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
@@ -130,7 +128,9 @@ func _end_quarter() -> void:
         quarter_button.text = "CONFIRM %s TURN" % turn_length_name()
         if is_instance_valid(phase_label):
             phase_label.text = "%s PREVIEW: %s" % [turn_length_name(), risk]
-        _feedback("%s PREVIEW [%s]: %.2f days • mine %.6f BTC • hold %.6f • sell %.6f • mining +$%d • partners +$%d • power -$%d • ops -$%d • debt -$%d • net $%d • ending cash $%d. Confirm to settle, or press Esc to cancel." % [turn_length_name(), risk, days, float(preview["mined_btc"]), float(preview["held_btc"]), float(preview["sold_btc"]), int(preview["mining_revenue"]), int(preview["partner_income"]), int(preview["power_cost"]), int(preview["ops_cost"]), int(preview["debt_cost"]), int(projected_profit), int(projected_cash)])
+        var total_income: float = float(preview["mining_revenue"]) + float(preview["partner_income"])
+        var total_costs: float = float(preview["power_cost"]) + float(preview["ops_cost"]) + float(preview["debt_cost"])
+        _feedback("%s PREVIEW [%s]: %.2f days • BTC mined %.6f • held %.6f • sold %.6f • MONEY IN +$%d • MONEY OUT -$%d • NET $%d • CASH AFTER $%d. Confirm to settle, or press Esc to cancel." % [turn_length_name(), risk, days, float(preview["mined_btc"]), float(preview["held_btc"]), float(preview["sold_btc"]), int(total_income), int(total_costs), int(projected_profit), int(projected_cash)])
         return
 
     live_quarter_confirmation_pending = false
