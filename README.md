@@ -8,8 +8,8 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 The latest verified public desktop release is **v0.059**.
 
-- **[Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.057-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.057-linux-x64.tar.gz)**
+- **[Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-linux-x64.tar.gz)**
 - **[Hash Race v0.059 release page](https://github.com/1freetech/HashRace/releases/tag/v0.059)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 

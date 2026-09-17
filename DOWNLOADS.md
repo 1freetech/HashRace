@@ -2,8 +2,8 @@
 
 Current verified public version: **v0.059**
 
-- [Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.055-windows-x64.zip)
-- [Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.055-linux-x64.tar.gz)
+- [Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-windows-x64.zip)
+- [Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-linux-x64.tar.gz)
 - [Hash Race v0.059 release](https://github.com/1freetech/HashRace/releases/tag/v0.059)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
