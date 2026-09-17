@@ -9,9 +9,6 @@ The player begins as one of ten mining companies and attempts to build a stronge
 The current public desktop release remains **v0.014**. The repository development version is **v0.021**.
 
 - **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
-- [Download Hash Race v0.014 for Windows x64](https://github.com/1freetech/HashRace/releases/download/v0.014/HashRace-v0.014-windows-x64.zip)
-- [Download Hash Race v0.014 for Linux x64](https://github.com/1freetech/HashRace/releases/download/v0.014/HashRace-v0.014-linux-x64.tar.gz)
-- [View all Hash Race releases](https://github.com/1freetech/HashRace/releases)
 
 The desktop game uses **Godot 4.7.2 and GDScript**. Older Unity/C# code remains in the repository as prototype and migration reference material where useful.
 
