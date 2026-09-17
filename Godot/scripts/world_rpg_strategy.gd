@@ -128,6 +128,15 @@ func _project_live_quarter_profit() -> float:
     var debt_cost: float = float(player["debt"]) * float(player["debt_rate"]) * (QUARTER_DAYS / 365.0)
     return revenue - power_cost - ops_cost - debt_cost
 
+func _quarter_preview_risk(projected_profit: float, projected_cash: float) -> String:
+    if projected_cash < 0.0:
+        return "DANGER: INSOLVENT"
+    if projected_cash < 10000.0:
+        return "CRITICAL: LOW RESERVE"
+    if projected_profit < 0.0:
+        return "WARNING: CASH BURN"
+    return "READY"
+
 func _end_quarter() -> void:
     if campaign_complete:
         super._end_quarter()
@@ -136,16 +145,14 @@ func _end_quarter() -> void:
         live_quarter_confirmation_pending = true
         var projected_profit: float = _project_live_quarter_profit()
         var projected_cash: float = float(player["cash"]) + projected_profit
+        var risk: String = _quarter_preview_risk(projected_profit, projected_cash)
         quarter_button.text = "CONFIRM END QUARTER"
-        var risk: String = ""
-        if projected_cash < 0.0:
-            risk = " DANGER: projected cash falls below $0."
-        elif projected_profit < 0.0:
-            risk = " Warning: this quarter is projected to lose cash."
-        _feedback("QUARTER PREVIEW: projected cash result $%d • projected ending cash $%d.%s Click CONFIRM END QUARTER to settle about 91 days, or press Esc to cancel." % [int(projected_profit), int(projected_cash), risk])
+        phase_label.text = "QUARTER PREVIEW: %s" % risk
+        _feedback("QUARTER PREVIEW [%s]: projected cash result $%d • projected ending cash $%d. Click CONFIRM END QUARTER to settle about 91 days, or press Esc to cancel." % [risk, int(projected_profit), int(projected_cash)])
         return
     live_quarter_confirmation_pending = false
     quarter_button.text = "END QUARTER"
+    phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
     super._end_quarter()
 
 func _invalidate_quarter_preview(reason: String) -> void:
@@ -154,6 +161,8 @@ func _invalidate_quarter_preview(reason: String) -> void:
     live_quarter_confirmation_pending = false
     if is_instance_valid(quarter_button) and not campaign_complete:
         quarter_button.text = "END QUARTER"
+    if is_instance_valid(phase_label):
+        phase_label.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
     _feedback(reason)
 
 func _cancel_live_quarter_confirmation() -> void:
