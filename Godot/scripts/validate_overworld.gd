@@ -31,6 +31,7 @@ func _run() -> void:
         "debug_company_rep_count", "debug_partner_rep_count", "debug_town_count", "debug_player_rep_name",
         "debug_has_land_market", "debug_grid_navigation_ready", "debug_grid_path_exists",
         "debug_gbc_map_ready", "debug_gbc_road_tiles", "debug_tile_ops_changed",
+        "debug_visual_stack_ready", "debug_visual_reference_count",
         "debug_rpg_collision_ready", "debug_scanner_reachable_count", "debug_rep_animation_state",
         "debug_range_limited_path_exists", "debug_company_personality_ready", "debug_rival_personality_count",
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
@@ -76,6 +77,12 @@ func _run() -> void:
         return
     if int(scene.call("debug_tile_ops_changed")) <= 0:
         _fail("ported tilemap operations did not modify the live map")
+        return
+    if not bool(scene.call("debug_visual_stack_ready")):
+        _fail("nine-source 2D visual stack contract failed")
+        return
+    if int(scene.call("debug_visual_reference_count")) != 9:
+        _fail("expected exactly nine 2D visual reference techniques")
         return
     if not bool(scene.call("debug_rpg_collision_ready")):
         _fail("RPG collision grid does not recognize a blocked world cell")
@@ -146,5 +153,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
+    print("HASH RACE OVERWORLD PASS: live world initialized with collision-safe movement, scanner navigation, ten mining towns, external partner firms, nine-source 2D visual stack, 0-100 company personalities, material culture-driven gameplay effects, live treasury controls, two-step flexible-turn confirmation, dialogue actions, camera, and settlement verified.")
     quit(0)
