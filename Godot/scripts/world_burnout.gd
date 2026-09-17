@@ -1,10 +1,11 @@
 extends "res://scripts/world_life_ops.gd"
 
-# v0.029: sustained low Energy and Focus create a visible 0-100 burnout risk.
-# Burnout can reduce mining uptime by up to 3 percentage points, making operator
-# care a real operations decision without replacing the existing life effects.
+# v0.031: sustained low Energy and Focus create a visible 0-100 burnout risk.
+# Burnout can reduce mining uptime by up to 3 percentage points. AUTO now
+# prioritizes recovery at high burnout so automation cannot make exhaustion worse.
 
 const BURNOUT_START_RATING: float = 35.0
+const HIGH_BURNOUT_RISK: int = 50
 const MAX_BURNOUT_UPTIME_PENALTY: float = 0.03
 
 func _burnout_risk() -> int:
@@ -18,14 +19,20 @@ func _burnout_uptime_penalty() -> float:
 func _life_uptime_adjustment() -> float:
     return super._life_uptime_adjustment() - _burnout_uptime_penalty()
 
+func _auto_routine_choice() -> String:
+    if _burnout_risk() >= HIGH_BURNOUT_RISK:
+        return "RECOVER"
+    return super._auto_routine_choice()
+
 func _open_life_overview() -> void:
     super._open_life_overview()
-    dialog_text.text += "\n\nBURNOUT RISK %d/100  •  uptime penalty -%.1f%%\nRisk starts when Energy or Focus falls below %d/100. RECOVER and TRAIN can protect mining uptime." % [_burnout_risk(), _burnout_uptime_penalty() * 100.0, int(BURNOUT_START_RATING)]
+    dialog_text.text += "\n\nBURNOUT RISK %d/100  •  uptime penalty -%.1f%%\nRisk starts when Energy or Focus falls below %d/100. At %d/100 burnout, AUTO prioritizes RECOVER to protect mining uptime." % [_burnout_risk(), _burnout_uptime_penalty() * 100.0, int(BURNOUT_START_RATING), HIGH_BURNOUT_RISK]
 
 func _refresh_life_ops_ui() -> void:
     super._refresh_life_ops_ui()
     if is_instance_valid(life_status_label):
-        life_status_label.text += "\nBURNOUT %d/100  •  UPTIME -%.1f%%" % [_burnout_risk(), _burnout_uptime_penalty() * 100.0]
+        var auto_note: String = "  •  AUTO→RECOVER" if queued_routine == "AUTO" and _burnout_risk() >= HIGH_BURNOUT_RISK else ""
+        life_status_label.text += "\nBURNOUT %d/100  •  UPTIME -%.1f%%%s" % [_burnout_risk(), _burnout_uptime_penalty() * 100.0, auto_note]
 
 func debug_burnout_ready() -> bool:
     var risk: int = _burnout_risk()
