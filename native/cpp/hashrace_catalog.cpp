@@ -4,12 +4,12 @@ namespace hashrace {
 
 std::vector<MinerGeneration> default_generations() {
     return {
-        {1, "Gen 1 Prototype", 5.0, 85.0, 650.0, 0.0, true, false, false},
-        {2, "Gen 2 Hashbox", 14.0, 60.0, 1500.0, 15000.0, true, false, false},
-        {3, "Gen 3 Performance ASIC", 45.0, 38.0, 3200.0, 50000.0, true, true, false},
-        {4, "Gen 4 Efficient ASIC", 110.0, 25.0, 5200.0, 150000.0, true, true, false},
-        {5, "Gen 5 Hydro ASIC", 250.0, 15.0, 9000.0, 450000.0, false, true, true},
-        {6, "Gen 6 PH Node", 1000.0, 8.0, 30000.0, 1500000.0, false, true, true},
+        {1, "Garage ASIC", 90.0, 33.3333333333, 450.0, 0.0, true, true, true},
+        {2, "S19j Pro-class", 104.0, 29.5, 650.0, 18000.0, true, true, true},
+        {3, "S21-class Air", 200.0, 17.5, 1900.0, 85000.0, true, true, true},
+        {4, "S21 Pro-class", 234.0, 15.0, 2600.0, 220000.0, true, true, true},
+        {5, "S21 Hydro-class", 335.0, 16.0, 5200.0, 650000.0, false, true, false},
+        {6, "Future 1 MW Rack", 60000.0, 16.6666666667, 850000.0, 2500000.0, false, true, true},
         {7, "Gen 7 10 PH Rack", 10000.0, 4.0, 220000.0, 8000000.0, false, true, true},
         {8, "Gen 8 100 PH Core", 100000.0, 1.5, 1800000.0, 40000000.0, false, true, true},
         {9, "Gen 9 EH Engine", 1000000.0, 0.75, 14000000.0, 150000000.0, false, false, true},
