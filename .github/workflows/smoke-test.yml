@@ -41,11 +41,24 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_overworld.gd 2>&1 | tee /tmp/hashrace-visual.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|VISUAL PROOF FAIL" /tmp/hashrace-visual.log; then exit 1; fi
           test -s visual-proof/hashrace-overworld.png
+      - name: Render and validate close-up 2D detail frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-2d-detail.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|2D DETAIL PROOF FAIL" /tmp/hashrace-2d-detail.log; then exit 1; fi
+          test -s visual-proof/hashrace-2d-detail.png
       - name: Upload actual rendered game frame
         uses: actions/upload-artifact@v4
         with:
           name: hashrace-overworld-visual-proof
           path: visual-proof/hashrace-overworld.png
+          if-no-files-found: error
+      - name: Upload close-up 2D detail proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-2d-detail-visual-proof
+          path: visual-proof/hashrace-2d-detail.png
           if-no-files-found: error
 
   python-contract:
