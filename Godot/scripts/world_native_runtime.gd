@@ -1,7 +1,7 @@
-extends "res://scripts/world_pixel_landscape.gd"
+extends "res://scripts/world_ui_compact.gd"
 
 # Hash Race v0.046 native authority layer.
-# C++ owns economic/gameplay state. GDScript above this layer renders, accepts
+# C++ owns economic/gameplay state. GDScript below this layer renders, accepts
 # input, runs presentation-oriented policy logic, and mirrors native snapshots.
 
 const NATIVE_RUNTIME_CLASS: StringName = &"HashRaceRuntime"
