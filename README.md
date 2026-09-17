@@ -6,11 +6,11 @@ The player begins as one of ten mining companies and attempts to build a stronge
 
 ## Play Hash Race
 
-The current public desktop release remains **v0.014**. The repository development version is **v0.021**.
+The current public desktop release is **v0.044**.
 
 - **[Download the latest playable Hash Race release](https://github.com/1freetech/HashRace/releases/latest)**
 
-The desktop game uses **Godot 4.7.2 and GDScript**. Older Unity/C# code remains in the repository as prototype and migration reference material where useful.
+The desktop game uses **Godot 4.7.2 and GDScript**. The repository is now moving simulation-heavy state, inventory, mining math, machine generations, research, partnerships, acquisitions, and long-run economic calculations into a tested C++20 core. Large obsolete C# simulation prototypes are being retired instead of maintained in parallel.
 
 ## Game structure
 
@@ -64,7 +64,7 @@ Rival AI uses the current ratings when deciding whether to expand the fleet, inv
 
 ### Material gameplay effects
 
-Version **v0.021** fixes a weakness in the original personality implementation: the player's ratings previously changed but were mostly descriptive. The live ratings now affect actual game economics.
+The live ratings affect actual game economics.
 
 - **Operations** modifies effective mining uptime.
 - **Treasury + Reputation** modify borrowing rates.
@@ -100,6 +100,9 @@ Major simulation values include:
 - Hashrate
 - J/TH
 - Machines
+- Cooling type
+- Machine generation
+- Machine condition and utilization
 - kW and MW
 - Electricity price
 - Land and acres
@@ -134,7 +137,7 @@ Treasury controls remain tied to the flexible turn system so projected income an
 
 Lending begins with expensive small-business debt and progresses toward larger commercial, infrastructure, state, and federal financing as asset value increases.
 
-Loan pricing moves with the simulated Federal rate. Company Treasury and Reputation ratings now also affect the live borrowing rate, representing lender confidence and financial discipline.
+Loan pricing moves with the simulated Federal rate. Company Treasury and Reputation ratings also affect the live borrowing rate, representing lender confidence and financial discipline.
 
 ## Company world
 
@@ -157,38 +160,52 @@ The representative can move with keyboard controls or click-to-pathfind around b
 
 Hash Race uses **Godot** as its primary engine. The repository uses a hybrid development stack:
 
-- **GDScript** — live gameplay, UI, world, simulation orchestration, rival AI, company culture
-- **C#** — earlier simulation and prototype systems retained for reference
-- **C++** — selected mining-core/native experiments
+- **GDScript** — live gameplay, UI, world, simulation orchestration, rival AI, and company culture
+- **C++20** — typed simulation core for mining math, machine catalogs, fleet inventory, cooling, company state, market state, BTC treasury, research, partnerships, acquisitions, season progression, and future high-volume simulation work
 - **Rust** — deterministic balance and simulation experiments
 - **TypeScript** — validation tooling
 - **Python** — source smoke tests
+- **C#** — only small legacy Unity/editor remnants remain; the large duplicate simulation prototypes have been retired
 
-More information is available in [docs/GODOT_DIRECTION.md](docs/GODOT_DIRECTION.md) and [docs/LANGUAGE_STACK.md](docs/LANGUAGE_STACK.md).
+The C++ share is intended to grow as the simulation becomes heavier, while GDScript remains the practical presentation and orchestration layer. More information is available in [docs/GODOT_DIRECTION.md](docs/GODOT_DIRECTION.md) and [docs/LANGUAGE_STACK.md](docs/LANGUAGE_STACK.md).
 
 ## Repository structure
 
 - `Godot/` — primary live Godot game
-- `desktop/HashRace.Desktop/` — earlier C# desktop prototype
-- `Assets/` — earlier Unity prototype
-- `native/` — C++ and Rust experiments
+- `native/cpp/` — C++20 simulation, inventory, catalogs, math, and native test gate
+- `native/rust/` — deterministic balance experiments
+- `Assets/` — small remaining Unity/editor migration reference; the large Unity C# simulation has been removed
 - `tools/` — smoke tests and validation utilities
 - `.github/workflows/` — automated test and release workflows
 - `GAME_DESIGN.md` — canonical gameplay design
 - `docs/` — technical and gameplay documentation
-- `VERSION` — current development version
+- `VERSION` — current public/development version marker
+
+## C++ simulation migration
+
+The native C++ core is deliberately dependency-free so it can be compiled quickly in CI and later exposed to Godot through GDExtension without rewriting the simulation again. Current native types include:
+
+- machine generations with TH/s, J/TH, purchase price, research cost, and supported cooling
+- fleet inventory slots by generation, cooling, machine count, condition, and utilization
+- real-unit company state for cash, BTC, MW, hash rate, efficiency, research, acquisitions, and days/seasons
+- universal 0–100 company strategy settings
+- market state for BTC price, network hash rate, subsidy, and electricity price
+- rival company state and valuation
+- daily ledger output for mined BTC, sold BTC, held BTC, mining revenue, partner revenue, electricity, operations, and net cash change
+
+The migration keeps real measurements in real units rather than forcing values such as MW, TH/s, BTC, dollars, or J/TH into the 0–100 rating scale.
 
 ## Verification
 
-The repository uses several layers of verification. Source smoke tests check required gameplay contracts and files. A live Godot runtime validator boots the company world and checks movement, pathfinding, scanner navigation, company and partner populations, BTC treasury controls, flexible turn confirmation, company personality state, 0–100 rating bounds, and the material company-culture modifiers added in v0.021.
+The repository uses several layers of verification. Source smoke tests check required gameplay contracts and files. A live Godot runtime validator boots the company world and checks movement, pathfinding, scanner navigation, company and partner populations, BTC treasury controls, flexible turn confirmation, company personality state, 0–100 rating bounds, and material company-culture modifiers.
 
-Release workflows also support Windows/Linux exports and playable-build verification.
+The native C++ gate compiles the simulation with C++20, `-Wall -Wextra -Werror -pedantic`, then tests mining math, inventory, cooling, strategy bounds, purchases, research unlocks, BTC treasury behavior, and season advancement. Release workflows separately support Windows/Linux Godot exports and playable-build verification.
 
 ## Development direction
 
 Current development priorities include stronger company strategy, improved rival memory, deeper mining-facility engineering, more detailed R&D, better town and character artwork, additional management systems, multiple regions and power markets, and longer-term league history.
 
-The company-culture system is intended to become one of the main strategic layers: companies should develop recognizable identities while still being able to change when their decisions, financial results, and controversies change.
+The C++ core is intended to absorb the most data-heavy and simulation-heavy systems over time, especially large machine inventories, long-horizon economy simulation, rival-company state, detailed equipment health, and high-volume stat calculations. GDScript remains the fast iteration layer for scenes, visuals, UI, interactions, and game-world orchestration.
 
 ## Versioning
 
