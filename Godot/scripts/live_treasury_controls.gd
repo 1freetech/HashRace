@@ -174,6 +174,9 @@ func _reset_turn_preview() -> void:
             button.text = "END %s TURN" % String(world.call("turn_length_name"))
         else:
             button.text = "END QUARTER"
+    var phase = world.get("phase_label")
+    if is_instance_valid(phase):
+        phase.text = "QUARTER PHASE: PLAN • DEAL • BUILD"
 
 func _feedback(message: String) -> void:
     if world.has_method("_feedback"):
