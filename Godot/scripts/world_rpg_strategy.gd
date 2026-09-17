@@ -19,7 +19,7 @@ func _ready() -> void:
     super._ready()
     _install_rpg_strategy_ui()
     _refresh_scanner_cells(true)
-    _open_message("COMPANY FIELD MODE // %s" % _current_town_name(), "Explore like an RPG, plan like a strategy game. Walk near a company, partner, property, or deal target and press E to interact. R toggles the scanner and T opens town transit.")
+    _open_message("COMPANY FIELD MODE // %s" % _current_town_name(), "Explore like an RPG, plan like a strategy game. Walk near a company, partner, property, or deal target and press E to interact. R toggles the scanner, T opens town transit, and Q previews the quarter before you commit.")
     queue_redraw()
 
 func _install_rpg_strategy_ui() -> void:
@@ -80,6 +80,13 @@ func _unhandled_input(event: InputEvent) -> void:
         if key_event.pressed and not key_event.echo:
             if key_event.keycode == KEY_ESCAPE and live_quarter_confirmation_pending:
                 _cancel_live_quarter_confirmation()
+                get_viewport().set_input_as_handled()
+                return
+            if key_event.keycode == KEY_Q:
+                if live_quarter_confirmation_pending:
+                    _feedback("Quarter preview is already open. Use CONFIRM END QUARTER to settle, or press Esc to cancel.")
+                else:
+                    _end_quarter()
                 get_viewport().set_input_as_handled()
                 return
             if key_event.keycode == KEY_R:
