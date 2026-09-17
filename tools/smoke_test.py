@@ -41,11 +41,16 @@ def main():
     playability = Path("Godot/scripts/world_playability.gd").read_text(encoding="utf-8")
     profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
     validator = Path("Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
+    texture_spacing = Path("Godot/scripts/world_texture_spacing.gd").read_text(encoding="utf-8")
+    customization = Path("Godot/scripts/world_customization.gd").read_text(encoding="utf-8")
+    character_catalog = Path("Godot/scripts/character_customization.gd").read_text(encoding="utf-8")
+    building_placer = Path("Godot/scripts/building_placer.gd").read_text(encoding="utf-8")
     workflow = Path(".github/workflows/smoke-test.yml").read_text(encoding="utf-8")
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_company_effects.gd" in world_scene, "Live world must use material company-culture gameplay effects"
+    assert "world_v052.gd" in world_scene
+    assert "world_company_effects.gd" in world_scene, "Live world must retain material company-culture gameplay effects"
     assert "BootFallback" in world_scene
     assert 'extends "res://scripts/world_overworld.gd"' in towns
     assert 'extends "res://scripts/world_towns.gd"' in grid_world
@@ -56,7 +61,13 @@ def main():
     assert 'extends "res://scripts/world_company_ai.gd"' in company_effects
     assert "validate_overworld.gd" in workflow
 
-    require(setup, ["MINING COMPANY", "CAMPAIGN LENGTH", "DEFAULT: 1 TURN = 1 MONTH", "DAY / WEEK / MONTH / QUARTER", "range(1, 21)", "hashrace_company_idx", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d"], "Campaign setup")
+    require(setup, [
+        "MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION",
+        "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone",
+        "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:",
+        "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"
+    ], "Campaign setup")
+
     companies = ["VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining", "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining", "LatticeX Mining", "Epoch Vector Mining"]
     require(profiles, companies, "Mining-company profile")
     require(profiles, ['"background"', '"controversy"', '"posture"', '"affinity"', '"aggression"', '"risk"', '"growth"', '"research"', '"treasury"', '"operations"', '"reputation"'], "Dynamic company profile")
@@ -83,13 +94,32 @@ def main():
     require(treasury, ["HSlider", "min_value = 0.0", "max_value = 100.0", "step = 1.0", "BTC HOLD POLICY: %d / 100", "_on_hold_policy_changed", "turn_length_days", "_project_scaled_profit", "AUTO-FUND SAFE TURN"], "Live 0-100 treasury strategy")
     assert "HOLD_POLICIES" not in treasury, "BTC hold policy must not be restricted to presets"
     require(playability, ["BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "PREPARE SAFE QUARTER"], "Treasury playability layer")
-    require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material"], "Runtime validator")
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd"]
+    require(texture_spacing, [
+        "MIN_TARGET_SPACING", "CHARACTER_LABEL_GREEN", "_paint_grass_pixels", "_paint_road_pixels",
+        "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"
+    ], "v0.052 visual spacing layer")
+    require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
+    require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"'], "Character catalog")
+    require(customization, [
+        "CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender",
+        "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_customization_ready",
+        "debug_paid_outfits_use_game_cash"
+    ], "Character customization")
+    require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready"], "Runtime validator")
+
+    required_support = [
+        "native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts",
+        "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg",
+        "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd",
+        "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
+        "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
+        "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v052.gd"
+    ]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: ten Bitcoin mining companies have mutable 0-100 ratings that now materially affect player economics, rival AI remains personality-driven, the BTC hold strategy stays fully adjustable from 0-100, and the RPG world keeps its flexible day/week/month/quarter clock.")
+    print("Hash Race smoke test passed: v0.052 keeps the Bitcoin mining strategy simulation while adding spaced buildings, richer pixel terrain, cleaner labels, neon character names, free identity customization and cash-priced outfit skins.")
 
 
 if __name__ == "__main__":
