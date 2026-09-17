@@ -1,4 +1,4 @@
-extends "res://scripts/world_rpg_strategy.gd"
+extends "res://scripts/world_visual_detail.gd"
 
 # Hash Race v0.035 player-character presentation.
 # Original procedural Game Boy Color-style operator inspired by the approved
@@ -22,9 +22,9 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
     if not is_player:
         super._draw_tech_rep(pos, accent, scanner, false)
         return
-    _draw_hashrace_player(pos)
+    _draw_hashrace_player(pos, accent)
 
-func _draw_hashrace_player(pos: Vector2) -> void:
+func _draw_hashrace_player(pos: Vector2, accent: Color) -> void:
     var moving: bool = not rep_animation_state.ends_with("_idle")
     var stride: int = 0
     if moving:
@@ -32,13 +32,10 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     var bob: float = -4.0 if moving and absf(sin(rep_step_phase)) > 0.55 else 0.0
     var origin: Vector2 = VisualStack.snap_to_pixel(pos + Vector2(0.0, bob))
     draw_ellipse_shadow(VisualStack.snap_to_pixel(pos + Vector2(0.0, 35.0)), 23.0, 8.0)
-
-    # Direction changes silhouette details while keeping the same 16x24 grid.
     var side: bool = rep_facing == "left" or rep_facing == "right"
     var back: bool = rep_facing == "up"
     var mirror: int = -1 if rep_facing == "left" else 1
 
-    # Animated boots and legs: opposing stride frames are driven by actual motion.
     _pspx(origin, -4, 5 + stride, 3, 5, PLAYER_PX, PLAYER_SUIT_DARK)
     _pspx(origin, 1, 5 - stride, 3, 5, PLAYER_PX, PLAYER_SUIT_DARK)
     _pspx(origin, -5, 9 + stride, 4, 2, PLAYER_PX, PLAYER_SUIT_SHADE)
@@ -46,7 +43,6 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     _pspx(origin, -4, 9 + stride, 3, 1, PLAYER_PX, PLAYER_ORANGE)
     _pspx(origin, 1, 9 - stride, 3, 1, PLAYER_PX, PLAYER_ORANGE)
 
-    # Sleek white/graphite futuristic suit with orange company-tech accents.
     _pspx(origin, -6, -2, 12, 8, PLAYER_PX, PLAYER_SUIT_DARK)
     _pspx(origin, -5, -2, 10, 7, PLAYER_PX, PLAYER_SUIT)
     _pspx(origin, -5, 2, 10, 3, PLAYER_PX, PLAYER_SUIT_SHADE)
@@ -58,7 +54,6 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     _pspx(origin, -6, 0 + stride, 1, 3, PLAYER_PX, PLAYER_ORANGE)
     _pspx(origin, 5, 0 - stride, 1, 3, PLAYER_PX, PLAYER_ORANGE)
 
-    # Neck and head use a deliberately brown palette from the approved concept.
     _pspx(origin, -2, -5, 4, 3, PLAYER_PX, PLAYER_SKIN_DARK)
     _pspx(origin, -4, -10, 8, 6, PLAYER_PX, PLAYER_SKIN)
     if side:
@@ -69,7 +64,6 @@ func _draw_hashrace_player(pos: Vector2) -> void:
         _pspx(origin, 2, -7, 1, 1, PLAYER_PX, PLAYER_SKIN_LIGHT)
         _pspx(origin, -1, -5, 2, 1, PLAYER_PX, PLAYER_SKIN_DARK)
 
-    # Rounded textured hair, intentionally unlike a commercial character silhouette.
     _pspx(origin, -4, -11, 8, 2, PLAYER_PX, PLAYER_HAIR)
     _pspx(origin, -5, -10, 2, 2, PLAYER_PX, PLAYER_HAIR)
     _pspx(origin, 3, -10, 2, 2, PLAYER_PX, PLAYER_HAIR)
@@ -77,24 +71,17 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     _pspx(origin, 0, -13, 2, 3, PLAYER_PX, PLAYER_HAIR)
     _pspx(origin, 2, -12, 2, 2, PLAYER_PX, PLAYER_HAIR)
 
-    # Green one-eye scanner/scouter remains visible in front and side views.
     if not back:
         var lens_x: int = -4 if rep_facing != "right" else 1
-        if rep_facing == "left":
-            lens_x = -4
         _pspx(origin, lens_x, -8, 4, 2, PLAYER_PX, PLAYER_SCOUTER_DARK)
         _pspx(origin, lens_x + 1, -8, 3, 1, PLAYER_PX, PLAYER_SCOUTER)
         _pspx(origin, lens_x + 3, -9, 1, 3, PLAYER_PX, PLAYER_SUIT)
-
-    # Orange chest badge reads as a tiny mining-tech identifier at gameplay scale.
-    if not back:
         _pspx(origin, -1, 1, 2, 2, PLAYER_PX, PLAYER_ORANGE)
         _pspx(origin, 0, 1, 1, 2, PLAYER_PX, Color("fff0b0"))
     else:
         _pspx(origin, -3, -1, 6, 4, PLAYER_PX, PLAYER_SUIT_SHADE)
         _pspx(origin, -1, 0, 2, 2, PLAYER_PX, PLAYER_ORANGE)
 
-    # Player-only selection frame matches the existing pixel-world language.
     var player_rect := Rect2(origin + Vector2(-30.0, -55.0), Vector2(60.0, 101.0))
     _draw_layered_stroke_rect(player_rect, Color(0.0, 0.0, 0.0, 0.0), Color(accent.r, accent.g, accent.b, 0.72), Color(accent.r, accent.g, accent.b, 0.24), 2.0)
 
