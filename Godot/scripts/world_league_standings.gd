@@ -1,6 +1,7 @@
 extends "res://scripts/world_company_effects.gd"
 
 const InfrastructureInventory = preload("res://scripts/infrastructure_inventory.gd")
+const MetricsLeaderboard = preload("res://scripts/metrics_leaderboard.gd")
 var infrastructure_inventory = InfrastructureInventory.new()
 var inventory_button: Button
 var inventory_item_idx: int = 0
@@ -29,10 +30,10 @@ func _install_league_ui() -> void:
     league_button = Button.new()
     league_button.position = Vector2(914.0, 88.0)
     league_button.size = Vector2(158.0, 42.0)
-    league_button.text = "STANDINGS"
-    league_button.tooltip_text = "Compare all ten Bitcoin mining companies using the five headline real-unit metrics."
+    league_button.text = "METRICS"
+    league_button.tooltip_text = "Open the sortable ten-company mining metrics terminal."
     league_button.add_theme_font_size_override("font_size", 12)
-    league_button.pressed.connect(_open_league_standings)
+    league_button.pressed.connect(_open_metrics_leaderboard)
     layer.add_child(league_button)
 
 func _install_inventory_ui() -> void:
@@ -172,6 +173,62 @@ func _league_chase_summary(rows: Array) -> String:
     var gap := maxf(0.0, target_assets - current_assets)
     var chase_progress := _league_chase_progress(current_assets, target_assets)
     return "CHASE TARGET: #%d %s • Asset gap $%d • %d%% to overtake" % [player_idx, String(target["name"]), int(ceil(gap)), chase_progress]
+
+func _implied_market_cap(company: Dictionary, metrics: Dictionary, assets: float) -> float:
+    # Synthetic equity valuation for the fictional mining league. We value the
+    # operating business from normalized annual profit, then reconcile cash,
+    # BTC treasury and debt to equity value. Asset/hashrate support prevents a
+    # temporarily weak quarter from collapsing a productive miner to zero.
+    var annual_profit := float(metrics.get("profit", 0.0)) * 4.0
+    var quality := clampf(
+        0.85
+        + float(company.get("operations", 50)) / 500.0
+        + float(company.get("reputation", 50)) / 1000.0
+        + float(company.get("research", 50)) / 1250.0,
+        0.85, 1.25
+    )
+    var earnings_value := maxf(0.0, annual_profit) * 8.0 * quality
+    var productive_floor := assets * 0.65 + float(metrics.get("hashrate_ph", 0.0)) * 1000.0 * 45000.0
+    var enterprise_value := maxf(earnings_value, productive_floor)
+    var btc_value := float(company.get("sats", 0.0)) / SATS_PER_BTC * btc_price
+    var debt := float(company.get("debt", 0.0))
+    return maxf(0.0, enterprise_value + float(company.get("cash", 0.0)) + btc_value - debt)
+
+func _metrics_rows() -> Array:
+    var league_rows := _league_rows()
+    var output: Array = []
+    for row_raw in league_rows:
+        var row: Dictionary = row_raw
+        var m: Dictionary = row["metrics"]
+        var source: Dictionary = player if bool(row["player"]) else {}
+        if not bool(row["player"]):
+            for rival_raw in rivals:
+                if String(rival_raw["name"]) == String(row["name"]):
+                    source = rival_raw
+                    break
+        var profile: Dictionary = {}
+        for p_raw in Profiles.PROFILES:
+            if String(p_raw["name"]) == String(row["name"]):
+                profile = p_raw
+                break
+        output.append({
+            "name":row["name"], "player":row["player"], "assets":row["assets"],
+            "market_cap":_implied_market_cap(source, m, float(row["assets"])),
+            "hashrate_ph":m["hashrate_ph"], "mw":m["mw"], "efficiency_jth":m["efficiency_jth"],
+            "cash":m["cash"], "profit":m["profit"], "machines":source.get("machines",0),
+            "acres":source.get("acres",0.0), "sats":float(source.get("sats",0.0)) / SATS_PER_BTC,
+            "aggression":profile.get("aggression", player.get("aggression",50)),
+            "risk":profile.get("risk", player.get("risk",50)), "growth":profile.get("growth", player.get("growth",50)),
+            "research":profile.get("research", player.get("research",50)), "treasury":profile.get("treasury", player.get("treasury",50)),
+            "operations":profile.get("operations", player.get("operations",50)), "reputation":profile.get("reputation", player.get("reputation",50))
+        })
+    return output
+
+func _open_metrics_leaderboard() -> void:
+    var terminal := MetricsLeaderboard.new()
+    terminal.name = "MiningMetricsTerminal"
+    get_tree().root.add_child(terminal)
+    terminal.configure(_metrics_rows())
 
 func _open_league_standings() -> void:
     var rows: Array = _league_rows()
