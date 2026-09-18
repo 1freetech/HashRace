@@ -1,23 +1,28 @@
 class_name HashRaceRackSlot
 extends Node2D
 
-## Physical hardware slot. Stats only become eligible for the slot layer after
-## compatible hardware is installed into an actual world position.
+## Physical hardware slot. Compatible Resource data must occupy a real slot
+## before the physical deployment layer can count it.
 
-signal item_installed(item: HashRaceItemResource)
-signal item_removed(item: HashRaceItemResource)
+signal item_installed(item)
+signal item_removed(item)
 
 @export var slot_type: String = "ASIC"
 @export var slot_id: String = ""
-@export var installed_hardware: HashRaceItemResource
+@export var installed_hardware: Resource
 
 func is_empty() -> bool:
     return installed_hardware == null
 
-func can_install(item: HashRaceItemResource) -> bool:
-    return item != null and installed_hardware == null and item.is_compatible_with(slot_type)
+func can_install(item: Resource) -> bool:
+    return (
+        item != null
+        and installed_hardware == null
+        and item.has_method("is_compatible_with")
+        and bool(item.call("is_compatible_with", slot_type))
+    )
 
-func install_item(item: HashRaceItemResource) -> bool:
+func install_item(item: Resource) -> bool:
     if not can_install(item):
         return false
     installed_hardware = item
@@ -25,7 +30,7 @@ func install_item(item: HashRaceItemResource) -> bool:
     item_installed.emit(item)
     return true
 
-func remove_item() -> HashRaceItemResource:
+func remove_item() -> Resource:
     var previous := installed_hardware
     if previous == null:
         return null
