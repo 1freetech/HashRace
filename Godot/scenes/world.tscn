@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v067.gd -> world_v065.gd -> world_v059.gd -> world_v055.gd -> world_v053.gd -> world_character_detail.gd -> world_customization.gd -> world_texture_spacing.gd -> world_ui_compact.gd -> world_pixel_landscape.gd -> world_target_composition.gd -> world_player_sprite.gd -> world_visual_detail.gd -> world_company_effects.gd keeps the full mining simulation while adding the draggable six-metric Mining Ops HUD, a visible deployable energy campus, warehouse-vs-deployed infrastructure, live grid/thermal feedback, wider building spacing, richer terrain texture, and detailed operators.
-[ext_resource path="res://scripts/world_v067.gd" type="Script" id="1_world"]
+; world_v068.gd -> world_v067.gd -> world_v065.gd -> world_v059.gd -> world_v055.gd -> existing visual/gameplay stack. v0.068 adds Resource-backed infrastructure, physical rack slots/placement, a fixed-tick live simulation manager, and one consolidated upper-right Mining Ops HUD without duplicate persistent metrics.
+[ext_resource path="res://scripts/world_v068.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
