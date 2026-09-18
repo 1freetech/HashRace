@@ -43,7 +43,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -194,6 +194,14 @@ func _run() -> void:
         _fail("v0.073 character renderer needs at least five reusable body builds")
         return
 
+    # v0.080 pixel-art building/camera/depth integration contract.
+    if not bool(scene.call("debug_v080_ready")):
+        _fail("v0.080 pixel integration layer did not initialize")
+        return
+    if not bool(scene.call("debug_pixel_integration_ready")):
+        _fail("building grid, whole-pixel camera, or depth integration is not ready")
+        return
+
     # v0.052 character customization contract.
     if not bool(scene.call("debug_character_customization_ready")):
         _fail("character wardrobe did not initialize")
@@ -251,5 +259,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.072 verified Resource-backed infrastructure, physical rack slots/placement, fixed-tick simulation, consolidated upper-right live metrics, and the battle-style negotiation manager/scene on top of the existing visual, company, treasury, dialogue, camera, and turn-settlement systems.")
+    print("HASH RACE OVERWORLD PASS: v0.080 verified hard-grid pixel facilities, whole-pixel camera motion, base-Y character/building depth ordering, Resource-backed infrastructure, physical rack placement, fixed-tick simulation, consolidated live metrics, and negotiation systems.")
     quit(0)
