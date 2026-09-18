@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v089.gd -> world_v088.gd -> world_v087.gd -> world_v086.gd -> world_v085.gd -> world_v082.gd -> existing visual/gameplay stack. v0.089 makes camera zoom shortcuts focus-safe so HUD/menu editing never changes the world view unexpectedly while preserving the v0.088 proportional world and camera system.
-[ext_resource path="res://scripts/world_v089.gd" type="Script" id="1_world"]
+; world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> world_v086.gd -> world_v085.gd -> world_v082.gd -> existing visual/gameplay stack. v0.090 adds finite battery dispatch, a 0-100 reserve strategy, visible rival intent, utility-scored AI and native AStarGrid2D routing while preserving the v0.089 focus-safe camera.
+[ext_resource path="res://scripts/world_v090.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
