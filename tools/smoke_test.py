@@ -73,12 +73,7 @@ def main():
     assert 'extends "res://scripts/world_customization.gd"' in character_detail
     assert "validate_overworld.gd" in workflow
 
-    require(setup, [
-        "MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION",
-        "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone",
-        "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:",
-        "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"
-    ], "Campaign setup")
+    require(setup, ["MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION", "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone", "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"], "Campaign setup")
 
     companies = ["VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining", "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining", "LatticeX Mining", "Epoch Vector Mining"]
     require(profiles, companies, "Mining-company profile")
@@ -92,9 +87,9 @@ def main():
     require(rpg_world, ["RPGMovement", "SCANNER_RANGE_CELLS", "SCANNER GRID", "_draw_scanner_overlay", "debug_rpg_collision_ready", "debug_scanner_reachable_count"], "RPG strategy layer")
 
     require(time_scale, ['"DAY", "days": 1.0', '"MONTH", "days": 30.4375', '"QUARTER", "days": 91.3125', '"YEAR", "days": 365.25', '"CUSTOM", "days": 14.0', "turn_length_days", "turn_length_name", "_cycle_turn_length", "_project_scaled_profit", "_simulate_rivals_scaled", "_advance_market_scaled", "HALVING_DAYS", "elapsed_campaign_days", "recurring_income", "CONFIRM %s TURN", "days / turn", "set_custom_turn_days", "_elapsed_probability"], "Flexible season clock")
-    assert "* days" in time_scale
-    assert "days / 365.0" in time_scale
-    assert "days / 91.3125" in time_scale
+    require(time_scale, ["_btc_per_day()*days", "24*days*_effective_power_cost()", "0.38*days", "days/365.0", "days/DAYS_PER_QUARTER"], "Elapsed-time financial scaling")
+    assert "days / 365.0" in time_scale or "days/365.0" in time_scale
+    assert "days / DAYS_PER_QUARTER" in time_scale or "days/DAYS_PER_QUARTER" in time_scale
 
     require(company_ai, ["CULTURE_MONTH_DAYS", "_new_personality", "_posture", "_ratings_text", "_evolve_player_culture", "_run_rival_month", "_maybe_rival_partnership", "_maybe_rival_controversy", "_maybe_player_controversy", "Aggressive", "Conservative", "Moderate", "CURRENT CULTURE", "FOUNDING CONTROVERSY", "Current action", "Recent controversy", "debug_company_personality_ready", "debug_rival_personality_count", "debug_personality_ratings_in_range"], "Dynamic company AI")
     for key in ["aggression", "risk", "growth", "research", "treasury", "operations", "reputation"]:
@@ -107,10 +102,7 @@ def main():
     assert "HOLD_POLICIES" not in treasury, "BTC hold policy must not be restricted to presets"
     require(playability, ["BTC HOLD POLICY", "SELL 25% BTC TREASURY", "AUTO-FUND NEXT QUARTER", "QUARTER PLAN", "PREPARE SAFE QUARTER"], "Treasury playability layer")
 
-    require(texture_spacing, [
-        "MIN_TARGET_SPACING", "CHARACTER_LABEL_GREEN", "_paint_grass_pixels", "_paint_road_pixels",
-        "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"
-    ], "v0.052 visual spacing layer")
+    require(texture_spacing, ["MIN_TARGET_SPACING", "CHARACTER_LABEL_GREEN", "_paint_grass_pixels", "_paint_road_pixels", "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"], "v0.052 visual spacing layer")
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
     require(release_world, ["V070_RELEASE_REVISION", "debug_v070_ready"], "v0.070 release world")
     require(character_release, ["V073_CHARACTER_REVISION", "V073_PX", "V073_BODY_VARIANTS", "V073_HAIR_VARIANTS", "idle_down", "walk_left", "run_right", "mining", "victory", "_draw_v073_front", "_draw_v073_back", "_draw_v073_side", "debug_v073_ready"], "v0.073 reusable high-density character world")
@@ -124,30 +116,11 @@ def main():
     item_files = list(Path("Godot/data/items").glob("*.tres"))
     assert len(item_files) >= 34, f"Expected 34+ ItemResource files, found {len(item_files)}"
     require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"', 'Color("e9eeee")', 'Color("e07a2f")', 'Color("39ff75")'], "Character catalog")
-    require(customization, [
-        "CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender",
-        "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_customization_ready",
-        "debug_paid_outfits_use_game_cash"
-    ], "Character customization")
-    require(character_detail, [
-        "CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep",
-        "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots",
-        "debug_character_detail_ready"
-    ], "v0.053 shared detailed character renderer")
+    require(customization, ["CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender", "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_customization_ready", "debug_paid_outfits_use_game_cash"], "Character customization")
+    require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready"], "Runtime validator")
 
-    required_support = [
-        "native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts",
-        "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg",
-        "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd",
-        "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
-        "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
-        "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd",
-        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd",
-        "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd",
-        "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd",
-        "Godot/components/building/rack_container.gd"
-    ]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
