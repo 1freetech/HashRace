@@ -28,6 +28,12 @@ jobs:
           set -euo pipefail
           godot --headless --path Godot res://scenes/pixel_landscape_probe.tscn --quit-after 1 2>&1 | tee /tmp/hashrace-pixel-probe.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-pixel-probe.log; then exit 1; fi
+      - name: Parse v0.071 modular scripts directly
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_modular_scripts.gd 2>&1 | tee /tmp/hashrace-modular-parse.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MODULAR PARSE FAIL" /tmp/hashrace-modular-parse.log; then exit 1; fi
       - name: Boot real company town network with strict script-error gate
         shell: bash
         run: |
