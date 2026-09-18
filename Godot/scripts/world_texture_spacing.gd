@@ -9,7 +9,7 @@ extends "res://scripts/world_ui_compact.gd"
 
 const BuildingPlacer = preload("res://scripts/building_placer.gd")
 const TEXTURE_SPACING_REVISION: int = 1
-const CHARACTER_LABEL_GREEN := Color("39ff75")
+const CHARACTER_LABEL_GREEN := Color("f4f7f5")
 const CHARACTER_LABEL_SHADOW := Color("06120b")
 const BUILDING_LABEL_DISTANCE: float = 285.0
 const TOWN_LABEL_DISTANCE: float = 430.0
