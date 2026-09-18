@@ -22,19 +22,22 @@ static func load_catalog() -> Array:
     filenames.sort()
 
     for item_file in filenames:
-        var resource := load(ITEM_DIRECTORY + item_file)
-        if resource is HashRaceItemResource:
-            var item := resource as HashRaceItemResource
-            if item.id.is_empty():
-                push_warning("HashRaceItemLibrary: item has no id: %s" % item_file)
-                continue
-            result.append(item)
+        var resource = load(ITEM_DIRECTORY + item_file)
+        if resource == null or resource.get_script() != ITEM_SCRIPT:
+            continue
+        var item_id := String(resource.get("id"))
+        if item_id.is_empty():
+            push_warning("HashRaceItemLibrary: item has no id: %s" % item_file)
+            continue
+        result.append(resource)
     return result
 
 static func index_by_id(resources: Array) -> Dictionary:
     var result := {}
     for raw in resources:
-        if raw is HashRaceItemResource:
-            var item := raw as HashRaceItemResource
-            result[item.id] = item
+        if raw == null:
+            continue
+        var item_id := String(raw.get("id"))
+        if not item_id.is_empty():
+            result[item_id] = raw
     return result
