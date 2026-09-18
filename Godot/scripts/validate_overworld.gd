@@ -43,7 +43,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -133,7 +133,7 @@ func _run() -> void:
     if String(scene.call("debug_culture_effects_summary")).is_empty():
         _fail("company gameplay-effect summary is missing")
         return
-
+\n    if not bool(scene.call("debug_computer_offer_ready")):\n        _fail("computer-company proactive offer system did not initialize")\n        return\n    var offer_snapshot: Dictionary = scene.call("debug_computer_offer_snapshot")\n    if int(offer_snapshot.get("companies", 0)) < 3:\n        _fail("computer-company offer catalog is missing suppliers")\n        return\n
     # v0.052 visual/readability contract.
     if not bool(scene.call("debug_texture_spacing_ready")):
         _fail("wider-spaced textured overworld did not initialize")
