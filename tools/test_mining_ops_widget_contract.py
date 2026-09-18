@@ -23,7 +23,7 @@ for marker in [
     'player.get("sats"', 'player.get("cash"',
     'func _draw_sparkline', 'func _draw_progress',
     'func _gui_input', 'dragging = true', 'func _cycle_mount',
-    'func set_screen_scale', 'font_size', 'MAX_HISTORY',
+    'func set_screen_scale', 'draw_string', 'MAX_HISTORY',
 ]:
     assert marker in widget, f"Missing live-widget marker: {marker}"
 
