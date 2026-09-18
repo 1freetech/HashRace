@@ -71,7 +71,7 @@ assert "_threaten" not in scene_script, "Threaten action must stay removed from 
 assert "ThreatenButton" not in scene, "Threaten button must stay removed from negotiation scene"
 assert "THREATEN" not in scene, "Threaten label must stay removed from negotiation scene"
 
-assert "world_v086.gd" in world_scene, "Live world must boot through v0.086"
+assert "world_v090.gd" in world_scene, "Live world must boot through the current v0.090 layer"
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 86, f"computer offers require v0.086+, got {version}"
 print("Negotiation contract PASS")
