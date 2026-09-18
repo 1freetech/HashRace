@@ -58,13 +58,16 @@ func _open_infrastructure_inventory() -> void:
     var owned: int = infrastructure_inventory.quantity(id)
     var stored: int = infrastructure_inventory.stored_quantity(id)
     var deployed: int = infrastructure_inventory.deployed_quantity(id)
+    var affordable: bool = float(player["cash"]) >= float(prototype["price"])
     dialog_title.text = "INFRASTRUCTURE // %d OF %d" % [inventory_item_idx + 1, infrastructure_inventory.catalog_size()]
-    dialog_text.text = "%s\n%s • $%d\nBenefit: %s %s\n\nCash: $%d\nOwned: %d • Stored: %d • Deployed: %d\n\nBuying puts equipment in storage. Deploying activates its company benefit. Undeploying returns it to storage." % [String(prototype["name"]), String(prototype["category"]), int(prototype["price"]), String(prototype["effect"]), String(prototype["unit"]), int(player["cash"]), owned, stored, deployed]
+    dialog_text.text = "%s\n%s • $%d\nBenefit: %s %s\n\nCash: $%d\nOwned: %d • Stored: %d • Deployed: %d\n\nBuying puts equipment in storage. BUY + DEPLOY activates deployable equipment immediately. Undeploying returns it to storage." % [String(prototype["name"]), String(prototype["category"]), int(prototype["price"]), String(prototype["effect"]), String(prototype["unit"]), int(player["cash"]), owned, stored, deployed]
     var actions: Array = [
         {"label":"< PREV", "call":Callable(self, "_inventory_prev")},
         {"label":"NEXT >", "call":Callable(self, "_inventory_next")},
         {"label":"BUY 1", "call":Callable(self, "_inventory_buy")}
     ]
+    if bool(prototype.get("deployable", true)) and affordable:
+        actions.append({"label":"BUY + DEPLOY", "call":Callable(self, "_inventory_buy_and_deploy")})
     if bool(prototype.get("deployable", true)) and stored > 0:
         actions.append({"label":"DEPLOY 1", "call":Callable(self, "_inventory_deploy")})
     if bool(prototype.get("deployable", true)) and deployed > 0:
@@ -90,6 +93,16 @@ func _inventory_buy() -> void:
     _open_infrastructure_inventory()
     _refresh_ui()
 
+func _inventory_buy_and_deploy() -> void:
+    var prototype: Dictionary = _selected_inventory_item()
+    var id: String = String(prototype["id"])
+    if not infrastructure_inventory.purchase_and_deploy(id, player, 1):
+        _feedback("Cannot buy and deploy %s. Check cash and deployment requirements." % String(prototype["name"]))
+        return
+    _feedback("%s purchased and deployed." % String(prototype["name"]))
+    _open_infrastructure_inventory()
+    _refresh_ui()
+
 func _inventory_deploy() -> void:
     var prototype: Dictionary = _selected_inventory_item()
     if not infrastructure_inventory.deploy(String(prototype["id"]), player, 1):
@@ -112,8 +125,6 @@ func _rival_asset_value(rival: Dictionary) -> float:
 func _headline_metrics(company: Dictionary, is_player: bool) -> Dictionary:
     var machines: float = float(company["machines"])
     var machine: Dictionary = MACHINES[int(player["machine_tier"])] if is_player else MACHINES[0]
-    # _hashrate_th() is virtual and the live world layer already includes deployed
-    # infrastructure. Do not add inventory_hashrate_ph here or ASICs are counted twice.
     var hashrate_ph: float = (_hashrate_th() if is_player else machines * float(machine["th"])) / 1000.0
     var efficiency_jth: float = float(machine["kw"]) * 1000.0 / float(machine["th"])
     if is_player:
