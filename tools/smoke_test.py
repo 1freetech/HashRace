@@ -35,6 +35,7 @@ def main():
     microtile_release = Path("Godot/scripts/world_v082.gd").read_text(encoding="utf-8")
     turn_shortcut_release = Path("Godot/scripts/world_v085.gd").read_text(encoding="utf-8")
     computer_offer_release = Path("Godot/scripts/world_v086.gd").read_text(encoding="utf-8")
+    quality_release = Path("Godot/scripts/world_v090.gd").read_text(encoding="utf-8")
     microtile_rules = Path("Godot/scripts/gen2_microtile_rules.gd").read_text(encoding="utf-8")
     modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
     item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
@@ -63,7 +64,7 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v086.gd" in world_scene
+    assert "world_v090.gd" in world_scene
     assert 'extends "res://scripts/world_v080.gd"' in microtile_release
     assert 'extends "res://scripts/world_v073.gd"' in pixel_release
     assert 'extends "res://scripts/world_v072.gd"' in character_release
@@ -118,6 +119,7 @@ def main():
     require(microtile_release, ["V082_MICROTILE_REVISION", "V082_MICRO", "_draw_v082_microtile_overlay", "_draw_v082_edge_modules", "debug_v082_ready"], "v0.082 microtile release world")
     require(turn_shortcut_release, ["V085_TURN_SHORTCUT_REVISION", "KEY_SPACE", "debug_turn_shortcut_ready"], "v0.085 turn shortcut world")
     require(computer_offer_release, ["V086_COMPUTER_OFFER_REVISION", "COMPUTER_DEAL_COMPANIES", "_launch_computer_company_offer", "\"deal_type\":\"computer_supply\"", "debug_computer_offer_ready"], "v0.086 computer-company offers")
+    require(quality_release, ["V090_QUALITY_REVISION", "_entity_interaction_point", "_queue_or_open_interaction", "debug_v090_ready"], "v0.090 quality world")
     assert 'window/stretch/mode="viewport"' in project
     require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
@@ -133,11 +135,11 @@ def main():
     require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready", "debug_v080_ready", "debug_pixel_integration_ready"], "Runtime validator")
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/scripts/world_v080.gd", "Godot/scripts/world_v082.gd", "Godot/scripts/world_v085.gd", "Godot/scripts/world_v086.gd", "Godot/scripts/gen2_microtile_rules.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/scripts/world_v080.gd", "Godot/scripts/world_v082.gd", "Godot/scripts/world_v085.gd", "Godot/scripts/world_v086.gd", "Godot/scripts/world_v090.gd", "Godot/scripts/gen2_microtile_rules.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: v0.086 computer-company offers and prior modular strategy/visual systems are structurally intact.")
+    print("Hash Race smoke test passed: v0.090 quality layer and prior modular strategy/visual systems are structurally intact.")
 
 
 if __name__ == "__main__":
