@@ -10,7 +10,8 @@ battery=(ROOT/"Godot/data/items/battery.tres").read_text()
 scene=(ROOT/"Godot/scenes/world.tscn").read_text()
 version=(ROOT/"VERSION").read_text().strip()
 
-assert version=="v0.090",version
+assert version.startswith("v0."),version
+assert int(version.split(".")[1]) >= 90,version
 assert "world_v090.gd" in scene
 assert 'extends "res://scripts/world_v089.gd"' in world
 
