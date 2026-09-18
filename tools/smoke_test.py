@@ -91,7 +91,7 @@ def main():
     require(gbc_world, ["GBPaint", "TileOps", "ART_TILE_SIZE", "_build_art_tilemap", "_draw_pixel_tile_world", "debug_gbc_map_ready"], "Pixel renderer")
     require(rpg_world, ["RPGMovement", "SCANNER_RANGE_CELLS", "SCANNER GRID", "_draw_scanner_overlay", "debug_rpg_collision_ready", "debug_scanner_reachable_count"], "RPG strategy layer")
 
-    require(time_scale, ['"DAY", "days": 1.0', '"MONTH", "days": 30.4375', '"YEAR", "days": 365.25', "turn_length_days", "turn_length_name", "_cycle_turn_length", "_project_scaled_profit", "_simulate_rivals_scaled", "_advance_market_scaled", "HALVING_DAYS", "elapsed_campaign_days", "recurring_income", "CONFIRM %s TURN", "1 turn = %s"], "Flexible season clock")
+    require(time_scale, ['"DAY", "days": 1.0', '"MONTH", "days": 30.4375', '"QUARTER", "days": 91.3125', '"YEAR", "days": 365.25', '"CUSTOM", "days": 14.0', "turn_length_days", "turn_length_name", "_cycle_turn_length", "_project_scaled_profit", "_simulate_rivals_scaled", "_advance_market_scaled", "HALVING_DAYS", "elapsed_campaign_days", "recurring_income", "CONFIRM %s TURN", "days / turn", "set_custom_turn_days", "_elapsed_probability"], "Flexible season clock")
     assert "* days" in time_scale
     assert "days / 365.0" in time_scale
     assert "days / 91.3125" in time_scale
@@ -151,7 +151,7 @@ def main():
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: v0.073 reusable high-density player/NPC character rig and prior modular strategy/visual systems are structurally intact.")
+    print("Hash Race smoke test passed: flexible Day/Month/Quarter/Year/Custom clock and prior modular strategy/visual systems are structurally intact.")
 
 
 if __name__ == "__main__":
