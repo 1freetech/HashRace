@@ -2,6 +2,7 @@ extends Control
 
 const Profiles = preload("res://scripts/company_profiles.gd")
 const CharacterCustomization = preload("res://scripts/character_customization.gd")
+const CharacterPreview = preload("res://scripts/character_creator_preview.gd")
 const GREEN := Color("64ff8c")
 const CYAN := Color("52e7ff")
 const WHITE := Color("dffaff")
@@ -11,6 +12,11 @@ var company_option: OptionButton
 var years_option: OptionButton
 var skin_tone_option: OptionButton
 var gender_option: OptionButton
+var hair_style_option: OptionButton
+var hair_color_option: OptionButton
+var suit_color_option: OptionButton
+var accent_color_option: OptionButton
+var character_preview: Control
 var company_label: Label
 var summary_label: Label
 var character_summary: Label
@@ -40,8 +46,8 @@ func build_background() -> void:
 
 func build_menu() -> void:
     var panel := Panel.new()
-    panel.position = Vector2(300, 30)
-    panel.size = Vector2(840, 840)
+    panel.position = Vector2(190, 30)
+    panel.size = Vector2(1060, 840)
     var style := StyleBoxFlat.new()
     style.bg_color = PANEL
     style.border_width_left = 2
@@ -58,7 +64,7 @@ func build_menu() -> void:
 
     var title := Label.new()
     title.position = Vector2(34, 14)
-    title.size = Vector2(772, 44)
+    title.size = Vector2(992, 44)
     title.text = "HASH RACE // NEW CAMPAIGN"
     title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     title.add_theme_font_size_override("font_size", 30)
@@ -67,7 +73,7 @@ func build_menu() -> void:
 
     var subtitle := Label.new()
     subtitle.position = Vector2(40, 58)
-    subtitle.size = Vector2(760, 38)
+    subtitle.size = Vector2(980, 38)
     subtitle.text = "Pick a Bitcoin mining company, then create the representative you will walk around the world as."
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     subtitle.add_theme_font_size_override("font_size", 14)
@@ -101,7 +107,7 @@ func build_menu() -> void:
     panel.add_child(company_label)
 
     var character_hdr := Label.new()
-    character_hdr.position = Vector2(78, 365)
+    character_hdr.position = Vector2(48, 365)
     character_hdr.size = Vector2(300, 28)
     character_hdr.text = "YOUR CHARACTER"
     character_hdr.add_theme_font_size_override("font_size", 17)
@@ -109,7 +115,7 @@ func build_menu() -> void:
     panel.add_child(character_hdr)
 
     var skin_label := Label.new()
-    skin_label.position = Vector2(78, 397)
+    skin_label.position = Vector2(48, 397)
     skin_label.size = Vector2(320, 22)
     skin_label.text = "SKIN TONE"
     skin_label.add_theme_font_size_override("font_size", 11)
@@ -117,7 +123,7 @@ func build_menu() -> void:
     panel.add_child(skin_label)
 
     var gender_label := Label.new()
-    gender_label.position = Vector2(432, 397)
+    gender_label.position = Vector2(280, 397)
     gender_label.size = Vector2(320, 22)
     gender_label.text = "GENDER / PRESENTATION"
     gender_label.add_theme_font_size_override("font_size", 11)
@@ -125,8 +131,8 @@ func build_menu() -> void:
     panel.add_child(gender_label)
 
     skin_tone_option = OptionButton.new()
-    skin_tone_option.position = Vector2(78, 420)
-    skin_tone_option.size = Vector2(330, 40)
+    skin_tone_option.position = Vector2(48, 420)
+    skin_tone_option.size = Vector2(220, 40)
     skin_tone_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.SKIN_TONES.size()):
         skin_tone_option.add_item(String(CharacterCustomization.SKIN_TONES[i]["name"]), i)
@@ -135,8 +141,8 @@ func build_menu() -> void:
     panel.add_child(skin_tone_option)
 
     gender_option = OptionButton.new()
-    gender_option.position = Vector2(432, 420)
-    gender_option.size = Vector2(330, 40)
+    gender_option.position = Vector2(280, 420)
+    gender_option.size = Vector2(220, 40)
     gender_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.GENDERS.size()):
         gender_option.add_item(String(CharacterCustomization.GENDERS[i]["name"]), i)
@@ -144,16 +150,52 @@ func build_menu() -> void:
     gender_option.item_selected.connect(_on_character_changed)
     panel.add_child(gender_option)
 
+    var customization_rows := [
+        ["HAIR STYLE", CharacterCustomization.HAIR_STYLES, CharacterCustomization.DEFAULT_HAIR_STYLE],
+        ["HAIR COLOR", CharacterCustomization.HAIR_COLORS, CharacterCustomization.DEFAULT_HAIR_COLOR],
+        ["SUIT COLOR", CharacterCustomization.SUIT_COLORS, CharacterCustomization.DEFAULT_SUIT_COLOR],
+        ["ACCENT", CharacterCustomization.ACCENT_COLORS, CharacterCustomization.DEFAULT_ACCENT_COLOR]
+    ]
+    var controls: Array[OptionButton] = []
+    for i in range(customization_rows.size()):
+        var data: Array = customization_rows[i]
+        var label := Label.new()
+        label.position = Vector2(48 + (i % 2) * 232, 472 + int(i / 2) * 72)
+        label.size = Vector2(220, 20)
+        label.text = String(data[0])
+        label.add_theme_font_size_override("font_size", 10)
+        label.add_theme_color_override("font_color", Color("b8dce5"))
+        panel.add_child(label)
+        var option := OptionButton.new()
+        option.position = label.position + Vector2(0, 21)
+        option.size = Vector2(220, 38)
+        for j in range(data[1].size()):
+            option.add_item(String(data[1][j]["name"]), j)
+        option.select(int(data[2]))
+        option.item_selected.connect(_on_character_changed)
+        panel.add_child(option)
+        controls.append(option)
+    hair_style_option = controls[0]
+    hair_color_option = controls[1]
+    suit_color_option = controls[2]
+    accent_color_option = controls[3]
+
+    character_preview = CharacterPreview.new()
+    character_preview.position = Vector2(560, 372)
+    character_preview.size = Vector2(420, 300)
+    character_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    panel.add_child(character_preview)
+
     character_summary = Label.new()
-    character_summary.position = Vector2(78, 466)
-    character_summary.size = Vector2(684, 40)
+    character_summary.position = Vector2(48, 620)
+    character_summary.size = Vector2(452, 50)
     character_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     character_summary.add_theme_font_size_override("font_size", 11)
     character_summary.add_theme_color_override("font_color", GREEN)
     panel.add_child(character_summary)
 
     var clock_label := Label.new()
-    clock_label.position = Vector2(78, 512)
+    clock_label.position = Vector2(48, 680)
     clock_label.size = Vector2(300, 28)
     clock_label.text = "CAMPAIGN LENGTH"
     clock_label.add_theme_font_size_override("font_size", 17)
@@ -161,8 +203,8 @@ func build_menu() -> void:
     panel.add_child(clock_label)
 
     years_option = OptionButton.new()
-    years_option.position = Vector2(78, 542)
-    years_option.size = Vector2(684, 42)
+    years_option.position = Vector2(48, 710)
+    years_option.size = Vector2(452, 42)
     years_option.add_theme_font_size_override("font_size", 14)
     for years in range(1, 21):
         years_option.add_item("%d year%s" % [years, "" if years == 1 else "s"], years)
@@ -171,16 +213,16 @@ func build_menu() -> void:
     panel.add_child(years_option)
 
     summary_label = Label.new()
-    summary_label.position = Vector2(78, 592)
-    summary_label.size = Vector2(684, 62)
+    summary_label.position = Vector2(520, 690)
+    summary_label.size = Vector2(480, 62)
     summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     summary_label.add_theme_font_size_override("font_size", 12)
     summary_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(summary_label)
 
     var rule := Label.new()
-    rule.position = Vector2(78, 660)
-    rule.size = Vector2(684, 44)
+    rule.position = Vector2(520, 752)
+    rule.size = Vector2(480, 44)
     rule.text = "Identity choices are free. Extra outfit skins are bought with in-game company cash from the Wardrobe menu."
     rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     rule.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -189,7 +231,7 @@ func build_menu() -> void:
     panel.add_child(rule)
 
     var start := Button.new()
-    start.position = Vector2(250, 722)
+    start.position = Vector2(106, 772)
     start.size = Vector2(340, 56)
     start.text = "START MINING RACE"
     start.add_theme_font_size_override("font_size", 18)
@@ -218,10 +260,18 @@ func _on_character_changed(_index: int) -> void:
         return
     var skin_idx: int = skin_tone_option.get_item_id(skin_tone_option.selected)
     var gender_idx: int = gender_option.get_item_id(gender_option.selected)
-    character_summary.text = "%s skin tone  •  %s presentation  •  Starter Operator Suit included" % [
+    var hair_style_idx: int = hair_style_option.get_item_id(hair_style_option.selected) if is_instance_valid(hair_style_option) else CharacterCustomization.DEFAULT_HAIR_STYLE
+    var hair_color_idx: int = hair_color_option.get_item_id(hair_color_option.selected) if is_instance_valid(hair_color_option) else CharacterCustomization.DEFAULT_HAIR_COLOR
+    var suit_idx: int = suit_color_option.get_item_id(suit_color_option.selected) if is_instance_valid(suit_color_option) else CharacterCustomization.DEFAULT_SUIT_COLOR
+    var accent_idx: int = accent_color_option.get_item_id(accent_color_option.selected) if is_instance_valid(accent_color_option) else CharacterCustomization.DEFAULT_ACCENT_COLOR
+    character_summary.text = "%s skin • %s • %s hair • %s suit" % [
         String(CharacterCustomization.skin_tone(skin_idx)["name"]),
-        String(CharacterCustomization.gender(gender_idx)["name"])
+        String(CharacterCustomization.hair_style(hair_style_idx)["name"]),
+        String(CharacterCustomization.hair_color(hair_color_idx)["name"]),
+        String(CharacterCustomization.suit_color(suit_idx)["name"])
     ]
+    if is_instance_valid(character_preview):
+        character_preview.set_appearance(CharacterCustomization.skin_tone(skin_idx), CharacterCustomization.hair_color(hair_color_idx), hair_style_idx, CharacterCustomization.suit_color(suit_idx), CharacterCustomization.accent_color(accent_idx))
 
 func _on_clock_changed(index: int) -> void:
     var years := years_option.get_item_id(index)
@@ -238,6 +288,10 @@ func start_campaign() -> void:
     get_tree().set_meta("hashrace_character_skin_tone", skin_tone_option.get_item_id(skin_tone_option.selected))
     get_tree().set_meta("hashrace_character_gender", gender_option.get_item_id(gender_option.selected))
     get_tree().set_meta("hashrace_character_outfit", CharacterCustomization.DEFAULT_OUTFIT)
+    get_tree().set_meta("hashrace_character_hair_style", hair_style_option.get_item_id(hair_style_option.selected))
+    get_tree().set_meta("hashrace_character_hair_color", hair_color_option.get_item_id(hair_color_option.selected))
+    get_tree().set_meta("hashrace_character_suit_color", suit_color_option.get_item_id(suit_color_option.selected))
+    get_tree().set_meta("hashrace_character_accent_color", accent_color_option.get_item_id(accent_color_option.selected))
     if get_tree().has_meta("hashrace_campaign_turns"):
         get_tree().remove_meta("hashrace_campaign_turns")
     get_tree().change_scene_to_file("res://scenes/world.tscn")
