@@ -30,6 +30,7 @@ def main():
     setup = Path("Godot/scripts/campaign_setup.gd").read_text(encoding="utf-8")
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
     release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
+    character_release = Path("Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
     modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
     item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
     inventory_resource_core = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
@@ -57,7 +58,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v070.gd" in world_scene
+    assert "world_v073.gd" in world_scene
+    assert 'extends "res://scripts/world_v072.gd"' in character_release
     assert 'extends "res://scripts/world_v068.gd"' in release_world
     assert 'extends "res://scripts/world_v067.gd"' in modular_world
     assert "BootFallback" in world_scene
@@ -111,6 +113,7 @@ def main():
     ], "v0.052 visual spacing layer")
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
     require(release_world, ["V070_RELEASE_REVISION", "debug_v070_ready"], "v0.070 release world")
+    require(character_release, ["V073_CHARACTER_REVISION", "V073_PX", "V073_BODY_VARIANTS", "V073_HAIR_VARIANTS", "idle_down", "walk_left", "run_right", "mining", "victory", "_draw_v073_front", "_draw_v073_back", "_draw_v073_side", "debug_v073_ready"], "v0.073 reusable high-density character world")
     require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
     require(inventory_resource_core, ["ItemLibrary.load_catalog", "catalog_resources", "debug_resource_catalog_ready"], "Resource-backed inventory")
@@ -140,7 +143,7 @@ def main():
         "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
         "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
         "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd",
-        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd",
+        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd",
         "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd",
         "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd",
         "Godot/components/building/rack_container.gd"
@@ -148,7 +151,7 @@ def main():
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: v0.070 modular resources, physical deployment, fixed-tick simulation, consolidated HUD, and prior strategy/visual systems are structurally intact.")
+    print("Hash Race smoke test passed: v0.073 reusable high-density player/NPC character rig and prior modular strategy/visual systems are structurally intact.")
 
 
 if __name__ == "__main__":
