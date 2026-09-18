@@ -8,7 +8,7 @@ extends "res://scripts/world_v073.gd"
 const V080_PIXEL_INTEGRATION_REVISION: int = 1
 const V080_BUILDING_PIXEL: float = 4.0
 const V080_PLAYER_FOOT_OFFSET: float = 44.0
-const V080_BUILDING_FOOT_OFFSET: float = 58.0
+const V080_BUILDING_FOOT_OFFSET: float = 40.0
 const V080_WALL_DARK := Color("101820")
 const V080_WALL_MID := Color("1c2a31")
 const V080_WALL_LIGHT := Color("33434a")
@@ -78,7 +78,17 @@ func _v080_entity_depth(entity: Dictionary) -> float:
     var kind: String = String(entity.get("kind", ""))
     if kind == "partner_rep" or kind == "rival_rep":
         return pos.y + V080_PLAYER_FOOT_OFFSET
-    return pos.y + V080_BUILDING_FOOT_OFFSET
+    match kind:
+        "hq", "rival":
+            return pos.y + 45.0
+        "machines":
+            return pos.y + 41.0
+        "partner", "power", "bank":
+            return pos.y + 40.0
+        "land":
+            return pos.y + 39.0
+        _:
+            return pos.y + V080_BUILDING_FOOT_OFFSET
 
 func _v080_depth_less(a: Dictionary, b: Dictionary) -> bool:
     var ad: float = float(a["depth"])
