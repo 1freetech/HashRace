@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""v0.068 compact consolidated Mining Ops widget contract."""
+"""v0.070 compact consolidated Mining Ops widget contract."""
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 version = (root / "VERSION").read_text(encoding="utf-8").strip()
 scene = (root / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+release_world = (root / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 world = (root / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 parent_world = (root / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 widget = (root / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encoding="utf-8")
 
-assert version == "v0.068"
-assert 'res://scripts/world_v068.gd' in scene
+assert version == "v0.070"
+assert 'res://scripts/world_v070.gd' in scene
+assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_v067.gd"' in world
 assert 'MODULAR_ARCHITECTURE_REVISION' in world
 assert 'debug_mining_ops_widget_ready' in parent_world
@@ -36,4 +38,4 @@ assert 'BTC treasury card did not follow live company sats' in capture
 assert 'const BASE_SIZE := Vector2(528.0, 326.0)' in widget
 assert 'var mount_slot: int = 1' in widget
 assert 'top_stats.visible = false' in world
-print("Hash Race v0.068 consolidated upper-right Mining Ops widget contract passed.")
+print("Hash Race v0.070 consolidated upper-right Mining Ops widget contract passed.")
