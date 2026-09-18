@@ -45,7 +45,17 @@ func _capture() -> void:
         _fail("v0.053 character detail controller is not active")
         return
     if not bool(scene.call("debug_character_detail_ready")):
-        _fail("v0.053 character detail controller reported not ready")
+        _fail("character detail controller reported not ready")
+        return
+    if not scene.has_method("debug_v073_ready") or not bool(scene.call("debug_v073_ready")):
+        _fail("v0.073 high-density reusable character renderer is not active")
+        return
+    if int(scene.call("debug_character_body_variant_count")) < 5:
+        _fail("v0.073 character body library is too small")
+        return
+    var v073_poses: Array = scene.call("debug_character_pose_library")
+    if "mining" not in v073_poses or "victory" not in v073_poses or "walk_left" not in v073_poses:
+        _fail("v0.073 directional/action pose library is incomplete")
         return
 
     if not scene.has_method("debug_infrastructure_detail_ready"):

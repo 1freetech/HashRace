@@ -199,7 +199,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION adds the battle-style rival negotiation system: animated intro, live company-versus-rival cards, MAKE OFFER, COUNTER, THREATEN, and WALK AWAY actions, reputation/leverage pressure, and a reusable negotiation manager wired into rival-company interactions. The first live negotiated contract is flexible MW access, so a closed deal transfers cash and adds real power capacity. Resource-backed infrastructure, physical placement, fixed-tick simulation, and the consolidated Mining Ops HUD remain active. Windows and Linux packages plus overworld, close-up, Mining Ops, and negotiation PNG proofs are CI verified before release."
+          NOTES="Hash Race $VERSION upgrades player and NPC/company representatives to a reusable high-density procedural pixel-character rig: a finer 3-pixel source grid, directional front/back/left/right silhouettes, five body builds, four hair families, layered armor, headset/ear protection, neon scanner visors, company-colored IDs, and reusable mining/victory action poses. Wardrobe skin-tone/outfit choices remain live. The v0.072 negotiation system, Resource-backed infrastructure, physical placement, fixed-tick simulation, and consolidated Mining Ops HUD remain active. Windows and Linux packages plus overworld, close-up, Mining Ops, and negotiation PNG proofs are CI verified before release."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
