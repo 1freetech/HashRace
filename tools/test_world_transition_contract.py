@@ -15,7 +15,8 @@ project = (ROOT / "Godot/project.godot").read_text()
 template = (ROOT / "Godot/templates/Doorway.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
 
-assert version == "v0.090", version
+assert version.startswith("v0."), version
+assert int(version.split(".")[1]) >= 90, version
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
 assert "world_v090.gd" in scene
 

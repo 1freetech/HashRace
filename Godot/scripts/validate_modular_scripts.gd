@@ -28,6 +28,9 @@ const SCRIPTS: Array[String] = [
     "res://components/world/doorway.gd",
     "res://components/world/roof_fade_area.gd",
     "res://scripts/world_v088.gd",
+    "res://scripts/world_v089.gd",
+    "res://scripts/world_v090.gd",
+    "res://scripts/world_v091.gd",
 ]
 
 func _initialize() -> void:
