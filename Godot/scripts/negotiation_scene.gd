@@ -44,7 +44,6 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var result_label: RichTextLabel = $NegotiationPanel/Margin/VBox/ResultLabel
 @onready var make_offer_button: Button = $NegotiationPanel/Margin/VBox/OfferBox/MakeOfferButton
 @onready var counter_button: Button = $NegotiationPanel/Margin/VBox/OfferBox/CounterOfferButton
-@onready var threaten_button: Button = $NegotiationPanel/Margin/VBox/OfferBox/ThreatenButton
 @onready var walk_away_button: Button = $NegotiationPanel/Margin/VBox/OfferBox/WalkAwayButton
 
 func configure(context_data: Dictionary) -> void:
@@ -74,7 +73,6 @@ func _ready() -> void:
 func _connect_buttons() -> void:
     make_offer_button.pressed.connect(Callable(self, "_make_offer"))
     counter_button.pressed.connect(Callable(self, "_counter_offer"))
-    threaten_button.pressed.connect(Callable(self, "_threaten"))
     walk_away_button.pressed.connect(Callable(self, "_walk_away"))
 
 func _apply_context_to_ui() -> void:
@@ -196,20 +194,6 @@ func _issue_counter() -> void:
     dialogue.text += "\n\n%s counters at %s. Their posture is %s." % [opponent_name, _money(opponent_offer), _pressure_band()]
     _refresh_offer_state()
 
-func _threaten() -> void:
-    if not negotiation_active or resolved:
-        return
-
-    var pressure_roll: float = float(player_leverage) * 0.58 + float(player_reputation) * 0.12 + _rng.randf_range(0.0, 22.0)
-    var resistance: float = float(opponent_power) * 0.48 + float(opponent_greed) * 0.18 + 18.0
-    if pressure_roll > resistance:
-        var pressured_cost: float = _round_money(maxf(deal_value_usd * 0.74, player_offer))
-        dialogue.text = "You press hard on timing, capacity, and competitive leverage. %s gives ground." % opponent_name
-        _resolve(true, "pressure_win", pressured_cost, -2)
-    else:
-        dialogue.text = "The hard line backfires. %s walks the pressure tactic back to the door." % opponent_name
-        _resolve(false, "pressure_failed", 0.0, -4)
-
 func _walk_away() -> void:
     if resolved:
         return
@@ -281,7 +265,6 @@ func _resolve(success: bool, outcome: String, final_cost_usd: float, reputation_
 func _set_buttons_disabled(disabled_state: bool) -> void:
     make_offer_button.disabled = disabled_state
     counter_button.disabled = disabled_state
-    threaten_button.disabled = disabled_state
     walk_away_button.disabled = disabled_state
 
 func _refresh_offer_state() -> void:
@@ -326,7 +309,6 @@ func debug_ready() -> bool:
         and is_instance_valid(success_meter)
         and is_instance_valid(make_offer_button)
         and is_instance_valid(counter_button)
-        and is_instance_valid(threaten_button)
         and is_instance_valid(walk_away_button)
         and is_instance_valid(intro_anim)
     )
