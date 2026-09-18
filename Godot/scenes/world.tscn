@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v080.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.080 unifies procedural facilities and characters on a hard pixel grid, adds ground-contact depth sorting, and locks the live camera to whole pixels while preserving negotiation, infrastructure, simulation, and the Mining Ops HUD.
-[ext_resource path="res://scripts/world_v080.gd" type="Script" id="1_world"]
+; world_v082.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.082 keeps the v0.080 hard pixel/depth contract and adds an 8x8 microtile composition layer for terrain edges, surface motifs and industrial building cladding while preserving negotiation, infrastructure, simulation, and the Mining Ops HUD.
+[ext_resource path="res://scripts/world_v082.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
