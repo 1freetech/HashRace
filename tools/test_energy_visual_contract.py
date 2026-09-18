@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""v0.065 energy/deployment contract for Hash Race."""
+"""Energy/deployment contract retained by Hash Race v0.067."""
 from pathlib import Path
 
 inventory = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
-energy = Path("Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
+energy = Path("Godot/scripts/world_v065.gd").read_text(encoding="utf-8")\nworld_v067 = Path("Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = Path("VERSION").read_text().strip()
 
-assert version == "v0.065"
-assert 'res://scripts/world_v065.gd' in scene
+assert version == "v0.067"
+assert 'res://scripts/world_v067.gd' in scene\nassert 'extends "res://scripts/world_v065.gd"' in world_v067
 assert 'extends "res://scripts/world_v059.gd"' in energy
 
 for marker in [
@@ -40,4 +40,4 @@ assert 'purchase_and_deploy(item_id, player, 1)' in energy
 assert 'super._hashrate_th() + infrastructure_inventory.total_deployed_hashrate_ph() * 1000.0' in energy
 assert 'super._machine_load_kw() + infrastructure_inventory.total_deployed_miner_load_mw() * 1000.0' in energy
 
-print("Hash Race v0.065 energy/deployment contract passed.")
+print("Hash Race v0.067 retained energy/deployment contract passed.")

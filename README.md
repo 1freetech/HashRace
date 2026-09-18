@@ -4,14 +4,14 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.065**.
+The latest verified public desktop release is **v0.067**.
 
-- **[Windows x64 — Hash Race v0.065](https://github.com/1freetech/HashRace/releases/download/v0.065/HashRace-v0.065-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.065](https://github.com/1freetech/HashRace/releases/download/v0.065/HashRace-v0.065-linux-x64.tar.gz)**
-- **[Hash Race v0.065 release page](https://github.com/1freetech/HashRace/releases/tag/v0.065)**
+- **[Windows x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-linux-x64.tar.gz)**
+- **[Hash Race v0.067 release page](https://github.com/1freetech/HashRace/releases/tag/v0.067)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.065 turns infrastructure ownership into a visible operating system. The live Godot game now separates warehouse stock from deployed equipment, expands the catalog to 34 assets, and adds an ENERGY market for solar, wind, natural-gas, hydro, oil-field generation, coal power, batteries, and nuclear SMR capacity. A new procedural energy campus appears beside the player's mining HQ with substations, animated power flow, turbines, panels, pumps, cooling equipment, heat feedback, and live load/available-MW/temperature status. Only deployed equipment contributes live hashrate, power, cooling, uptime, or cost effects.
+v0.067 adds the draggable **Mining Ops** digital widget shown in the approved visual direction. Six live cards show **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash**. The widget uses compact 8–10 px-style labels, live sparklines and status bars, scales with the screen, can be dragged or mounted to any corner, can be minimized or restored, and reads directly from the active company simulation rather than from fixed display values. The existing deployable energy campus, warehouse/deployed inventory, 34-asset infrastructure catalog, grid limits, thermal feedback, and energy market remain active.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository preserves useful native simulation work for heavier systems while Godot remains the primary gameplay, UI, map, event, and franchise client.
 
@@ -21,9 +21,9 @@ All playable companies and league rivals are Bitcoin miners. AI, semiconductor, 
 
 A campaign includes mining, buying hardware, securing power, acquiring land, improving technology, managing BTC, borrowing and repaying capital, signing external deals, exploring company towns, competing with rivals, and optionally completing one merger.
 
-## Five headline company metrics
+## Five league metrics + six live Mining Ops metrics
 
-The league comparison card uses five real-unit headline metrics while preserving deeper simulation statistics:
+The league comparison card keeps its five real-unit competitive metrics. The draggable Mining Ops HUD adds uptime and BTC treasury to create a six-card live operating view:
 
 - **Hashrate** — PH/s or EH/s
 - **Power capacity** — MW

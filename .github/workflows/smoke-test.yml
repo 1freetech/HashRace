@@ -54,6 +54,13 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-2d-detail.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|2D DETAIL PROOF FAIL" /tmp/hashrace-2d-detail.log; then exit 1; fi
           test -s visual-proof/hashrace-2d-detail.png
+      - name: Render and validate live Mining Ops widget proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd 2>&1 | tee /tmp/hashrace-mining-ops-widget.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MINING OPS WIDGET PROOF FAIL" /tmp/hashrace-mining-ops-widget.log; then exit 1; fi
+          test -s visual-proof/hashrace-mining-ops-widget.png
       - name: Upload actual rendered game frame
         uses: actions/upload-artifact@v4
         with:
@@ -65,6 +72,12 @@ jobs:
         with:
           name: hashrace-2d-detail-visual-proof
           path: visual-proof/hashrace-2d-detail.png
+          if-no-files-found: error
+      - name: Upload Mining Ops widget proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-mining-ops-widget-proof
+          path: visual-proof/hashrace-mining-ops-widget.png
           if-no-files-found: error
 
   python-contract:
@@ -84,6 +97,8 @@ jobs:
         run: python tools/test_life_ops_contract.py
       - name: Test energy deployment and visual contract
         run: python tools/test_energy_visual_contract.py
+      - name: Test draggable live Mining Ops widget contract
+        run: python tools/test_mining_ops_widget_contract.py
       - name: Test pixel landscape and compact UI contract
         run: python tools/test_pixel_landscape_ui_contract.py
 
