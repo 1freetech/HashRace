@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hash Race v0.068 modular Godot architecture contract."""
+"""Hash Race v0.070 modular Godot architecture contract."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 project = (ROOT / "Godot/project.godot").read_text(encoding="utf-8")
+release_world = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 inventory = (ROOT / "Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
 item_resource = (ROOT / "Godot/data/item_resource.gd").read_text(encoding="utf-8")
@@ -17,8 +18,10 @@ placement = (ROOT / "Godot/systems/physical_placement_grid.gd").read_text(encodi
 simulation = (ROOT / "Godot/systems/simulation_manager.gd").read_text(encoding="utf-8")
 widget = (ROOT / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 
-assert version == "v0.068"
-assert 'res://scripts/world_v068.gd' in scene
+assert version == "v0.070"
+assert 'res://scripts/world_v070.gd' in scene
+assert 'extends "res://scripts/world_v068.gd"' in release_world
+assert 'debug_v070_ready' in release_world
 
 # 1. Native Resource data model.
 for marker in [
@@ -126,4 +129,4 @@ assert 'top_stats.visible = false' in world
 assert 'energy_status_label.visible = false' in world
 assert 'debug_hud_consolidated' in world
 
-print("Hash Race v0.068 modular architecture contract passed: Resources + slots/grid + fixed-tick sim + consolidated HUD.")
+print("Hash Race v0.070 modular architecture contract passed: Resources + slots/grid + fixed-tick sim + consolidated HUD.")
