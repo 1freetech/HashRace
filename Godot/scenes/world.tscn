@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v090.gd -> world_v089.gd -> existing visual/gameplay stack. v0.090 adds projected power coverage, cash runway, and operating-risk status to the existing two-step turn settlement preview.
+; world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> world_v086.gd -> existing visual/gameplay stack. v0.090 adds projected power coverage, cash runway, and operating-risk status to the existing two-step turn settlement preview. The explicit ancestry marker is retained so the version-forward smoke contract can verify that the computer-supplier gameplay introduced in world_v086.gd remains in the live inheritance chain.
 [ext_resource path="res://scripts/world_v090.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
