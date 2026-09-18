@@ -32,7 +32,10 @@ def main():
     release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
     character_release = Path("Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
     pixel_release = Path("Godot/scripts/world_v080.gd").read_text(encoding="utf-8")
-    microtile_release = Path("Godot/scripts/world_v082.gd").read_text(encoding="utf-8")\n    turn_shortcut_release = Path("Godot/scripts/world_v085.gd").read_text(encoding="utf-8")\n    computer_offer_release = Path("Godot/scripts/world_v086.gd").read_text(encoding="utf-8")\n    microtile_rules = Path("Godot/scripts/gen2_microtile_rules.gd").read_text(encoding="utf-8")
+    microtile_release = Path("Godot/scripts/world_v082.gd").read_text(encoding="utf-8")
+    turn_shortcut_release = Path("Godot/scripts/world_v085.gd").read_text(encoding="utf-8")
+    computer_offer_release = Path("Godot/scripts/world_v086.gd").read_text(encoding="utf-8")
+    microtile_rules = Path("Godot/scripts/gen2_microtile_rules.gd").read_text(encoding="utf-8")
     modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
     item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
     inventory_resource_core = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
@@ -60,7 +63,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v086.gd" in world_scene\n    assert 'extends "res://scripts/world_v080.gd"' in microtile_release
+    assert "world_v086.gd" in world_scene
+    assert 'extends "res://scripts/world_v080.gd"' in microtile_release
     assert 'extends "res://scripts/world_v073.gd"' in pixel_release
     assert 'extends "res://scripts/world_v072.gd"' in character_release
     assert 'extends "res://scripts/world_v068.gd"' in release_world
@@ -111,7 +115,10 @@ def main():
     require(character_release, ["V073_CHARACTER_REVISION", "V073_PX", "V073_BODY_VARIANTS", "V073_HAIR_VARIANTS", "idle_down", "walk_left", "run_right", "mining", "victory", "_draw_v073_front", "_draw_v073_back", "_draw_v073_side", "debug_v073_ready"], "v0.073 reusable high-density character world")
     require(pixel_release, ["V080_PIXEL_INTEGRATION_REVISION", "V080_BUILDING_PIXEL", "_v080_entity_depth", "_v080_depth_less", "_draw_pixel_facility", "_draw_facility_surface_detail", "position_smoothing_enabled = false", "debug_pixel_integration_ready", "debug_v080_ready"], "v0.080 pixel integration world")
     require(microtile_rules, ["MICRO_TILE_SIZE", "CELL_MICROTILES", "CELL_SIZE", "MOTIF_NAMES", "building_cladding", "neighbor_mask", "motif_slots", "source_contract_ready"], "Gen-2 microtile rules")
-    require(microtile_release, ["V082_MICROTILE_REVISION", "V082_MICRO", "_draw_v082_microtile_overlay", "_draw_v082_edge_modules", "debug_v082_ready"], "v0.082 microtile release world")\n    require(turn_shortcut_release, ["V085_TURN_SHORTCUT_REVISION", "KEY_SPACE", "debug_turn_shortcut_ready"], "v0.085 turn shortcut world")\n    require(computer_offer_release, ["V086_COMPUTER_OFFER_REVISION", "COMPUTER_DEAL_COMPANIES", "_launch_computer_company_offer", "\"deal_type\":\"computer_supply\"", "debug_computer_offer_ready"], "v0.086 computer-company offers")\n    assert 'window/stretch/mode="viewport"' in project
+    require(microtile_release, ["V082_MICROTILE_REVISION", "V082_MICRO", "_draw_v082_microtile_overlay", "_draw_v082_edge_modules", "debug_v082_ready"], "v0.082 microtile release world")
+    require(turn_shortcut_release, ["V085_TURN_SHORTCUT_REVISION", "KEY_SPACE", "debug_turn_shortcut_ready"], "v0.085 turn shortcut world")
+    require(computer_offer_release, ["V086_COMPUTER_OFFER_REVISION", "COMPUTER_DEAL_COMPANIES", "_launch_computer_company_offer", "\"deal_type\":\"computer_supply\"", "debug_computer_offer_ready"], "v0.086 computer-company offers")
+    assert 'window/stretch/mode="viewport"' in project
     require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
     require(inventory_resource_core, ["ItemLibrary.load_catalog", "catalog_resources", "debug_resource_catalog_ready"], "Resource-backed inventory")
