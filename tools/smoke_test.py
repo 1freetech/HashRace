@@ -112,8 +112,8 @@ def main():
     require(release_world, ["V070_RELEASE_REVISION", "debug_v070_ready"], "v0.070 release world")
     require(character_release, ["V073_CHARACTER_REVISION", "V073_PX", "V073_BODY_VARIANTS", "V073_HAIR_VARIANTS", "idle_down", "walk_left", "run_right", "mining", "victory", "_draw_v073_front", "_draw_v073_back", "_draw_v073_side", "debug_v073_ready"], "v0.073 reusable high-density character world")
     require(pixel_release, ["V080_PIXEL_INTEGRATION_REVISION", "V080_BUILDING_PIXEL", "_v080_entity_depth", "_v080_depth_less", "_draw_pixel_facility", "_draw_facility_surface_detail", "position_smoothing_enabled = false", "debug_pixel_integration_ready", "debug_v080_ready"], "v0.080 pixel integration world")
-    require(microtile_rules, ["MICRO_TILE_SIZE", "CELL_MICROTILES", "CELL_SIZE", "MOTIF_NAMES", "neighbor_mask", "motif_slots", "source_contract_ready"], "Gen-2 microtile rules")
-    require(microtile_release, ["V082_MICROTILE_REVISION", "V082_MICRO", "_draw_v082_microtile_overlay", "_draw_v082_edge_modules", "building_cladding", "debug_v082_ready"], "v0.082 microtile release world")
+    require(microtile_rules, ["MICRO_TILE_SIZE", "CELL_MICROTILES", "CELL_SIZE", "MOTIF_NAMES", "building_cladding", "neighbor_mask", "motif_slots", "source_contract_ready"], "Gen-2 microtile rules")
+    require(microtile_release, ["V082_MICROTILE_REVISION", "V082_MICRO", "_draw_v082_microtile_overlay", "_draw_v082_edge_modules", "debug_v082_ready"], "v0.082 microtile release world")
     assert 'window/stretch/mode="viewport"' in project
     require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
