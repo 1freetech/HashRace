@@ -93,7 +93,6 @@ func _ready() -> void:
     _build_entities()
     _build_camera()
     _build_ui()
-    _open_message("WELCOME TO THE TECH DISTRICT", "You are the company representative. Walk with WASD or arrow keys. Click a building or walk close and press E/Enter to talk. Strategic actions happen inside companies; use the current Day, Month, or Year turn control to advance the economy.")
     _refresh_ui()
     queue_redraw()
 
@@ -210,55 +209,51 @@ func _build_camera() -> void:
     camera.make_current()
 
 func _build_ui() -> void:
+    # Gameplay-first HUD: keep the world visible and reserve persistent screen
+    # space only for controls or live information that changes player decisions.
     var layer: CanvasLayer = CanvasLayer.new()
     add_child(layer)
 
-    var top: Panel = _panel(Vector2(12.0, 10.0), Vector2(1416.0, 66.0), Color("071018f4"), CYAN)
-    layer.add_child(top)
-    var title: Label = _label("HASH RACE // COMPANY OVERWORLD", Vector2(18.0, 10.0), Vector2(360.0, 42.0), 22, GREEN)
-    top.add_child(title)
-    top_stats = _label("", Vector2(380.0, 8.0), Vector2(1018.0, 46.0), 14, WHITE)
-    top_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    top.add_child(top_stats)
+    # No decorative COMPANY OVERWORLD title/header. The modular Mining Ops
+    # widget owns persistent headline telemetry elsewhere in the inheritance stack.
+    top_stats = _label("", Vector2.ZERO, Vector2.ZERO, 1, WHITE)
+    top_stats.visible = false
+    layer.add_child(top_stats)
 
-    var side: Panel = _panel(Vector2(1038.0, 90.0), Vector2(390.0, 530.0), PANEL, Color("28596b"))
-    layer.add_child(side)
-    var side_title: Label = _label("YOUR COMPANY", Vector2(16.0, 12.0), Vector2(350.0, 30.0), 18, CYAN)
-    side.add_child(side_title)
-    company_stats = _label("", Vector2(16.0, 48.0), Vector2(355.0, 335.0), 13, WHITE)
-    company_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    side.add_child(company_stats)
+    # Legacy verbose company/market panels remain as data targets for inherited
+    # simulation code, but are intentionally hidden from normal overworld play.
+    company_stats = _label("", Vector2.ZERO, Vector2.ZERO, 1, WHITE)
+    company_stats.visible = false
+    layer.add_child(company_stats)
+    market_label = _label("", Vector2.ZERO, Vector2.ZERO, 1, WHITE)
+    market_label.visible = false
+    layer.add_child(market_label)
+
     quarter_button = Button.new()
-    quarter_button.position = Vector2(16.0, 400.0)
-    quarter_button.size = Vector2(355.0, 48.0)
-    quarter_button.text = "END QUARTER"
-    quarter_button.add_theme_font_size_override("font_size", 15)
+    quarter_button.position = Vector2(22.0, 22.0)
+    quarter_button.size = Vector2(150.0, 38.0)
+    quarter_button.text = "END TURN"
+    quarter_button.add_theme_font_size_override("font_size", 11)
     quarter_button.pressed.connect(_end_quarter)
-    side.add_child(quarter_button)
-    var help: Label = _label("MOVE: WASD / ARROWS   TALK: E / ENTER\nClick buildings to open them. Economy moves only when END QUARTER is pressed.", Vector2(16.0, 458.0), Vector2(355.0, 60.0), 11, Color("a9ccd7"))
-    help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    side.add_child(help)
+    layer.add_child(quarter_button)
 
-    prompt_label = _label("", Vector2(310.0, 94.0), Vector2(710.0, 40.0), 15, ORANGE)
+    # Context appears only when the player is close enough to interact.
+    prompt_label = _label("", Vector2(390.0, 22.0), Vector2(660.0, 32.0), 11, ORANGE)
     prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     layer.add_child(prompt_label)
 
-    var market: Panel = _panel(Vector2(12.0, 632.0), Vector2(1010.0, 62.0), Color("071018e8"), Color("204653"))
-    layer.add_child(market)
-    market_label = _label("", Vector2(14.0, 8.0), Vector2(980.0, 46.0), 12, Color("c1e8ef"))
-    market_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    market.add_child(market_label)
-
-    dialog_panel = _panel(Vector2(12.0, 708.0), Vector2(1010.0, 180.0), Color("061017f8"), WHITE)
+    # Dialog is gameplay UI, so retain it but hide it until an interaction opens.
+    dialog_panel = _panel(Vector2(180.0, 690.0), Vector2(1080.0, 188.0), Color("061017f8"), WHITE)
+    dialog_panel.visible = false
     layer.add_child(dialog_panel)
-    dialog_title = _label("", Vector2(18.0, 12.0), Vector2(970.0, 28.0), 17, GREEN)
+    dialog_title = _label("", Vector2(18.0, 12.0), Vector2(1040.0, 28.0), 17, GREEN)
     dialog_panel.add_child(dialog_title)
-    dialog_text = _label("", Vector2(18.0, 44.0), Vector2(970.0, 72.0), 13, WHITE)
+    dialog_text = _label("", Vector2(18.0, 44.0), Vector2(1040.0, 76.0), 13, WHITE)
     dialog_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     dialog_panel.add_child(dialog_text)
     action_row = HBoxContainer.new()
-    action_row.position = Vector2(18.0, 124.0)
-    action_row.size = Vector2(970.0, 44.0)
+    action_row.position = Vector2(18.0, 128.0)
+    action_row.size = Vector2(1040.0, 44.0)
     action_row.add_theme_constant_override("separation", 10)
     dialog_panel.add_child(action_row)
 
@@ -354,7 +349,7 @@ func _nearest_entity() -> int:
 func _update_nearby_prompt() -> void:
     var idx: int = _nearest_entity()
     if idx < 0:
-        prompt_label.text = "Explore the district • walk to a company and press E"
+        prompt_label.text = ""
         return
     var entity: Dictionary = entities[idx]
     prompt_label.text = "E / ENTER  •  TALK TO %s" % String(entity["name"])
@@ -367,6 +362,7 @@ func _interact_nearby() -> void:
     _open_entity(idx)
 
 func _open_entity(idx: int) -> void:
+    dialog_panel.visible = true
     selected_entity_idx = idx
     var entity: Dictionary = entities[idx]
     var kind: String = String(entity["kind"])
@@ -384,6 +380,7 @@ func _open_entity(idx: int) -> void:
         _open_rival(entity)
 
 func _open_message(title_text: String, body_text: String) -> void:
+    dialog_panel.visible = true
     dialog_title.text = title_text
     dialog_text.text = body_text
     _set_actions([])
