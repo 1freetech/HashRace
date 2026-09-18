@@ -6,7 +6,6 @@ extends "res://scripts/world_v087.gd"
 # painter depth uses the same scale contract as navigation, and front doors get
 # clear visual entry cues. Node-based interiors can use SceneManager/Doorway.
 
-const WorldScale = preload("res://scripts/world_scale_rules.gd")
 const CameraProportionController = preload("res://scripts/camera_proportion_controller.gd")
 
 const V088_WORLD_SCALE_REVISION: int = 1
