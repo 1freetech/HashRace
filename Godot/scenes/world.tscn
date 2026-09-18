@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v082.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.082 keeps the v0.080 hard pixel/depth contract and adds an 8x8 microtile composition layer for terrain edges, surface motifs and industrial building cladding while preserving negotiation, infrastructure, simulation, and the Mining Ops HUD.
-[ext_resource path="res://scripts/world_v082.gd" type="Script" id="1_world"]
+; world_v085.gd -> world_v082.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.085 adds a safe Space-to-preview/confirm turn shortcut while preserving the v0.082 microtile visuals, v0.080 hard pixel/depth contract, negotiation, infrastructure, simulation, and Mining Ops HUD.
+[ext_resource path="res://scripts/world_v085.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
@@ -19,22 +19,14 @@ offset_bottom = 900.0
 color = Color(0.0235, 0.0627, 0.0824, 1)
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="BootFallback"]
-offset_left = 330.0
-offset_top = 300.0
-offset_right = 1110.0
-offset_bottom = 370.0
-theme_override_colors/font_color = Color(0.392, 1, 0.549, 1)
-theme_override_font_sizes/font_size = 32
-text = "HASH RACE // LOADING PIXEL LANDSCAPE"
+[node name="Message" type="Label" parent="BootFallback"]
+offset_left = 360.0
+offset_top = 370.0
+offset_right = 1080.0
+offset_bottom = 470.0
+text = "HASH RACE\nLoading mining district..."
 horizontal_alignment = 1
-
-[node name="Status" type="Label" parent="BootFallback"]
-offset_left = 330.0
-offset_top = 386.0
-offset_right = 1110.0
-offset_bottom = 500.0
-theme_override_colors/font_color = Color(0.745, 0.91, 0.94, 1)
-theme_override_font_sizes/font_size = 16
-text = "Building textured terrain, wider-spaced campuses, detailed rack pods, cooling cabinets, deployable solar/wind/gas/hydro/oil/coal/SMR power, animated grid flow, roads, water, operators and compact on-demand UI...\n\nIf this screen remains, the world controller failed to initialize."
-horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.35, 1, 0.55, 1)
+theme_override_font_sizes/font_size = 22
+mouse_filter = 2
