@@ -93,7 +93,7 @@ func _ready() -> void:
     _build_entities()
     _build_camera()
     _build_ui()
-    _open_message("WELCOME TO THE TECH DISTRICT", "You are the company representative. Walk with WASD or arrow keys. Click a building or walk close and press E/Enter to talk. Strategic actions happen inside companies; the economy advances only when you end the quarter.")
+    _open_message("WELCOME TO THE TECH DISTRICT", "You are the company representative. Walk with WASD or arrow keys. Click a building or walk close and press E/Enter to talk. Strategic actions happen inside companies; use the current Day, Month, or Year turn control to advance the economy.")
     _refresh_ui()
     queue_redraw()
 
@@ -869,7 +869,7 @@ func _draw() -> void:
         _draw_entity(entity, i)
     _draw_rep()
     draw_string(ThemeDB.fallback_font, Vector2(1080.0, 300.0), "HASH RACE TECH DISTRICT", HORIZONTAL_ALIGNMENT_LEFT, -1, 32, Color("b6f7ff"))
-    draw_string(ThemeDB.fallback_font, Vector2(1080.0, 336.0), "WALK • TALK • DEAL • BUILD • END QUARTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("6da7b2"))
+    draw_string(ThemeDB.fallback_font, Vector2(1080.0, 336.0), "WALK • TALK • DEAL • BUILD • ADVANCE TURN", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("6da7b2"))
 
 func _draw_world_grid() -> void:
     for x in range(0, int(WORLD_SIZE.x), 64):
