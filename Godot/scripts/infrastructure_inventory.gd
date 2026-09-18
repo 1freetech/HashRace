@@ -168,6 +168,8 @@ func _remove_resource_effect(resource, company: Dictionary, count: int) -> void:
             company["inventory_hashrate_ph"] = maxf(0.0, float(company.get("inventory_hashrate_ph", 0.0)) - float(resource.get("base_hashrate_ph")) * float(count))
         "uptime":
             company["inventory_uptime_bonus"] = maxf(0.0, float(company.get("inventory_uptime_bonus", 0.0)) - amount)
+        "power_cost":
+            company["inventory_power_discount"] = minf(0.0, float(company.get("inventory_power_discount", 0.0)) - amount)
         "efficiency":
             var factor: float = pow(float(resource.get("effect_amount")), count)
             if factor > 0.0:
