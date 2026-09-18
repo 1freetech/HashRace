@@ -45,16 +45,16 @@ func catalog_item_at(index: int) -> Dictionary:
     if _catalog_resources.is_empty():
         return {}
     var safe_index := clampi(index, 0, _catalog_resources.size() - 1)
-    var resource: HashRaceItemResource = _catalog_resources[safe_index]
-    return resource.to_legacy_dict()
+    var resource = _catalog_resources[safe_index]
+    return resource.call("to_legacy_dict")
 
-func item_resource(item_id: String) -> HashRaceItemResource:
+func item_resource(item_id: String):
     _ensure_catalog()
-    return _resources_by_id.get(item_id) as HashRaceItemResource
+    return _resources_by_id.get(item_id)
 
 func item(item_id: String) -> Dictionary:
-    var resource := item_resource(item_id)
-    return resource.to_legacy_dict() if resource != null else {}
+    var resource = item_resource(item_id)
+    return resource.call("to_legacy_dict") if resource != null else {}
 
 func quantity(item_id: String) -> int:
     return int(owned.get(item_id, 0))
@@ -84,15 +84,15 @@ func remove(item_id: String, count: int = 1) -> bool:
     return true
 
 func purchase(item_id: String, company: Dictionary, count: int = 1) -> bool:
-    var resource := item_resource(item_id)
+    var resource = item_resource(item_id)
     if resource == null or count <= 0:
         return false
-    var cost := resource.price * float(count)
+    var cost: float = float(resource.get("price")) * float(count)
     if float(company.get("cash", 0.0)) < cost:
         return false
     company["cash"] = float(company.get("cash", 0.0)) - cost
     add(item_id, count)
-    if not resource.deployable:
+    if not bool(resource.get("deployable")):
         _apply_resource_effect(resource, company, count)
         deployed[item_id] = deployed_quantity(item_id) + count
         deployment_changed.emit()
@@ -100,7 +100,7 @@ func purchase(item_id: String, company: Dictionary, count: int = 1) -> bool:
     return true
 
 func deploy(item_id: String, company: Dictionary, count: int = 1) -> bool:
-    var resource := item_resource(item_id)
+    var resource = item_resource(item_id)
     if resource == null or count <= 0 or stored_quantity(item_id) < count:
         return false
     deployed[item_id] = deployed_quantity(item_id) + count
@@ -110,7 +110,7 @@ func deploy(item_id: String, company: Dictionary, count: int = 1) -> bool:
     return true
 
 func undeploy(item_id: String, company: Dictionary, count: int = 1) -> bool:
-    var resource := item_resource(item_id)
+    var resource = item_resource(item_id)
     if resource == null or count <= 0 or deployed_quantity(item_id) < count:
         return false
     var left := deployed_quantity(item_id) - count
@@ -124,52 +124,52 @@ func undeploy(item_id: String, company: Dictionary, count: int = 1) -> bool:
     return true
 
 func purchase_and_deploy(item_id: String, company: Dictionary, count: int = 1) -> bool:
-    var resource := item_resource(item_id)
+    var resource = item_resource(item_id)
     if resource == null:
         return false
     if not purchase(item_id, company, count):
         return false
-    if resource.deployable:
+    if bool(resource.get("deployable")):
         return deploy(item_id, company, count)
     return true
 
-func _apply_resource_effect(resource: HashRaceItemResource, company: Dictionary, count: int) -> void:
-    var amount := resource.effect_amount * float(count)
-    match resource.effect:
+func _apply_resource_effect(resource, company: Dictionary, count: int) -> void:
+    var amount: float = float(resource.get("effect_amount")) * float(count)
+    match String(resource.get("effect")):
         "mw":
             company["mw"] = float(company.get("mw", 0.0)) + amount
         "energy_source":
-            company["mw"] = float(company.get("mw", 0.0)) + resource.power_output_mw * float(count)
+            company["mw"] = float(company.get("mw", 0.0)) + float(resource.get("power_output_mw")) * float(count)
         "hashrate":
-            company["inventory_hashrate_ph"] = float(company.get("inventory_hashrate_ph", 0.0)) + resource.base_hashrate_ph * float(count)
+            company["inventory_hashrate_ph"] = float(company.get("inventory_hashrate_ph", 0.0)) + float(resource.get("base_hashrate_ph")) * float(count)
         "uptime":
             company["inventory_uptime_bonus"] = minf(0.08, float(company.get("inventory_uptime_bonus", 0.0)) + amount)
         "power_cost":
             company["inventory_power_discount"] = maxf(-0.03, float(company.get("inventory_power_discount", 0.0)) + amount)
         "efficiency":
-            company["inventory_efficiency_multiplier"] = float(company.get("inventory_efficiency_multiplier", 1.0)) * pow(resource.effect_amount, count)
+            company["inventory_efficiency_multiplier"] = float(company.get("inventory_efficiency_multiplier", 1.0)) * pow(float(resource.get("effect_amount")), count)
         "machine_capacity":
             company["machine_capacity"] = int(company.get("machine_capacity", 0)) + int(amount)
         "machine_discount":
             company["machine_discount"] = minf(0.25, float(company.get("machine_discount", 0.0)) + amount)
         "ops_cost":
-            company["inventory_ops_multiplier"] = float(company.get("inventory_ops_multiplier", 1.0)) * pow(resource.effect_amount, count)
+            company["inventory_ops_multiplier"] = float(company.get("inventory_ops_multiplier", 1.0)) * pow(float(resource.get("effect_amount")), count)
         "asset_protection":
             company["asset_protection"] = minf(0.20, float(company.get("asset_protection", 0.0)) + amount)
 
-func _remove_resource_effect(resource: HashRaceItemResource, company: Dictionary, count: int) -> void:
-    var amount := resource.effect_amount * float(count)
-    match resource.effect:
+func _remove_resource_effect(resource, company: Dictionary, count: int) -> void:
+    var amount: float = float(resource.get("effect_amount")) * float(count)
+    match String(resource.get("effect")):
         "mw":
             company["mw"] = maxf(0.0, float(company.get("mw", 0.0)) - amount)
         "energy_source":
-            company["mw"] = maxf(0.0, float(company.get("mw", 0.0)) - resource.power_output_mw * float(count))
+            company["mw"] = maxf(0.0, float(company.get("mw", 0.0)) - float(resource.get("power_output_mw")) * float(count))
         "hashrate":
-            company["inventory_hashrate_ph"] = maxf(0.0, float(company.get("inventory_hashrate_ph", 0.0)) - resource.base_hashrate_ph * float(count))
+            company["inventory_hashrate_ph"] = maxf(0.0, float(company.get("inventory_hashrate_ph", 0.0)) - float(resource.get("base_hashrate_ph")) * float(count))
         "uptime":
             company["inventory_uptime_bonus"] = maxf(0.0, float(company.get("inventory_uptime_bonus", 0.0)) - amount)
         "efficiency":
-            var factor := pow(resource.effect_amount, count)
+            var factor: float = pow(float(resource.get("effect_amount")), count)
             if factor > 0.0:
                 company["inventory_efficiency_multiplier"] = minf(1.0, float(company.get("inventory_efficiency_multiplier", 1.0)) / factor)
         "machine_capacity":
@@ -177,7 +177,7 @@ func _remove_resource_effect(resource: HashRaceItemResource, company: Dictionary
         "machine_discount":
             company["machine_discount"] = maxf(0.0, float(company.get("machine_discount", 0.0)) - amount)
         "ops_cost":
-            var factor := pow(resource.effect_amount, count)
+            var factor: float = pow(float(resource.get("effect_amount")), count)
             if factor > 0.0:
                 company["inventory_ops_multiplier"] = minf(1.0, float(company.get("inventory_ops_multiplier", 1.0)) / factor)
         "asset_protection":
@@ -186,85 +186,85 @@ func _remove_resource_effect(resource: HashRaceItemResource, company: Dictionary
 func total_deployed_hashrate_ph() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.base_hashrate_ph * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("base_hashrate_ph")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func total_deployed_miner_load_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.power_draw_mw * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("power_draw_mw")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func total_deployed_heat_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.heat_generated_mw * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("heat_generated_mw")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func total_cooling_capacity_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.cooling_capacity_mw * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("cooling_capacity_mw")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func nominal_energy_capacity_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.power_output_mw * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("power_output_mw")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func current_energy_output_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.effective_power_output_mw() * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += String(resource.get("effect"))ive_power_output_mw() * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func deployed_power_cost_delta() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.power_cost_delta * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("power_cost_delta")) * float(deployed_quantity(String(resource.get("id"))))
     return clampf(total, -0.04, 0.0)
 
 func deployed_uptime_bonus() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        var count := deployed_quantity(resource.id)
+        var resource = raw
+        var count := deployed_quantity(String(resource.get("id")))
         if count <= 0:
             continue
-        if resource.effect == "uptime":
-            total += resource.effect_amount * float(count)
-        total += resource.uptime_bonus * float(count)
+        if String(resource.get("effect")) == "uptime":
+            total += float(resource.get("effect_amount")) * float(count)
+        total += float(resource.get("uptime_bonus")) * float(count)
     return clampf(total, -0.02, 0.08)
 
 func maintenance_per_turn() -> float:
     var total := 0.0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        total += resource.maintenance * float(deployed_quantity(resource.id))
+        var resource = raw
+        total += float(resource.get("maintenance")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func deployed_visual_count(visual: String) -> int:
     var total := 0
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        if resource.visual == visual:
-            total += deployed_quantity(resource.id)
+        var resource = raw
+        if String(resource.get("visual")) == visual:
+            total += deployed_quantity(String(resource.get("id")))
     return total
 
 func by_category(category: String) -> Array[Dictionary]:
     var result: Array[Dictionary] = []
     for raw in catalog_resources():
-        var resource := raw as HashRaceItemResource
-        if resource.category == category:
-            result.append(resource.to_legacy_dict())
+        var resource = raw
+        if String(resource.get("category")) == category:
+            result.append(resource.call("to_legacy_dict"))
     return result
 
 func serialize() -> Dictionary:
@@ -288,8 +288,8 @@ func debug_catalog_ready() -> bool:
     if _catalog_resources.size() < EXPECTED_CATALOG_SIZE:
         return false
     for raw in _catalog_resources:
-        var resource := raw as HashRaceItemResource
-        if resource == null or resource.id.is_empty() or resource.display_name.is_empty() or resource.price < 0.0 or resource.effect.is_empty():
+        var resource = raw
+        if resource == null or String(resource.get("id")).is_empty() or String(resource.get("display_name")).is_empty() or float(resource.get("price")) < 0.0 or String(resource.get("effect")).is_empty():
             return false
     return true
 
