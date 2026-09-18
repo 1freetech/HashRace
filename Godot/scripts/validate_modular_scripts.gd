@@ -10,15 +10,18 @@ const SCRIPTS: Array[String] = [
     "res://systems/physical_placement_grid.gd",
     "res://systems/simulation_manager.gd",
     "res://scripts/mining_ops_widget.gd",
+    "res://scripts/negotiation_scene.gd",
+    "res://systems/negotiation_manager.gd",
     "res://scripts/world_v068.gd",
     "res://scripts/world_v070.gd",
+    "res://scripts/world_v072.gd",
 ]
 
 func _initialize() -> void:
     for path in SCRIPTS:
         print("MODULAR PARSE: ", path)
-        var script = load(path)
-        if script == null:
+        var script: Script = load(path) as Script
+        if script == null or not script.can_instantiate():
             push_error("MODULAR PARSE FAIL: " + path)
             quit(1)
             return

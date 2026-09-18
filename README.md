@@ -4,14 +4,14 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.067**. The current **main** development build is **v0.070**.
+The latest verified public desktop release is **v0.072**. The current **main** development build is **v0.072**.
 
-- **[Windows x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-linux-x64.tar.gz)**
-- **[Hash Race v0.067 release page](https://github.com/1freetech/HashRace/releases/tag/v0.067)**
+- **[Windows x64 — Hash Race v0.072](https://github.com/1freetech/HashRace/releases/download/v0.072/HashRace-v0.072-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.072](https://github.com/1freetech/HashRace/releases/download/v0.072/HashRace-v0.072-linux-x64.tar.gz)**
+- **[Hash Race v0.072 release page](https://github.com/1freetech/HashRace/releases/tag/v0.072)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.070 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
+v0.072 adds an original **battle-style negotiation scene** for rival-company encounters. Rival buildings and representatives can launch a full-screen animated deal table with **MAKE OFFER, COUNTER, THREATEN, and WALK AWAY** choices. Live company reputation and leverage are compared with rival power and greed, and successful flexible-capacity contracts transfer cash and add real MW to the player. The scene is managed separately from the world so the same framework can later drive mergers, PPAs, hardware supply, financing, land, and faction negotiations.\n\nv0.070 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
 
 The infrastructure catalog is now backed by **34 native Godot `.tres` ItemResource files** rather than one giant hardcoded dictionary. Physical rack containers expose typed hardware slots, a world-space placement grid tracks actual deployment positions, and a dedicated **SimulationManager** runs a fixed one-second live tick for power balance, thermal state, throttling telemetry, and the Mining Ops snapshot. Existing strategic turn settlement remains intact while the real-time operational layer is decoupled from UI rendering.
 
@@ -70,9 +70,7 @@ Hash Race currently includes ten fictional Bitcoin mining companies:
 
 External organizations are never league mining-company archetypes.
 
-## Negotiations
-
-Mining-company merger negotiations use a probabilistic acceptance system. Offer strength, relative company size, reputation, and aggression contribute to a visible 1–99% acceptance chance with LONG SHOT, UNLIKELY, MEDIUM, LIKELY, and VERY LIKELY bands. The game still performs a random roll, so a strong offer can occasionally fail and a long-shot offer can occasionally succeed.
+## Negotiations\n\nv0.072 introduces a dedicated Godot negotiation scene with a fast battle-style intro, two opposing company cards, a live deal-read meter, and four actions: **MAKE OFFER, COUNTER, THREATEN, and WALK AWAY**. The first implemented negotiation is a rival flexible-power access contract. A successful deal deducts the negotiated cash price, credits the rival, and adds the negotiated MW capacity to the player. Hard-pressure tactics can improve terms but can reduce reputation.\n\nThe older mining-company merger model remains available separately. Merger offer strength, relative company size, reputation, and aggression contribute to a visible 1–99% acceptance chance with LONG SHOT, UNLIKELY, MEDIUM, LIKELY, and VERY LIKELY bands.
 
 ## Controls
 

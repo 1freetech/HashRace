@@ -57,6 +57,7 @@ jobs:
             exit 1
           fi
           godot --headless --path Godot --script res://scripts/validate_overworld.gd
+          godot --headless --path Godot --script res://scripts/validate_negotiation_scene.gd
 
       - name: Install virtual display for rendered release proof
         if: matrix.platform == 'linux-x64'
@@ -102,6 +103,18 @@ jobs:
             exit 1
           fi
           test -s visual-proof/hashrace-mining-ops-widget.png
+
+      - name: Render and validate negotiation scene proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-release-negotiation.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-release-negotiation.log; then
+            echo "Rendered negotiation proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-negotiation-scene.png
 
       - name: Export current Godot game
         shell: bash
@@ -154,6 +167,7 @@ jobs:
             visual-proof/hashrace-overworld.png
             visual-proof/hashrace-2d-detail.png
             visual-proof/hashrace-mining-ops-widget.png
+            visual-proof/hashrace-negotiation-scene.png
           if-no-files-found: error
 
   release:
@@ -185,7 +199,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION adds the draggable Mining Ops HUD: a compact six-card digital interface for live Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash. The widget scales with the screen, can be dragged, mounted to corners, minimized, restored, and continuously redraws its values and sparklines from real company state. The previous deployable energy campus, warehouse/deployed inventory, live power and thermal simulation, and 34-asset infrastructure catalog remain active. Windows and Linux packages plus overworld, close-up, and Mining Ops widget PNG proofs are CI verified before release."
+          NOTES="Hash Race $VERSION adds the battle-style rival negotiation system: animated intro, live company-versus-rival cards, MAKE OFFER, COUNTER, THREATEN, and WALK AWAY actions, reputation/leverage pressure, and a reusable negotiation manager wired into rival-company interactions. The first live negotiated contract is flexible MW access, so a closed deal transfers cash and adds real power capacity. Resource-backed infrastructure, physical placement, fixed-tick simulation, and the consolidated Mining Ops HUD remain active. Windows and Linux packages plus overworld, close-up, Mining Ops, and negotiation PNG proofs are CI verified before release."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest

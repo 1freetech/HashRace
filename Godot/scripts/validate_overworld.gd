@@ -43,6 +43,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -167,6 +168,15 @@ func _run() -> void:
     if not bool(scene.call("debug_hud_consolidated")):
         _fail("persistent company metrics are still duplicated instead of consolidated upper-right")
         return
+    if not bool(scene.call("debug_negotiation_ready")):
+        _fail("v0.072 negotiation manager did not initialize")
+        return
+    if not bool(scene.call("debug_v072_ready")):
+        _fail("v0.072 release layer is not ready")
+        return
+    if scene.get_node_or_null("NegotiationManager") == null:
+        _fail("NegotiationManager node is missing")
+        return
 
     # v0.052 character customization contract.
     if not bool(scene.call("debug_character_customization_ready")):
@@ -225,5 +235,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.070 verified Resource-backed infrastructure, physical rack slots/placement, fixed-tick simulation, consolidated upper-right live metrics, plus the existing visual, company, treasury, dialogue, camera, and turn-settlement systems.")
+    print("HASH RACE OVERWORLD PASS: v0.072 verified Resource-backed infrastructure, physical rack slots/placement, fixed-tick simulation, consolidated upper-right live metrics, and the battle-style negotiation manager/scene on top of the existing visual, company, treasury, dialogue, camera, and turn-settlement systems.")
     quit(0)
