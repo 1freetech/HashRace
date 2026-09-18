@@ -112,9 +112,9 @@ func _rival_asset_value(rival: Dictionary) -> float:
 func _headline_metrics(company: Dictionary, is_player: bool) -> Dictionary:
     var machines: float = float(company["machines"])
     var machine: Dictionary = MACHINES[int(player["machine_tier"])] if is_player else MACHINES[0]
+    # _hashrate_th() is virtual and the live world layer already includes deployed
+    # infrastructure. Do not add inventory_hashrate_ph here or ASICs are counted twice.
     var hashrate_ph: float = (_hashrate_th() if is_player else machines * float(machine["th"])) / 1000.0
-    if is_player:
-        hashrate_ph += float(company.get("inventory_hashrate_ph", 0.0))
     var efficiency_jth: float = float(machine["kw"]) * 1000.0 / float(machine["th"])
     if is_player:
         efficiency_jth *= float(company.get("inventory_efficiency_multiplier", 1.0))
