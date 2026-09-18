@@ -5,13 +5,13 @@ class_name HashRaceBuildingPlacer
 # 3000x1900 world. Representatives are positioned by the world controller so
 # they remain attached to their owning company after the building is moved.
 
-const MIN_TARGET_SPACING: float = 300.0
+const MIN_TARGET_SPACING: float = 360.0
 
 const PLAYER_HQ := Vector2(1500.0, 980.0)
-const MACHINE_MARKET := Vector2(900.0, 980.0)
-const POWER_OFFICE := Vector2(2100.0, 980.0)
-const BANK := Vector2(1500.0, 680.0)
-const LAND_MARKET := Vector2(1500.0, 1300.0)
+const MACHINE_MARKET := Vector2(820.0, 980.0)
+const POWER_OFFICE := Vector2(2180.0, 980.0)
+const BANK := Vector2(1670.0, 640.0)
+const LAND_MARKET := Vector2(1500.0, 1370.0)
 
 const PARTNER_POSITIONS: Array[Vector2] = [
     Vector2(350.0, 360.0),
@@ -26,15 +26,15 @@ const PARTNER_POSITIONS: Array[Vector2] = [
 ]
 
 const RIVAL_POSITIONS: Array[Vector2] = [
-    Vector2(260.0, 800.0),
-    Vector2(260.0, 1200.0),
-    Vector2(260.0, 1600.0),
-    Vector2(2490.0, 800.0),
-    Vector2(2490.0, 1200.0),
-    Vector2(2490.0, 1600.0),
-    Vector2(800.0, 1650.0),
-    Vector2(1500.0, 1650.0),
-    Vector2(2150.0, 1650.0)
+    Vector2(240.0, 820.0),
+    Vector2(240.0, 1250.0),
+    Vector2(240.0, 1680.0),
+    Vector2(2760.0, 820.0),
+    Vector2(2760.0, 1250.0),
+    Vector2(2760.0, 1680.0),
+    Vector2(760.0, 1740.0),
+    Vector2(1500.0, 1740.0),
+    Vector2(2240.0, 1740.0)
 ]
 
 static func desired_position(entity: Dictionary) -> Vector2:
