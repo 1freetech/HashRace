@@ -62,7 +62,7 @@ func _on_simulation_tick(stats: Dictionary) -> void:
             float(stats.get("temperature_c", 25.0)),
             float(stats.get("uptime", 0.0)) / 100.0
         )
-        var status_color := machine_state_controller.status_color()
+        var status_color: Color = Color(machine_state_controller.status_color())
         for rack in physical_racks:
             if is_instance_valid(rack):
                 rack.modulate = Color.WHITE.lerp(status_color, 0.22)
