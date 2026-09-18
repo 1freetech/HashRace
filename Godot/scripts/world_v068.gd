@@ -14,9 +14,9 @@ const MachineStateController = preload("res://components/state_machine/machine_s
 const MODULAR_ARCHITECTURE_REVISION: int = 1
 const MAX_VISIBLE_PHYSICAL_RACKS: int = 12
 
-var simulation_manager: HashRaceSimulationManager
-var physical_placement_grid: HashRacePhysicalPlacementGrid
-var machine_state_controller: HashRaceMachineStateController
+var simulation_manager = null
+var physical_placement_grid = null
+var machine_state_controller = null
 var physical_racks: Array[Node2D] = []
 var latest_simulation_snapshot: Dictionary = {}
 
@@ -81,17 +81,17 @@ func _sync_physical_racks() -> void:
 
     var visible_count := 0
     for raw in infrastructure_inventory.catalog_resources():
-        var item := raw as HashRaceItemResource
-        if item == null or item.category != "MINERS":
+        var item = raw
+        if item == null or String(item.get("category")) != "MINERS":
             continue
-        var deployed_count := infrastructure_inventory.deployed_quantity(item.id)
+        var deployed_count := infrastructure_inventory.deployed_quantity(String(item.get("id")))
         for _instance in range(deployed_count):
             if visible_count >= MAX_VISIBLE_PHYSICAL_RACKS:
                 return
             var rack := RackContainer.new()
-            rack.name = "PhysicalRack_%02d_%s" % [visible_count, item.id]
+            rack.name = "PhysicalRack_%02d_%s" % [visible_count, String(item.get("id"))]
             rack.slot_count = 1
-            rack.default_slot_type = item.slot_type
+            rack.default_slot_type = String(item.get("slot_type"))
             rack.auto_build_slots = false
 
             var col := visible_count % 4
@@ -103,7 +103,7 @@ func _sync_physical_racks() -> void:
 
             rack.rebuild_slots()
             rack.install(item)
-            rack.set_meta("hashrace_item_id", item.id)
+            rack.set_meta("hashrace_item_id", String(item.get("id")))
             physical_racks.append(rack)
             visible_count += 1
 
