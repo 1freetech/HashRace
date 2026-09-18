@@ -28,7 +28,7 @@ func _install_league_ui() -> void:
     league_button.position = Vector2(914.0, 88.0)
     league_button.size = Vector2(158.0, 42.0)
     league_button.text = "STANDINGS"
-    league_button.tooltip_text = "Rank all ten Bitcoin mining companies by current live asset value."
+    league_button.tooltip_text = "Compare all ten Bitcoin mining companies using the five headline real-unit metrics."
     league_button.add_theme_font_size_override("font_size", 12)
     league_button.pressed.connect(_open_league_standings)
     layer.add_child(league_button)
@@ -36,13 +36,28 @@ func _install_league_ui() -> void:
 func _rival_asset_value(rival: Dictionary) -> float:
     return maxf(0.0, float(rival["cash"])) + float(rival["sats"]) / SATS_PER_BTC * btc_price + float(rival["mw"]) * 90000.0 + float(rival["acres"]) * land_price_per_acre + float(rival["machines"]) * 700.0
 
+func _headline_metrics(company: Dictionary, is_player: bool) -> Dictionary:
+    var machines: float = float(company["machines"])
+    var machine: Dictionary = MACHINES[int(player["machine_tier"])] if is_player else MACHINES[0]
+    var hashrate_ph: float = (_hashrate_th() if is_player else machines * float(machine["th"])) / 1000.0
+    var efficiency_jth: float = float(machine["kw"]) * 1000.0 / float(machine["th"])
+    return {
+        "hashrate_ph": hashrate_ph,
+        "mw": float(company["mw"]),
+        "efficiency_jth": efficiency_jth,
+        "cash": float(company["cash"]),
+        "profit": float(company.get("last_profit", 0.0))
+    }
+
 func _league_rows() -> Array:
-    var rows: Array = [{"name": String(player["name"]), "assets": _asset_value(), "player": true, "merged": false}]
+    var player_metrics: Dictionary = _headline_metrics(player, true)
+    var rows: Array = [{"name": String(player["name"]), "assets": _asset_value(), "metrics": player_metrics, "player": true, "merged": false}]
     for rival_raw in rivals:
         var rival: Dictionary = rival_raw
         rows.append({
             "name": String(rival["name"]),
             "assets": _rival_asset_value(rival),
+            "metrics": _headline_metrics(rival, false),
             "player": false,
             "merged": bool(rival["merged"])
         })
@@ -70,9 +85,10 @@ func _open_league_standings() -> void:
     for i in range(rows.size()):
         var row: Dictionary = rows[i]
         var marker: String = "YOU" if bool(row["player"]) else ("MERGED" if bool(row["merged"]) else "RIVAL")
-        lines.append("%d. %s  •  $%d assets  •  %s" % [i + 1, String(row["name"]), int(row["assets"]), marker])
+        var m: Dictionary = row["metrics"]
+        lines.append("%d. %s • %.2f PH/s • %.2f MW • %.1f J/TH • Cash $%d • Profit $%d • %s" % [i + 1, String(row["name"]), float(m["hashrate_ph"]), float(m["mw"]), float(m["efficiency_jth"]), int(m["cash"]), int(m["profit"]), marker])
     dialog_title.text = "BITCOIN MINING LEAGUE // STANDINGS"
-    dialog_text.text = "Ten Bitcoin mining companies. Live ranking by current company asset value.\n\n" + "\n".join(lines) + "\n\nBuild hash rate, infrastructure, land, treasury value, and financial strength to climb the league."
+    dialog_text.text = "Ten Bitcoin mining companies. Five headline metrics stay in real units: HASHRATE • MW • J/TH • CASH • PROFIT. Deeper operating metrics still remain in the simulation.\n\n" + "\n".join(lines) + "\n\nLeague order still uses company asset value while the five-metric card makes each miner easy to compare."
     _set_actions([])
 
 func _refresh_league_ui() -> void:
