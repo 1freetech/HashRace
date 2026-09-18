@@ -34,7 +34,7 @@ func _install_turn_scale_control() -> void:
     turn_scale_button.position = Vector2(1040,88)
     turn_scale_button.size = Vector2(370,42)
     turn_scale_button.add_theme_font_size_override("font_size",12)
-    turn_scale_button.tooltip_text = "Hotkeys: 1 Day, 2 Month, 3 Quarter, 4 Year, 5 Custom."
+    turn_scale_button.tooltip_text = "Hotkeys: Space preview/confirm turn; 1 Day, 2 Month, 3 Quarter, 4 Year, 5 Custom, C cycle."
     turn_scale_button.pressed.connect(_cycle_turn_length)
     layer.add_child(turn_scale_button)
     custom_days_spin = SpinBox.new()
@@ -51,6 +51,10 @@ func _install_turn_scale_control() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_SPACE:
+            _end_quarter()
+            get_viewport().set_input_as_handled()
+            return
         if event.keycode == KEY_C:
             _cycle_turn_length()
             get_viewport().set_input_as_handled()
@@ -108,7 +112,7 @@ func custom_turn_days()->float:
 
 func _refresh_turn_scale_button()->void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text="TURN: %s  [1 D • 2 M • 3 Q • 4 Y • 5 CUSTOM • C]" % (("CUSTOM %.0f DAYS"%custom_days) if turn_length_name()=="CUSTOM" else turn_length_name())
+        turn_scale_button.text="TURN: %s  [SPACE • 1 D • 2 M • 3 Q • 4 Y • 5 CUSTOM • C]" % (("CUSTOM %.0f DAYS"%custom_days) if turn_length_name()=="CUSTOM" else turn_length_name())
     if is_instance_valid(custom_days_spin):
         custom_days_spin.visible=turn_length_name()=="CUSTOM"
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
@@ -138,7 +142,7 @@ func _end_quarter()->void:
         live_quarter_confirmation_pending=true
         var p:=_scaled_financial_preview(days)
         quarter_button.text="CONFIRM %s TURN"%turn_length_name()
-        _feedback("%s PREVIEW: %.2f days • BTC %.6f • NET $%d • CASH AFTER $%d. Confirm or Esc."%[turn_length_name(),days,float(p["mined_btc"]),int(p["profit"]),int(float(player["cash"])+float(p["profit"]))])
+        _feedback("%s PREVIEW: %.2f days • BTC %.6f • NET $%d • CASH AFTER $%d. Confirm with Space/click or Esc."%[turn_length_name(),days,float(p["mined_btc"]),int(p["profit"]),int(float(player["cash"])+float(p["profit"]))])
         return
     live_quarter_confirmation_pending=false
     quarter_button.text="END %s TURN"%turn_length_name()
