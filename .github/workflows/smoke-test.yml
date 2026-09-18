@@ -132,6 +132,8 @@ jobs:
         run: python tools/test_pixel_landscape_ui_contract.py
       - name: Test v0.088 world scale and transition contract
         run: python tools/test_world_transition_contract.py
+      - name: Test v0.090 gameplay and readability quality contract
+        run: python tools/test_v090_quality_pass.py
 
   cpp-core:
     runs-on: ubuntu-latest
