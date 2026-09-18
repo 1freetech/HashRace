@@ -1,13 +1,21 @@
 # Hash Race Downloads
 
-Current verified public version: **v0.059**
+Current verified public version: **v0.073**
 
-- [Windows x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-windows-x64.zip)
-- [Linux x64 — Hash Race v0.059](https://github.com/1freetech/HashRace/releases/download/v0.059/HashRace-v0.059-linux-x64.tar.gz)
-- [Hash Race v0.059 release](https://github.com/1freetech/HashRace/releases/tag/v0.059)
+- [Windows x64 — Hash Race v0.073](https://github.com/1freetech/HashRace/releases/download/v0.073/HashRace-v0.073-windows-x64.zip)
+- [Linux x64 — Hash Race v0.073](https://github.com/1freetech/HashRace/releases/download/v0.073/HashRace-v0.073-linux-x64.tar.gz)
+- [Hash Race v0.073 release](https://github.com/1freetech/HashRace/releases/tag/v0.073)
 - [All releases](https://github.com/1freetech/HashRace/releases)
 
 The version-specific links above are published only after the [Godot release workflow](https://github.com/1freetech/HashRace/actions) finishes its headless boot, rendered-frame proof, export, packaging, and playable-build checks.
+
+## v0.073 reusable high-detail character update
+
+The player and company/NPC representatives now use a shared high-density procedural pixel-character rig with a finer 3-pixel source grid, crisp nearest-neighbor rendering, front/back/left/right silhouettes, five body builds, four hair families, layered cyber workwear, headset/ear protection, scanner visors, gloves, segmented boots, and company-colored identifiers.
+
+The same system supports directional idle, walk and run pose names plus reusable mining and victory actions. Existing skin-tone, presentation and outfit choices continue to drive the player build, while NPCs receive deterministic body, hair, skin and facing variation so the world can reuse one visual system without making every representative look identical.
+
+The v0.073 release passed Godot source boot, live overworld validation, rendered overworld and close-up proofs, Windows export, Linux export, and exported Linux binary boot verification before its desktop packages were published.
 
 ## v0.059 data-center infrastructure update
 

@@ -4,11 +4,11 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.072**. The current **main** development build is **v0.073**.
+The latest verified public desktop release is **v0.073**. The current **main** development build is **v0.073**.
 
-- **[Windows x64 — Hash Race v0.072](https://github.com/1freetech/HashRace/releases/download/v0.072/HashRace-v0.072-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.072](https://github.com/1freetech/HashRace/releases/download/v0.072/HashRace-v0.072-linux-x64.tar.gz)**
-- **[Hash Race v0.072 release page](https://github.com/1freetech/HashRace/releases/tag/v0.072)**
+- **[Windows x64 — Hash Race v0.073](https://github.com/1freetech/HashRace/releases/download/v0.073/HashRace-v0.073-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.073](https://github.com/1freetech/HashRace/releases/download/v0.073/HashRace-v0.073-linux-x64.tar.gz)**
+- **[Hash Race v0.073 release page](https://github.com/1freetech/HashRace/releases/tag/v0.073)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
 v0.073 upgrades the live player and NPC/company representatives to a reusable **high-density procedural pixel-character rig** based on the approved detailed reference direction. The same on-screen footprint now uses a finer 3-pixel source grid, directional front/back/left/right silhouettes, five body builds, four hair families, layered armor, headset/ear protection, neon scanner visors, gloves, segmented boots, company-colored IDs, and reusable mining/victory action poses. Character names remain directly above the sprite and the existing wardrobe skin-tone/outfit system still drives the player. The public v0.073 desktop packages are published only after the Godot boot, overworld validator, rendered close-up proof, Windows export, Linux export, and Linux binary boot checks pass.\n\nv0.072 adds an original **battle-style negotiation scene** for rival-company encounters. Rival buildings and representatives can launch a full-screen animated deal table with **MAKE OFFER, COUNTER, THREATEN, and WALK AWAY** choices. Live company reputation and leverage are compared with rival power and greed, and successful flexible-capacity contracts transfer cash and add real MW to the player. The scene is managed separately from the world so the same framework can later drive mergers, PPAs, hardware supply, financing, land, and faction negotiations.\n\nv0.070 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
