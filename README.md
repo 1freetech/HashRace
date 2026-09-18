@@ -4,14 +4,14 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.067**. The current **main** development build is **v0.068**.
+The latest verified public desktop release is **v0.067**. The current **main** development build is **v0.070**.
 
 - **[Windows x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-windows-x64.zip)**
 - **[Linux x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-linux-x64.tar.gz)**
 - **[Hash Race v0.067 release page](https://github.com/1freetech/HashRace/releases/tag/v0.067)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.068 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
+v0.070 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
 
 The infrastructure catalog is now backed by **34 native Godot `.tres` ItemResource files** rather than one giant hardcoded dictionary. Physical rack containers expose typed hardware slots, a world-space placement grid tracks actual deployment positions, and a dedicated **SimulationManager** runs a fixed one-second live tick for power balance, thermal state, throttling telemetry, and the Mining Ops snapshot. Existing strategic turn settlement remains intact while the real-time operational layer is decoupled from UI rendering.
 
@@ -41,7 +41,7 @@ The live infrastructure catalog currently contains **34 functional assets** acro
 
 The inventory is now driven by native Godot **ItemResource** files under `Godot/data/items/`. New hardware can be added or balanced in the Inspector without editing the inventory core. A compatibility bridge still exposes the older dictionary-shaped API where existing UI code needs it, but the resource files are the source of truth.
 
-Owned quantities are tracked separately from deployed quantities. Equipment in warehouse storage does not generate hashrate or site capacity until it is deployed. v0.068 also introduces physical rack/slot nodes and a placement grid so deployed mining hardware has a world-space representation instead of existing only as a global stat tally.
+Owned quantities are tracked separately from deployed quantities. Equipment in warehouse storage does not generate hashrate or site capacity until it is deployed. v0.070 also introduces physical rack/slot nodes and a placement grid so deployed mining hardware has a world-space representation instead of existing only as a global stat tally.
 
 ## Flexible turn system
 
