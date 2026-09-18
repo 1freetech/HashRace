@@ -141,6 +141,19 @@ func _player_league_rank() -> int:
         if bool(rows[i]["player"]): return i + 1
     return rows.size()
 
+func _league_chase_summary(rows: Array) -> String:
+    var player_idx := -1
+    for i in range(rows.size()):
+        if bool(rows[i]["player"]):
+            player_idx = i
+            break
+    if player_idx <= 0:
+        return "DYNASTY TARGET: You lead the Bitcoin mining league. Defend #1."
+    var target: Dictionary = rows[player_idx - 1]
+    var current: Dictionary = rows[player_idx]
+    var gap := maxf(0.0, float(target["assets"]) - float(current["assets"]))
+    return "CHASE TARGET: #%d %s • Asset gap $%d" % [player_idx, String(target["name"]), int(ceil(gap))]
+
 func _open_league_standings() -> void:
     var rows: Array = _league_rows()
     var lines: Array[String] = []
@@ -150,7 +163,7 @@ func _open_league_standings() -> void:
         var m: Dictionary = row["metrics"]
         lines.append("%d. %s • %.2f PH/s • %.2f MW • %.1f J/TH • Cash $%d • Profit $%d • %s" % [i + 1,String(row["name"]),float(m["hashrate_ph"]),float(m["mw"]),float(m["efficiency_jth"]),int(m["cash"]),int(m["profit"]),marker])
     dialog_title.text = "BITCOIN MINING LEAGUE // STANDINGS"
-    dialog_text.text = "Ten Bitcoin mining companies. Five headline metrics stay in real units: HASHRATE • MW • J/TH • CASH • PROFIT.\n\n" + "\n".join(lines)
+    dialog_text.text = "Ten Bitcoin mining companies. Five headline metrics stay in real units: HASHRATE • MW • J/TH • CASH • PROFIT.\n%s\n\n%s" % [_league_chase_summary(rows), "\n".join(lines)]
     _set_actions([])
 
 func _refresh_league_ui() -> void:
