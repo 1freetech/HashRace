@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "nuclear_smr"
+display_name = "Nuclear SMR Campus"
+category = "ENERGY"
+slot_type = "POWER"
+price = 12000000.0
+deployable = true
+power_output_mw = 65.000
+capacity_factor = 0.950
+uptime_bonus = 0.0180
+power_cost_delta = -0.0080
+maintenance = 6500.0
+effect = "energy_source"
+effect_amount = 65.0000
+effect_unit = "MW"
+visual = "smr"
+description = "Nuclear SMR Campus used by the Hash Race infrastructure and physical deployment systems."
