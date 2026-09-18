@@ -9,7 +9,7 @@ profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 
-assert "world_v070.gd" in scene, "Live Godot world must boot through the current release layer"
+assert "world_v073.gd" in scene, "Live Godot world must boot through the current release layer"
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_v067.gd"' in modular_world
 assert 'extends "res://scripts/world_league_standings.gd"' in life_ops, "Current gameplay chain must retain the league standings layer"
