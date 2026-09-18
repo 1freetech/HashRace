@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 world_scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world_v072 = (ROOT / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
+world_v073 = (ROOT / "Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
 world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 world_v068 = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 world_v067 = (ROOT / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
@@ -17,7 +18,8 @@ texture_spacing = (ROOT / "Godot/scripts/world_texture_spacing.gd").read_text(en
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
-assert 'res://scripts/world_v072.gd' in world_scene, "Live scene must boot through the current v0.072 release layer"
+assert 'res://scripts/world_v073.gd' in world_scene, "Live scene must boot through the current release layer"
+assert 'extends "res://scripts/world_v072.gd"' in world_v073
 assert 'extends "res://scripts/world_v070.gd"' in world_v072
 assert 'extends "res://scripts/world_v068.gd"' in world_v070
 assert 'extends "res://scripts/world_v067.gd"' in world_v068

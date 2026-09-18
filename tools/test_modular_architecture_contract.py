@@ -9,6 +9,7 @@ version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 project = (ROOT / "Godot/project.godot").read_text(encoding="utf-8")
 current_world = (ROOT / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
+live_world = (ROOT / "Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
 release_world = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 inventory = (ROOT / "Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
@@ -22,7 +23,8 @@ widget = (ROOT / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-assert 'res://scripts/world_v072.gd' in scene
+assert 'res://scripts/world_v073.gd' in scene
+assert 'extends "res://scripts/world_v072.gd"' in live_world
 assert 'extends "res://scripts/world_v070.gd"' in current_world
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'debug_v070_ready' in release_world
