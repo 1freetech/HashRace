@@ -1,16 +1,17 @@
 extends RefCounted
 
 # Hash Race grid navigation helper.
-# Rendered terrain stays independent from navigation. A four-direction logical
-# grid records blocked cells, reachable cells and A* routes for the company rep.
-# The reachable-area concept is implemented independently after studying common
-# tactics/pathfinding patterns; no third-party pathfinding source is copied.
+# The primary point-to-point solver uses Godot's native AStarGrid2D so route
+# expansion runs in engine code. The bounded scanner/reachable helper remains a
+# small GDScript breadth-first search because it intentionally returns every
+# reachable cell inside a short tactical radius rather than one route.
 
 var world_size: Vector2 = Vector2.ZERO
 var cell_size: float = 48.0
 var columns: int = 0
 var rows: int = 0
 var blocked: Dictionary = {}
+var astar_grid: AStarGrid2D = AStarGrid2D.new()
 
 func configure(size: Vector2, requested_cell_size: float = 48.0) -> void:
     world_size = size
@@ -18,6 +19,14 @@ func configure(size: Vector2, requested_cell_size: float = 48.0) -> void:
     columns = int(ceil(world_size.x / cell_size))
     rows = int(ceil(world_size.y / cell_size))
     blocked.clear()
+    astar_grid = AStarGrid2D.new()
+    astar_grid.region = Rect2i(Vector2i.ZERO, Vector2i(columns, rows))
+    astar_grid.cell_size = Vector2(cell_size, cell_size)
+    astar_grid.offset = Vector2(cell_size * 0.5, cell_size * 0.5)
+    astar_grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+    astar_grid.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
+    astar_grid.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
+    astar_grid.update()
 
 func world_to_cell(world_pos: Vector2) -> Vector2i:
     return Vector2i(
@@ -26,10 +35,7 @@ func world_to_cell(world_pos: Vector2) -> Vector2i:
     )
 
 func cell_to_world(cell: Vector2i) -> Vector2:
-    return Vector2(
-        (float(cell.x) + 0.5) * cell_size,
-        (float(cell.y) + 0.5) * cell_size
-    )
+    return Vector2((float(cell.x) + 0.5) * cell_size, (float(cell.y) + 0.5) * cell_size)
 
 func set_blocked(cell: Vector2i, value: bool = true) -> void:
     if not _in_bounds(cell):
@@ -38,6 +44,7 @@ func set_blocked(cell: Vector2i, value: bool = true) -> void:
         blocked[cell] = true
     else:
         blocked.erase(cell)
+    astar_grid.set_point_solid(cell, value)
 
 func block_rect(rect: Rect2) -> void:
     if columns <= 0 or rows <= 0:
@@ -67,7 +74,7 @@ func nearest_open(cell: Vector2i, max_radius: int = 10) -> Vector2i:
     for radius in range(1, max_radius + 1):
         for y in range(cell.y - radius, cell.y + radius + 1):
             for x in range(cell.x - radius, cell.x + radius + 1):
-                var candidate: Vector2i = Vector2i(x, y)
+                var candidate := Vector2i(x, y)
                 if abs(candidate.x - cell.x) + abs(candidate.y - cell.y) != radius:
                     continue
                 if is_walkable(candidate):
@@ -78,20 +85,17 @@ func reachable_cells(start_world: Vector2, max_steps: int = 7) -> Array[Vector2i
     var result: Array[Vector2i] = []
     if columns <= 0 or rows <= 0 or max_steps < 0:
         return result
-
     var start: Vector2i = nearest_open(world_to_cell(start_world))
     if start.x < 0:
         return result
-
     var queue: Array[Vector2i] = [start]
     var distance: Dictionary = {start: 0}
-    var head: int = 0
-
+    var head := 0
     while head < queue.size():
         var current: Vector2i = queue[head]
         head += 1
         result.append(current)
-        var current_steps: int = int(distance.get(current, 0))
+        var current_steps := int(distance.get(current, 0))
         if current_steps >= max_steps:
             continue
         for neighbor in _neighbors(current):
@@ -99,56 +103,61 @@ func reachable_cells(start_world: Vector2, max_steps: int = 7) -> Array[Vector2i
                 continue
             distance[neighbor] = current_steps + 1
             queue.append(neighbor)
-
     return result
 
 func find_path(start_world: Vector2, end_world: Vector2) -> Array[Vector2]:
-    var start: Vector2i = nearest_open(world_to_cell(start_world))
-    var goal: Vector2i = nearest_open(world_to_cell(end_world))
-    return _find_path_cells(start, goal, {})
+    var result: Array[Vector2] = []
+    if columns <= 0 or rows <= 0:
+        return result
+    var start := nearest_open(world_to_cell(start_world))
+    var goal := nearest_open(world_to_cell(end_world))
+    if start.x < 0 or goal.x < 0:
+        return result
+    if start == goal:
+        result.append(cell_to_world(goal))
+        return result
+    var ids: Array[Vector2i] = []
+    for point in astar_grid.get_id_path(start, goal, false):
+        ids.append(point)
+    if ids.is_empty():
+        return result
+    ids = _compress_collinear_cells(ids)
+    for i in range(1, ids.size()):
+        result.append(cell_to_world(ids[i]))
+    return result
 
 func find_path_in_range(start_world: Vector2, end_world: Vector2, allowed_cells: Array[Vector2i]) -> Array[Vector2]:
     var allowed_lookup: Dictionary = {}
     for cell in allowed_cells:
         allowed_lookup[cell] = true
-    var start: Vector2i = nearest_open(world_to_cell(start_world))
-    var goal: Vector2i = nearest_open(world_to_cell(end_world))
-    return _find_path_cells(start, goal, allowed_lookup)
+    var start := nearest_open(world_to_cell(start_world))
+    var goal := nearest_open(world_to_cell(end_world))
+    return _find_path_cells_bounded(start, goal, allowed_lookup)
 
-func _find_path_cells(start: Vector2i, goal: Vector2i, allowed_lookup: Dictionary) -> Array[Vector2]:
+func _find_path_cells_bounded(start: Vector2i, goal: Vector2i, allowed_lookup: Dictionary) -> Array[Vector2]:
     var result: Array[Vector2] = []
     if columns <= 0 or rows <= 0 or start.x < 0 or goal.x < 0:
         return result
-    if not allowed_lookup.is_empty() and (not allowed_lookup.has(start) or not allowed_lookup.has(goal)):
+    if not allowed_lookup.has(start) or not allowed_lookup.has(goal):
         return result
     if start == goal:
         result.append(cell_to_world(goal))
         return result
-
-    var open_set: Array[Vector2i] = [start]
+    var queue: Array[Vector2i] = [start]
     var came_from: Dictionary = {}
-    var g_score: Dictionary = {start: 0}
-    var f_score: Dictionary = {start: _manhattan(start, goal)}
-
-    while not open_set.is_empty():
-        var current: Vector2i = _lowest_score(open_set, f_score)
+    var visited: Dictionary = {start: true}
+    var head := 0
+    while head < queue.size():
+        var current: Vector2i = queue[head]
+        head += 1
         if current == goal:
             return _reconstruct_world_path(came_from, current, start)
-
-        open_set.erase(current)
         for neighbor in _neighbors(current):
-            if not is_walkable(neighbor):
+            if not is_walkable(neighbor) or not allowed_lookup.has(neighbor) or visited.has(neighbor):
                 continue
-            if not allowed_lookup.is_empty() and not allowed_lookup.has(neighbor):
-                continue
-            var tentative_g: int = int(g_score.get(current, 1000000000)) + 1
-            if tentative_g < int(g_score.get(neighbor, 1000000000)):
-                came_from[neighbor] = current
-                g_score[neighbor] = tentative_g
-                f_score[neighbor] = tentative_g + _manhattan(neighbor, goal)
-                if not open_set.has(neighbor):
-                    open_set.append(neighbor)
-
+            visited[neighbor] = true
+            came_from[neighbor] = current
+            queue.append(neighbor)
     return result
 
 func blocked_count() -> int:
@@ -161,10 +170,8 @@ func _reconstruct_world_path(came_from: Dictionary, current: Vector2i, start: Ve
             return []
         current = came_from[current]
         cells.push_front(current)
-
     cells = _compress_collinear_cells(cells)
     var result: Array[Vector2] = []
-    # Skip the starting cell. The representative is already there.
     for i in range(1, cells.size()):
         result.append(cell_to_world(cells[i]))
     return result
@@ -173,35 +180,20 @@ func _compress_collinear_cells(cells: Array[Vector2i]) -> Array[Vector2i]:
     if cells.size() <= 2:
         return cells
     var result: Array[Vector2i] = [cells[0]]
-    var last_direction: Vector2i = cells[1] - cells[0]
+    var last_direction := cells[1] - cells[0]
     for i in range(1, cells.size() - 1):
-        var next_direction: Vector2i = cells[i + 1] - cells[i]
+        var next_direction := cells[i + 1] - cells[i]
         if next_direction != last_direction:
             result.append(cells[i])
         last_direction = next_direction
     result.append(cells[cells.size() - 1])
     return result
 
-func _lowest_score(open_set: Array[Vector2i], f_score: Dictionary) -> Vector2i:
-    var best: Vector2i = open_set[0]
-    var best_score: int = int(f_score.get(best, 1000000000))
-    for candidate in open_set:
-        var score: int = int(f_score.get(candidate, 1000000000))
-        if score < best_score:
-            best = candidate
-            best_score = score
-    return best
-
 func _neighbors(cell: Vector2i) -> Array[Vector2i]:
-    return [
-        Vector2i(cell.x + 1, cell.y),
-        Vector2i(cell.x - 1, cell.y),
-        Vector2i(cell.x, cell.y + 1),
-        Vector2i(cell.x, cell.y - 1)
-    ]
-
-func _manhattan(a: Vector2i, b: Vector2i) -> int:
-    return abs(a.x - b.x) + abs(a.y - b.y)
+    return [Vector2i(cell.x + 1, cell.y), Vector2i(cell.x - 1, cell.y), Vector2i(cell.x, cell.y + 1), Vector2i(cell.x, cell.y - 1)]
 
 func _in_bounds(cell: Vector2i) -> bool:
     return cell.x >= 0 and cell.y >= 0 and cell.x < columns and cell.y < rows
+
+func debug_native_astar_ready() -> bool:
+    return columns > 0 and rows > 0 and astar_grid.region.size == Vector2i(columns, rows) and astar_grid.diagonal_mode == AStarGrid2D.DIAGONAL_MODE_NEVER
