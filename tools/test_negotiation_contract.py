@@ -18,7 +18,6 @@ require(scene_script, [
     "AnimationPlayer",
     "_make_offer",
     "_counter_offer",
-    "_threaten",
     "_walk_away",
     "negotiation_finished",
     "player_reputation",
@@ -47,10 +46,9 @@ require(scene, [
     '[node name="IntroAnimation" type="AnimationPlayer"',
     "MakeOfferButton",
     "CounterOfferButton",
-    "ThreatenButton",
     "WalkAwayButton",
 ], "Negotiation scene tree")
 
-assert re.fullmatch(r"v0\.\d{3}", version), version
+assert "_threaten" not in scene_script, "Threaten action must stay removed from negotiation controller"\nassert "ThreatenButton" not in scene, "Threaten button must stay removed from negotiation scene"\nassert "THREATEN" not in scene, "Threaten label must stay removed from negotiation scene"\n\nassert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 72, f"negotiation requires v0.072+, got {version}"
 print("Negotiation contract PASS")
