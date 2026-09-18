@@ -347,7 +347,15 @@ func _draw_pixel_facility(pos: Vector2, size_value: Vector2, accent: Color, floo
 	var left: float = snapped_pos.x - size_value.x * 0.5
 	var top: float = snapped_pos.y - size_value.y * 0.62
 	var body: Rect2 = Rect2(left, top, size_value.x, size_value.y)
-	draw_rect(Rect2(snapped_pos + Vector2(-size_value.x * 0.47, size_value.y * 0.42), Vector2(size_value.x * 0.94, 16.0)), Color("00000066"), true)
+	# Ground every facility at its visual foot instead of letting the sprite mass
+	# hover above the terrain. A compact contact shadow, foundation apron and
+	# bottom-edge seam make the building read as attached to its lot at every zoom.
+	var ground_y: float = body.end.y
+	var contact_shadow := Rect2(Vector2(left + 6.0, ground_y - 5.0), Vector2(size_value.x - 12.0, 13.0))
+	draw_rect(contact_shadow, Color("00000078"), true)
+	var foundation := Rect2(Vector2(left - 3.0, ground_y - 7.0), Vector2(size_value.x + 6.0, 9.0))
+	draw_rect(foundation, GBC_LOT_0, true)
+	draw_rect(Rect2(Vector2(left + 3.0, ground_y - 5.0), Vector2(size_value.x - 6.0, 3.0)), accent.darkened(0.62), true)
 	# Vger-inspired layered stroke and Simple2D-style roof gradient make every
 	# facility read as a distinct pixel building instead of a flat rectangle.
 	_draw_layered_stroke_rect(body, Color("0b1720"), Color("020609"), accent.darkened(0.58), 4.0)
