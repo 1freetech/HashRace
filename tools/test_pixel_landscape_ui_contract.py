@@ -4,6 +4,8 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 
 world_scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
+world_v068 = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 world_v067 = (ROOT / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 world_v065 = (ROOT / "Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
 world_v059 = (ROOT / "Godot/scripts/world_v059.gd").read_text(encoding="utf-8")
@@ -14,8 +16,10 @@ texture_spacing = (ROOT / "Godot/scripts/world_texture_spacing.gd").read_text(en
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
-assert 'res://scripts/world_v067.gd' in world_scene, "Live scene must boot through the current v0.067 Mining Ops composition layer"
-assert 'extends "res://scripts/world_v065.gd"' in world_v067, "v0.067 must retain the v0.065 energy composition layer"
+assert 'res://scripts/world_v070.gd' in world_scene, "Live scene must boot through the current v0.070 release layer"
+assert 'extends "res://scripts/world_v068.gd"' in world_v070
+assert 'extends "res://scripts/world_v067.gd"' in world_v068
+assert 'extends "res://scripts/world_v065.gd"' in world_v067, "Mining Ops layer must retain the v0.065 energy composition layer"
 assert 'extends "res://scripts/world_v059.gd"' in world_v065, "v0.065 must retain the v0.059 infrastructure composition layer"
 assert 'extends "res://scripts/world_v055.gd"' in world_v059, "v0.059 must retain the procedural-building composition chain"
 assert 'extends "res://scripts/world_v053.gd"' in world_v055, "v0.055 must retain the v0.053 character/detail composition chain"
