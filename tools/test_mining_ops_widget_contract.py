@@ -6,6 +6,7 @@ import re
 root = Path(__file__).resolve().parents[1]
 version = (root / "VERSION").read_text(encoding="utf-8").strip()
 scene = (root / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+current_world = (root / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
 release_world = (root / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 world = (root / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 parent_world = (root / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
@@ -14,7 +15,8 @@ capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encodi
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-assert 'res://scripts/world_v070.gd' in scene
+assert 'res://scripts/world_v072.gd' in scene
+assert 'extends "res://scripts/world_v070.gd"' in current_world
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_v067.gd"' in world
 assert 'MODULAR_ARCHITECTURE_REVISION' in world
