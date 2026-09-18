@@ -7,15 +7,15 @@ Hash Race v0.072 adds a reusable Godot 4 negotiation layer for face-to-face busi
 1. A rival company or representative exposes **NEGOTIATE ACCESS DEAL**.
 2. `world_v072.gd` builds context from the live company personalities, including reputation, leverage, rival power, greed, cash, and tech level.
 3. `NegotiationManager` instantiates `NegotiationScene.tscn` above the world as a high-layer `CanvasLayer`.
-4. The scene plays a fast battle-style intro, then presents four actions: **MAKE OFFER**, **COUNTER**, **THREATEN**, and **WALK AWAY**.
+4. The scene plays a fast battle-style intro, then presents three actions: **MAKE OFFER**, **COUNTER**, and **WALK AWAY**.
 5. The scene emits a structured result. The world applies the economic result only after a deal is closed.
 
-The first live deal type is a small flexible-power access contract. A successful agreement transfers cash from the player to the rival and adds the negotiated MW capacity to the player. Threat tactics can reduce terms but can also damage reputation.
+The first live deal type is a small flexible-power access contract. A successful agreement transfers cash from the player to the rival and adds the negotiated MW capacity to the player.
 
 ## Architecture
 
 - `Godot/scenes/NegotiationScene.tscn` — original Hash Race negotiation UI and battle-style layout.
-- `Godot/scripts/negotiation_scene.gd` — intro animation, offers, counteroffers, pressure action, walk-away path, result state, and debug hooks.
+- `Godot/scripts/negotiation_scene.gd` — intro animation, offers, counteroffers, walk-away path, result state, and debug hooks.
 - `Godot/systems/negotiation_manager.gd` — lifecycle manager that launches one negotiation at a time and forwards results.
 - `Godot/scripts/world_v072.gd` — converts live rival/company state into negotiation context and applies successful deals.
 - `Godot/scripts/validate_negotiation_scene.gd` — headless runtime validation.
