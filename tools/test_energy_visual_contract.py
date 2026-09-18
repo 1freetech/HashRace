@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Energy/deployment contract retained by Hash Race v0.067."""
+"""Energy/deployment contract retained by Hash Race v0.070."""
 from pathlib import Path
 
-inventory = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
-energy = Path("Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
-world_v067 = Path("Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
-scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
-version = Path("VERSION").read_text().strip()
+ROOT = Path(__file__).resolve().parents[1]
+inventory = (ROOT / "Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
+energy = (ROOT / "Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
+world_v067 = (ROOT / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
+world_v068 = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
+world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
+scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+version = (ROOT / "VERSION").read_text().strip()
 
-assert version == "v0.067"
-assert 'res://scripts/world_v067.gd' in scene
+assert version == "v0.070"
+assert 'res://scripts/world_v070.gd' in scene
+assert 'extends "res://scripts/world_v068.gd"' in world_v070
+assert 'extends "res://scripts/world_v067.gd"' in world_v068
 assert 'extends "res://scripts/world_v065.gd"' in world_v067
 assert 'extends "res://scripts/world_v059.gd"' in energy
 
@@ -23,11 +28,15 @@ for marker in [
     'current_energy_output_mw',
     'total_cooling_capacity_mw',
     'debug_deployment_separation_ready',
+    'ItemLibrary.load_catalog',
 ]:
     assert marker in inventory, f"Inventory missing deployment marker: {marker}"
 
 for source in ["solar_array", "wind_farm", "gas_turbine", "hydro_turbine", "oil_field", "coal_plant", "nuclear_smr"]:
-    assert f'"id":"{source}"' in inventory, f"Missing energy source {source}"
+    path = ROOT / f"Godot/data/items/{source}.tres"
+    assert path.exists(), f"Missing energy ItemResource {source}"
+    text = path.read_text(encoding="utf-8")
+    assert f'id = "{source}"' in text
 
 for visual in [
     '_draw_energy_campus', '_draw_solar_unit', '_draw_wind_unit', '_draw_gas_unit',
@@ -42,4 +51,4 @@ assert 'purchase_and_deploy(item_id, player, 1)' in energy
 assert 'super._hashrate_th() + infrastructure_inventory.total_deployed_hashrate_ph() * 1000.0' in energy
 assert 'super._machine_load_kw() + infrastructure_inventory.total_deployed_miner_load_mw() * 1000.0' in energy
 
-print("Hash Race v0.067 retained energy/deployment contract passed.")
+print("Hash Race v0.070 retained energy/deployment contract passed.")
