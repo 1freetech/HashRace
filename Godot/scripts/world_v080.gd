@@ -122,7 +122,7 @@ func _draw_pixel_facility(pos: Vector2, size_value: Vector2, accent: Color, floo
         true
     )
     draw_rect(
-        Rect2(Vector2(inner.end.x - 12.0, inner.position.y), Vector2(12.0, inner.size.y)),
+        Rect2(Vector2(inner.position.x + inner.size.x - 12.0, inner.position.y), Vector2(12.0, inner.size.y)),
         V080_WALL_LIGHT,
         true
     )
