@@ -4,14 +4,16 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.067**.
+The latest verified public desktop release is **v0.067**. The current **main** development build is **v0.068**.
 
 - **[Windows x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-windows-x64.zip)**
 - **[Linux x64 — Hash Race v0.067](https://github.com/1freetech/HashRace/releases/download/v0.067/HashRace-v0.067-linux-x64.tar.gz)**
 - **[Hash Race v0.067 release page](https://github.com/1freetech/HashRace/releases/tag/v0.067)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.067 adds the draggable **Mining Ops** digital widget shown in the approved visual direction. Six live cards show **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash**. The widget uses compact 8–10 px-style labels, live sparklines and status bars, scales with the screen, can be dragged or mounted to any corner, can be minimized or restored, and reads directly from the active company simulation rather than from fixed display values. The existing deployable energy campus, warehouse/deployed inventory, 34-asset infrastructure catalog, grid limits, thermal feedback, and energy market remain active.
+v0.068 is the modular-architecture upgrade. The persistent HUD is now one compact **Mining Ops** panel mounted in the **upper-right** by default. It keeps the six live cards — **Hashrate, Power, Efficiency, Uptime, BTC Treasury, and USD Cash** — and folds company/date/turn context into the same surface so the old full-width persistent stat strip is hidden instead of duplicating values.
+
+The infrastructure catalog is now backed by **34 native Godot `.tres` ItemResource files** rather than one giant hardcoded dictionary. Physical rack containers expose typed hardware slots, a world-space placement grid tracks actual deployment positions, and a dedicated **SimulationManager** runs a fixed one-second live tick for power balance, thermal state, throttling telemetry, and the Mining Ops snapshot. Existing strategic turn settlement remains intact while the real-time operational layer is decoupled from UI rendering.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository preserves useful native simulation work for heavier systems while Godot remains the primary gameplay, UI, map, event, and franchise client.
 
@@ -37,7 +39,9 @@ Electricity price, uptime, BTC holdings, debt, land, machine count and generatio
 
 The live infrastructure catalog currently contains **34 functional assets** across nine categories: miners, power, energy, cooling, facilities, network, maintenance, resilience, and strategic supply. Energy inventory now includes solar farms, wind farms, natural-gas turbines, hydro turbines, oil-field generation, coal power blocks, grid batteries, and nuclear SMR campuses alongside ASIC racks, transformers, switchgear, PDUs, cooling, facilities, networking, repair equipment, resilience systems, and strategic supply investments.
 
-The inventory is data-driven so future updates can expand without building a separate system for each object. Owned quantities are tracked separately from deployed quantities: equipment in warehouse storage does not generate hashrate or site capacity until it is deployed. Major energy and cooling assets now have original procedural pixel representations in the live world, and energy output uses nameplate MW plus capacity-factor behavior for site-stability calculations.
+The inventory is now driven by native Godot **ItemResource** files under `Godot/data/items/`. New hardware can be added or balanced in the Inspector without editing the inventory core. A compatibility bridge still exposes the older dictionary-shaped API where existing UI code needs it, but the resource files are the source of truth.
+
+Owned quantities are tracked separately from deployed quantities. Equipment in warehouse storage does not generate hashrate or site capacity until it is deployed. v0.068 also introduces physical rack/slot nodes and a placement grid so deployed mining hardware has a world-space representation instead of existing only as a global stat tally.
 
 ## Flexible turn system
 
@@ -91,7 +95,7 @@ Mining-company merger negotiations use a probabilistic acceptance system. Offer 
 
 Hash Race uses **Godot** as its primary engine:
 
-- **GDScript** — live gameplay, UI, maps, events, franchise systems, inventory presentation, rival AI, and company culture
+- **GDScript** — live gameplay, UI, maps, events, Resource-backed content, physical placement, fixed-tick operations simulation, rival AI, and company culture
 - **C++20** — retained for measured simulation-heavy work and future GDExtension integration
 - **C#** — useful legacy prototype code remains only where it still saves migration time
 - **Python / TypeScript / Rust** — validation and simulation experiments where useful
