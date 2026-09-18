@@ -15,7 +15,8 @@ version = (ROOT / "VERSION").read_text().strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-assert 'res://scripts/world_v070.gd' in scene
+assert 'res://scripts/world_v072.gd' in scene
+assert 'extends "res://scripts/world_v070.gd"' in world_v072
 assert 'extends "res://scripts/world_v068.gd"' in world_v070
 assert 'extends "res://scripts/world_v067.gd"' in world_v068
 assert 'extends "res://scripts/world_v065.gd"' in world_v067
