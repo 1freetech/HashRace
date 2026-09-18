@@ -172,7 +172,7 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION ships the current tested Godot strategy-RPG build with the new data-center infrastructure graphics pass. Mining towns now render compact multi-rack compute pods, server sleds, cooling fans, vented power cabinets, activity LEDs, network switches, cable trays, and restrained blue/green/orange cable bundles adapted from the supplied pixel-rack references and Godot drawing approach. The detail replaces simpler industrial blocks without adding extra map text. Windows and Linux packages plus rendered overworld and close-up PNG proofs are CI verified before release."
+          NOTES="Hash Race $VERSION adds a visible deployable energy campus and a live power/thermal layer to the Bitcoin mining strategy world. Infrastructure now separates warehouse stock from deployed equipment, so stored miners and power gear no longer create active output. The 34-asset catalog includes solar, wind, natural gas, hydro, oil-field generation, coal power, batteries, and nuclear SMR capacity. The player energy yard renders substations, panels, turbines, generators, pumps, cooling equipment, animated power flow, heat feedback, and compact load/available-MW/temperature status. Windows and Linux packages plus rendered overworld and close-up PNG proofs are CI verified before release."
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest

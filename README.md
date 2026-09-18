@@ -4,14 +4,14 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.064**.
+The latest verified public desktop release is **v0.065**.
 
-- **[Windows x64 — Hash Race v0.064](https://github.com/1freetech/HashRace/releases/download/v0.064/HashRace-v0.064-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.064](https://github.com/1freetech/HashRace/releases/download/v0.064/HashRace-v0.064-linux-x64.tar.gz)**
-- **[Hash Race v0.064 release page](https://github.com/1freetech/HashRace/releases/tag/v0.064)**
+- **[Windows x64 — Hash Race v0.065](https://github.com/1freetech/HashRace/releases/download/v0.065/HashRace-v0.065-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.065](https://github.com/1freetech/HashRace/releases/download/v0.065/HashRace-v0.065-linux-x64.tar.gz)**
+- **[Hash Race v0.065 release page](https://github.com/1freetech/HashRace/releases/tag/v0.065)**
 - **[Latest verified release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-v0.064 adds the first comprehensive infrastructure inventory foundation. The live Godot game has a categorized 30-asset equipment catalog covering mining hardware, power, energy, cooling, facilities, networking, maintenance, resilience, and strategic supply. Equipment is functional rather than decorative: purchases can change PH/s, MW, uptime, fleet efficiency, power cost, machine capacity, operating cost, equipment discounts, and risk protection. The release also retains the detailed pixel data-center infrastructure graphics pass.
+v0.065 turns infrastructure ownership into a visible operating system. The live Godot game now separates warehouse stock from deployed equipment, expands the catalog to 34 assets, and adds an ENERGY market for solar, wind, natural-gas, hydro, oil-field generation, coal power, batteries, and nuclear SMR capacity. A new procedural energy campus appears beside the player's mining HQ with substations, animated power flow, turbines, panels, pumps, cooling equipment, heat feedback, and live load/available-MW/temperature status. Only deployed equipment contributes live hashrate, power, cooling, uptime, or cost effects.
 
 The desktop game uses **Godot 4.7.2 and GDScript**. The repository preserves useful native simulation work for heavier systems while Godot remains the primary gameplay, UI, map, event, and franchise client.
 
@@ -35,9 +35,9 @@ Electricity price, uptime, BTC holdings, debt, land, machine count and generatio
 
 ## Infrastructure inventory
 
-The live infrastructure catalog currently contains **30 functional assets** across nine categories: miners, power, energy, cooling, facilities, network, maintenance, resilience, and strategic supply. Examples include ASIC racks, transformers, switchgear, PDUs, gas and hydro turbines, batteries, immersion cooling, mining containers, modular halls, fiber, monitoring servers, repair equipment, backup generation, fire/security equipment, and semiconductor supply investments.
+The live infrastructure catalog currently contains **34 functional assets** across nine categories: miners, power, energy, cooling, facilities, network, maintenance, resilience, and strategic supply. Energy inventory now includes solar farms, wind farms, natural-gas turbines, hydro turbines, oil-field generation, coal power blocks, grid batteries, and nuclear SMR campuses alongside ASIC racks, transformers, switchgear, PDUs, cooling, facilities, networking, repair equipment, resilience systems, and strategic supply investments.
 
-The inventory is data-driven so future updates can expand beyond 30 items without building a separate system for each object. Owned quantities are tracked separately from item definitions and inventory state supports serialization. Visual development will progressively give major infrastructure items their own original pixel representations in the world.
+The inventory is data-driven so future updates can expand without building a separate system for each object. Owned quantities are tracked separately from deployed quantities: equipment in warehouse storage does not generate hashrate or site capacity until it is deployed. Major energy and cooling assets now have original procedural pixel representations in the live world, and energy output uses nameplate MW plus capacity-factor behavior for site-stability calculations.
 
 ## Flexible turn system
 
@@ -84,7 +84,8 @@ Mining-company merger negotiations use a probabilistic acceptance system. Offer 
 - **Q** — preview the current turn
 - **END TURN** — preview and confirm settlement
 - **BTC Hold slider** — set hold policy from 0–100
-- **INFRASTRUCTURE** — browse the functional equipment inventory
+- **INFRASTRUCTURE** — browse owned, deployed, and warehouse equipment
+- **ENERGY** — buy and deploy generation assets that add live site capacity
 
 ## Technology
 

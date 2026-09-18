@@ -82,6 +82,8 @@ jobs:
         run: python tools/test_league_contract.py
       - name: Test the life and operations contract
         run: python tools/test_life_ops_contract.py
+      - name: Test energy deployment and visual contract
+        run: python tools/test_energy_visual_contract.py
       - name: Test pixel landscape and compact UI contract
         run: python tools/test_pixel_landscape_ui_contract.py
 
