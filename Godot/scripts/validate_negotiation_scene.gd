@@ -61,5 +61,5 @@ func _run() -> void:
         _fail("walk-away path did not resolve negotiation")
         return
 
-    print("HASH RACE NEGOTIATION PASS: battle-style scene, offer, counteroffer, threat/walk-away controls, and result state initialized.")
+    print("HASH RACE NEGOTIATION PASS: battle-style scene, offer, counteroffer, walk-away control, and result state initialized.")
     quit(0)
