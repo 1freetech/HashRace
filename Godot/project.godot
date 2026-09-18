@@ -7,6 +7,9 @@ config/name="Hash Race"
 run/main_scene="res://scenes/campaign_setup.tscn"
 config/features=PackedStringArray("4.7")
 
+[autoload]
+SceneManager="*res://autoloads/scene_manager.gd"
+
 [display]
 window/size/viewport_width=1440
 window/size/viewport_height=900
