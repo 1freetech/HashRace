@@ -42,7 +42,7 @@ func _run() -> void:
         "debug_culture_effects_summary", "debug_texture_spacing_ready", "debug_clean_layout_min_spacing",
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
-        "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated",
+        "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -146,9 +146,12 @@ func _run() -> void:
         _fail("detailed rack, cooling and network infrastructure layer did not initialize")
         return
 
-    # v0.068 modular architecture + consolidated HUD contract.
+    # v0.070 modular architecture + consolidated HUD contract.
+    if not bool(scene.call("debug_v070_ready")):
+        _fail("v0.070 release layer did not initialize")
+        return
     if not bool(scene.call("debug_modular_architecture_ready")):
-        _fail("v0.068 Resource/placement/simulation architecture did not initialize")
+        _fail("v0.070 Resource/placement/simulation architecture did not initialize")
         return
     var live_snapshot: Dictionary = scene.call("debug_simulation_snapshot")
     for key in ["hashrate", "power", "efficiency", "uptime", "btc", "cash", "load_mw", "power_state"]:
@@ -222,5 +225,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.068 verified Resource-backed infrastructure, physical rack slots/placement, fixed-tick simulation, consolidated upper-right live metrics, plus the existing visual, company, treasury, dialogue, camera, and turn-settlement systems.")
+    print("HASH RACE OVERWORLD PASS: v0.070 verified Resource-backed infrastructure, physical rack slots/placement, fixed-tick simulation, consolidated upper-right live metrics, plus the existing visual, company, treasury, dialogue, camera, and turn-settlement systems.")
     quit(0)
