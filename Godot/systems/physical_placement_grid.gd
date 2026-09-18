@@ -57,6 +57,14 @@ func remove_placement(node: Node2D) -> bool:
         placement_changed.emit()
     return erased
 
+func clear_all() -> void:
+    for node in placed_nodes.duplicate():
+        if is_instance_valid(node):
+            node.queue_free()
+    placed_nodes.clear()
+    occupied.clear()
+    placement_changed.emit()
+
 func serialize_layout() -> Array:
     var data: Array = []
     for key in occupied.keys():
