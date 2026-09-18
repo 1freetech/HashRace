@@ -155,30 +155,59 @@ func _sign_partner(partner_idx: int) -> void:
     if signed_partners.size() > before:
         _feedback("DEAL SIGNED with %s for $%d. Reputation multiplier: x%.3f. %s" % [String(partner["name"]), int(effective_cost), _partner_cost_multiplier(), String(partner["boost"])])
 
+func _merger_acceptance_chance(rival: Dictionary, offer_price: float) -> float:
+    var rival_assets: float = float(rival["cash"]) + float(rival["sats"]) / SATS_PER_BTC * btc_price + float(rival["mw"]) * 90000.0 + float(rival["acres"]) * land_price_per_acre + float(rival["machines"]) * 700.0
+    var fair_price: float = maxf(100000.0, rival_assets * 0.70)
+    var offer_strength: float = clampf(offer_price / fair_price, 0.25, 1.50)
+    var size_position: float = clampf(_asset_value() / maxf(1.0, rival_assets), 0.25, 2.0)
+    var reputation: float = _rating("reputation")
+    var aggression: float = _rating("aggression")
+    var chance: float = 12.0
+    chance += (offer_strength - 0.50) * 58.0
+    chance += (size_position - 0.80) * 12.0
+    chance += (reputation - 50.0) * 0.18
+    chance += (aggression - 50.0) * 0.08
+    return clampf(chance, 1.0, 99.0)
+
+func _negotiation_band(chance: float) -> String:
+    if chance >= 80.0:
+        return "VERY LIKELY"
+    if chance >= 55.0:
+        return "LIKELY"
+    if chance >= 35.0:
+        return "MEDIUM"
+    if chance >= 20.0:
+        return "UNLIKELY"
+    return "LONG SHOT"
+
 func _merge_rival(rival_idx: int) -> void:
     if player_personality.is_empty():
         super._merge_rival(rival_idx)
         return
     if merger_used:
-        super._merge_rival(rival_idx)
+        _feedback("Your one merger has already been used.")
         return
     var rival: Dictionary = rivals[rival_idx]
     if bool(rival["merged"]):
-        super._merge_rival(rival_idx)
+        _feedback("That rival has already been absorbed.")
         return
     var rival_assets: float = float(rival["cash"]) + float(rival["sats"]) / SATS_PER_BTC * btc_price + float(rival["mw"]) * 90000.0 + float(rival["acres"]) * land_price_per_acre + float(rival["machines"]) * 700.0
-    if rival_assets > _asset_value() * 1.25:
-        super._merge_rival(rival_idx)
-        return
     var base_price: float = maxf(100000.0, rival_assets * 0.70)
     var effective_price: float = base_price * _merger_cost_multiplier()
     if float(player["cash"]) < effective_price:
-        _feedback("Need $%d cash to close this merger after negotiation effects." % int(effective_price))
+        _feedback("Need $%d cash to make this merger offer." % int(effective_price))
+        return
+    var chance: float = _merger_acceptance_chance(rival, effective_price)
+    var band: String = _negotiation_band(chance)
+    var roll: float = randf() * 100.0
+    if roll >= chance:
+        _feedback("DEAL REJECTED: %s • acceptance meter %.0f%% [%s]. Even strong offers can fail; improve cash, reputation, company size, or the offer position and try another rival." % [String(rival["name"]), chance, band])
         return
     player["cash"] = float(player["cash"]) + base_price - effective_price
     super._merge_rival(rival_idx)
     if bool(rivals[rival_idx]["merged"]):
-        _feedback("ONE-TIME MERGER CLOSED: %s joined your company for $%d. Negotiation multiplier: x%.3f." % [String(rival["name"]), int(effective_price), _merger_cost_multiplier()])
+        _feedback("DEAL ACCEPTED: %s • acceptance meter %.0f%% [%s] • closed for $%d." % [String(rival["name"]), chance, band, int(effective_price)])
+
 
 func _open_hq(entity: Dictionary) -> void:
     super._open_hq(entity)
