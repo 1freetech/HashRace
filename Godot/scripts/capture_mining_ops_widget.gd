@@ -59,6 +59,28 @@ func _capture() -> void:
         _fail("BTC treasury card did not follow live company sats")
         return
 
+    var widget := scene.get_node_or_null("MiningOpsHUD/MiningOpsWidget") as Control
+    if widget == null:
+        _fail("Mining Ops widget node could not be located")
+        return
+    if not widget.has_method("debug_resizable_ready") or not bool(widget.call("debug_resizable_ready")):
+        _fail("edge-resize system did not initialize")
+        return
+    if int(widget.call("debug_resize_edge_mask", Vector2(1.0, 120.0))) == 0:
+        _fail("left-side resize hit zone is missing")
+        return
+    if int(widget.call("debug_resize_edge_mask", Vector2(160.0, 1.0))) == 0:
+        _fail("top resize hit zone is missing")
+        return
+
+    var original_size := widget.size
+    widget.call("debug_set_widget_size", Vector2(700.0, 410.0))
+    for _frame in range(3):
+        await process_frame
+    if widget.size.x < original_size.x + 100.0 or widget.size.y < original_size.y + 60.0:
+        _fail("responsive Mining Ops widget did not grow after resize")
+        return
+
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
@@ -72,5 +94,5 @@ func _capture() -> void:
         _fail("could not save Mining Ops widget PNG: %s" % error_string(save_error))
         return
 
-    print("HASH RACE MINING OPS WIDGET PROOF PASS: live six-card HUD changed with company cash and BTC state. Saved %s" % output_file)
+    print("HASH RACE MINING OPS WIDGET PROOF PASS: live six-card HUD changed with company state and rendered successfully after edge-resizing to %.0fx%.0f. Saved %s" % [widget.size.x, widget.size.y, output_file])
     quit(0)

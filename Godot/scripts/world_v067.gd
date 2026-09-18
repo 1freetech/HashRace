@@ -4,7 +4,7 @@ extends "res://scripts/world_v065.gd"
 # Adds the approved six-card draggable HUD while keeping every number bound to
 # the actual live company simulation.
 const MiningOpsWidget = preload("res://scripts/mining_ops_widget.gd")
-const MINING_OPS_WIDGET_REVISION: int = 1
+const MINING_OPS_WIDGET_REVISION: int = 2
 
 var mining_ops_layer: CanvasLayer
 var mining_ops_widget: Control
@@ -72,7 +72,17 @@ func debug_mining_ops_widget_ready() -> bool:
     if not is_instance_valid(mining_ops_widget):
         return false
     var snapshot: Dictionary = mining_ops_widget.call("snapshot")
-    return snapshot.size() >= 7 and snapshot.has("hashrate") and snapshot.has("power") and snapshot.has("efficiency") and snapshot.has("uptime") and snapshot.has("btc") and snapshot.has("cash")
+    return (
+        snapshot.size() >= 7
+        and snapshot.has("hashrate")
+        and snapshot.has("power")
+        and snapshot.has("efficiency")
+        and snapshot.has("uptime")
+        and snapshot.has("btc")
+        and snapshot.has("cash")
+        and mining_ops_widget.has_method("debug_resizable_ready")
+        and bool(mining_ops_widget.call("debug_resizable_ready"))
+    )
 
 func debug_mining_ops_widget_snapshot() -> Dictionary:
     if not is_instance_valid(mining_ops_widget):

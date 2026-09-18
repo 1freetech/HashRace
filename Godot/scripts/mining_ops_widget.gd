@@ -8,6 +8,16 @@ signal close_requested
 signal mount_changed(slot: int)
 
 const BASE_SIZE := Vector2(528.0, 326.0)
+const MIN_SIZE := Vector2(420.0, 260.0)
+const EDGE_GRAB: float = 8.0
+const MIN_CARD_H: float = 72.0
+
+const RESIZE_NONE: int = 0
+const RESIZE_LEFT: int = 1
+const RESIZE_RIGHT: int = 2
+const RESIZE_TOP: int = 4
+const RESIZE_BOTTOM: int = 8
+
 const HEADER_H: float = 54.0
 const FOOTER_H: float = 30.0
 const CARD_TOP: float = 62.0
@@ -41,6 +51,13 @@ var sample_accum := 0.0
 
 var dragging := false
 var drag_offset := Vector2.ZERO
+var resizing := false
+var resize_mask: int = RESIZE_NONE
+var hover_resize_mask: int = RESIZE_NONE
+var resize_start_mouse := Vector2.ZERO
+var resize_start_position := Vector2.ZERO
+var resize_start_size := BASE_SIZE
+var expanded_size := BASE_SIZE
 var collapsed := false
 var mount_slot: int = 1
 var default_position_set := false
@@ -49,11 +66,12 @@ func setup(world_node: Node) -> void:
     world = world_node
     name = "MiningOpsWidget"
     size = BASE_SIZE
-    custom_minimum_size = BASE_SIZE
+    expanded_size = BASE_SIZE
+    custom_minimum_size = MIN_SIZE
     mouse_filter = Control.MOUSE_FILTER_STOP
     clip_contents = true
     focus_mode = Control.FOCUS_NONE
-    tooltip_text = "Live Mining Ops. Starts mounted upper-right; drag the title bar to move it."
+    tooltip_text = "Live Mining Ops. Drag the title bar to move it. Drag any top/side/bottom edge or corner to resize it."
     for key in METRIC_KEYS:
         histories[key] = []
     set_process(true)
@@ -189,15 +207,20 @@ func _draw_shell(font: Font) -> void:
     draw_rect(Rect2(bx + 42.0, 17.0, 10.0, 10.0), CYAN, false, 1.0)
     draw_line(Vector2(bx + 75.0, 15.0), Vector2(bx + 91.0, 31.0), MUTED, 1.5)
     draw_line(Vector2(bx + 91.0, 15.0), Vector2(bx + 75.0, 31.0), MUTED, 1.5)
+    _draw_resize_affordance()
 
 func _draw_cards(font: Font) -> void:
-    var card_w := (BASE_SIZE.x - MARGIN_X * 2.0 - CARD_GAP * 2.0) / 3.0
+    var card_w := maxf(96.0, (size.x - MARGIN_X * 2.0 - CARD_GAP * 2.0) / 3.0)
+    var content_bottom := size.y - FOOTER_H - 7.0
+    var available_h := maxf(MIN_CARD_H * 2.0 + ROW_GAP, content_bottom - CARD_TOP)
+    var card_h := maxf(MIN_CARD_H, (available_h - ROW_GAP) / 2.0)
+
     for i in range(6):
         var col := i % 3
         var row := i / 3
         var x := MARGIN_X + float(col) * (card_w + CARD_GAP)
-        var y := CARD_TOP + float(row) * (CARD_H + ROW_GAP)
-        var rect := Rect2(x, y, card_w, CARD_H)
+        var y := CARD_TOP + float(row) * (card_h + ROW_GAP)
+        var rect := Rect2(x, y, card_w, card_h)
         draw_rect(rect, Color("030c10"), true)
         draw_rect(rect, BORDER, false, 1.0)
         draw_line(rect.position + Vector2(0.0, 6.0), rect.position + Vector2(6.0, 0.0), BORDER_HI, 1.0)
@@ -206,17 +229,24 @@ func _draw_cards(font: Font) -> void:
         var value := float(current.get(key, 0.0))
         var accent := _metric_color(key, value)
 
-        _draw_metric_icon(key, rect.position + Vector2(16.0, 17.0), accent, font)
-        draw_string(font, rect.position + Vector2(31.0, 19.0), METRIC_LABELS[i], HORIZONTAL_ALIGNMENT_LEFT, card_w - 42.0, 8, Color("a9c8d7"))
+        var icon_y := clampf(card_h * 0.18, 14.0, 17.0)
+        _draw_metric_icon(key, rect.position + Vector2(16.0, icon_y), accent, font)
+        draw_string(font, rect.position + Vector2(31.0, icon_y + 2.0), METRIC_LABELS[i], HORIZONTAL_ALIGNMENT_LEFT, card_w - 42.0, 8, Color("a9c8d7"))
         draw_circle(rect.position + Vector2(card_w - 10.0, 14.0), 2.0, accent)
 
-        draw_string(font, rect.position + Vector2(10.0, 45.0), _format_metric(key, value), HORIZONTAL_ALIGNMENT_LEFT, card_w - 18.0, 13, GREEN_HI)
+        var value_y := clampf(card_h * 0.42, 32.0, 45.0)
+        var value_font := clampi(int(round(13.0 * clampf(card_h / CARD_H, 0.90, 1.15))), 11, 15)
+        draw_string(font, rect.position + Vector2(10.0, value_y), _format_metric(key, value), HORIZONTAL_ALIGNMENT_LEFT, card_w - 18.0, value_font, GREEN_HI)
 
-        var graph_rect := Rect2(rect.position + Vector2(10.0, 51.0), Vector2(card_w - 20.0, 28.0))
+        var progress_y := card_h - 18.0
+        var graph_y := value_y + 6.0
+        var graph_h := maxf(10.0, progress_y - graph_y - 6.0)
+        var graph_rect := Rect2(rect.position + Vector2(10.0, graph_y), Vector2(card_w - 20.0, graph_h))
         _draw_sparkline(key, graph_rect, accent)
-        var progress_rect := Rect2(rect.position + Vector2(10.0, 85.0), Vector2(card_w - 20.0, 6.0))
+
+        var progress_rect := Rect2(rect.position + Vector2(10.0, progress_y), Vector2(card_w - 20.0, 6.0))
         _draw_progress(progress_rect, _progress_for(key, value), accent)
-        draw_string(font, rect.position + Vector2(10.0, 101.0), _bottom_text(key), HORIZONTAL_ALIGNMENT_LEFT, card_w - 20.0, 7, _bottom_color(key))
+        draw_string(font, rect.position + Vector2(10.0, card_h - 5.0), _bottom_text(key), HORIZONTAL_ALIGNMENT_LEFT, card_w - 20.0, 7, _bottom_color(key))
 
 func _draw_metric_icon(key: String, center: Vector2, accent: Color, font: Font) -> void:
     draw_circle(center, 10.0, Color(accent.r, accent.g, accent.b, 0.12))
@@ -401,6 +431,12 @@ func _gui_input(event: InputEvent) -> void:
         if button.button_index != MOUSE_BUTTON_LEFT:
             return
         if button.pressed:
+            var edge_mask := _resize_mask_at(button.position)
+            if edge_mask != RESIZE_NONE:
+                _begin_resize(edge_mask)
+                accept_event()
+                return
+
             var bx := size.x - 108.0
             if button.position.y <= HEADER_H and button.position.x >= bx:
                 if button.position.x < bx + 34.0:
@@ -418,22 +454,187 @@ func _gui_input(event: InputEvent) -> void:
                 mount_slot = -1
                 mouse_default_cursor_shape = Control.CURSOR_DRAG
                 accept_event()
+        elif resizing:
+            _finish_resize()
+            accept_event()
         elif dragging:
             dragging = false
-            mouse_default_cursor_shape = Control.CURSOR_MOVE
+            mouse_default_cursor_shape = Control.CURSOR_ARROW
             _clamp_to_viewport()
             accept_event()
-    elif event is InputEventMouseMotion and dragging:
-        global_position = get_global_mouse_position() - drag_offset
+
+    elif event is InputEventMouseMotion:
+        var motion := event as InputEventMouseMotion
+        if resizing:
+            _resize_from_global_pointer(get_global_mouse_position())
+            accept_event()
+        elif dragging:
+            global_position = get_global_mouse_position() - drag_offset
+            _clamp_to_viewport()
+            accept_event()
+        else:
+            _update_hover_cursor(motion.position)
+
+func _resize_mask_at(local_pos: Vector2) -> int:
+    var mask := RESIZE_NONE
+    if local_pos.x <= EDGE_GRAB:
+        mask |= RESIZE_LEFT
+    elif local_pos.x >= size.x - EDGE_GRAB:
+        mask |= RESIZE_RIGHT
+
+    if not collapsed:
+        if local_pos.y <= EDGE_GRAB:
+            mask |= RESIZE_TOP
+        elif local_pos.y >= size.y - EDGE_GRAB:
+            mask |= RESIZE_BOTTOM
+    return mask
+
+func _update_hover_cursor(local_pos: Vector2) -> void:
+    var next_mask := _resize_mask_at(local_pos)
+    if hover_resize_mask != next_mask:
+        hover_resize_mask = next_mask
+        queue_redraw()
+
+    if next_mask == (RESIZE_LEFT | RESIZE_TOP) or next_mask == (RESIZE_RIGHT | RESIZE_BOTTOM):
+        mouse_default_cursor_shape = Control.CURSOR_FDIAGSIZE
+    elif next_mask == (RESIZE_RIGHT | RESIZE_TOP) or next_mask == (RESIZE_LEFT | RESIZE_BOTTOM):
+        mouse_default_cursor_shape = Control.CURSOR_BDIAGSIZE
+    elif (next_mask & (RESIZE_LEFT | RESIZE_RIGHT)) != 0:
+        mouse_default_cursor_shape = Control.CURSOR_HSIZE
+    elif (next_mask & (RESIZE_TOP | RESIZE_BOTTOM)) != 0:
+        mouse_default_cursor_shape = Control.CURSOR_VSIZE
+    elif local_pos.y <= HEADER_H:
+        mouse_default_cursor_shape = Control.CURSOR_MOVE
+    else:
+        mouse_default_cursor_shape = Control.CURSOR_ARROW
+
+func _begin_resize(mask: int) -> void:
+    resizing = true
+    dragging = false
+    resize_mask = mask
+    resize_start_mouse = get_global_mouse_position()
+    resize_start_position = global_position
+    resize_start_size = size
+    mount_slot = -1
+    _update_hover_cursor(Vector2(
+        0.0 if (mask & RESIZE_LEFT) != 0 else size.x,
+        0.0 if (mask & RESIZE_TOP) != 0 else size.y
+    ))
+
+func _resize_from_global_pointer(pointer: Vector2) -> void:
+    var sx := maxf(absf(scale.x), 0.001)
+    var sy := maxf(absf(scale.y), 0.001)
+    var global_delta := pointer - resize_start_mouse
+    var local_delta := Vector2(global_delta.x / sx, global_delta.y / sy)
+
+    var min_h := HEADER_H if collapsed else MIN_SIZE.y
+    var min_size := Vector2(MIN_SIZE.x, min_h)
+    var viewport_size := get_viewport_rect().size
+    var new_size := resize_start_size
+    var new_pos := resize_start_position
+
+    if (resize_mask & RESIZE_RIGHT) != 0:
+        var max_w_right := maxf(min_size.x, (viewport_size.x - resize_start_position.x) / sx)
+        new_size.x = clampf(resize_start_size.x + local_delta.x, min_size.x, max_w_right)
+    elif (resize_mask & RESIZE_LEFT) != 0:
+        var right_edge := resize_start_position.x + resize_start_size.x * sx
+        var max_w_left := maxf(min_size.x, right_edge / sx)
+        new_size.x = clampf(resize_start_size.x - local_delta.x, min_size.x, max_w_left)
+        new_pos.x = right_edge - new_size.x * sx
+
+    if not collapsed:
+        if (resize_mask & RESIZE_BOTTOM) != 0:
+            var max_h_bottom := maxf(min_size.y, (viewport_size.y - resize_start_position.y) / sy)
+            new_size.y = clampf(resize_start_size.y + local_delta.y, min_size.y, max_h_bottom)
+        elif (resize_mask & RESIZE_TOP) != 0:
+            var bottom_edge := resize_start_position.y + resize_start_size.y * sy
+            var max_h_top := maxf(min_size.y, bottom_edge / sy)
+            new_size.y = clampf(resize_start_size.y - local_delta.y, min_size.y, max_h_top)
+            new_pos.y = bottom_edge - new_size.y * sy
+
+    size = new_size
+    global_position = new_pos
+    if collapsed:
+        expanded_size.x = new_size.x
+    else:
+        expanded_size = new_size
+    _clamp_to_viewport()
+    queue_redraw()
+
+func _finish_resize() -> void:
+    resizing = false
+    resize_mask = RESIZE_NONE
+    hover_resize_mask = RESIZE_NONE
+    mouse_default_cursor_shape = Control.CURSOR_ARROW
+    _clamp_to_viewport()
+    queue_redraw()
+
+func _draw_resize_affordance() -> void:
+    if not collapsed:
+        for i in range(3):
+            var offset := float(i) * 4.0
+            draw_line(
+                Vector2(size.x - 5.0 - offset, size.y - 2.0),
+                Vector2(size.x - 2.0, size.y - 5.0 - offset),
+                BORDER_HI,
+                1.0
+            )
+
+    var active := resize_mask if resizing else hover_resize_mask
+    if active == RESIZE_NONE:
+        return
+    var hi := Color(GREEN_HI.r, GREEN_HI.g, GREEN_HI.b, 0.78)
+    if (active & RESIZE_LEFT) != 0:
+        draw_line(Vector2(2.0, 8.0), Vector2(2.0, size.y - 8.0), hi, 2.0)
+    if (active & RESIZE_RIGHT) != 0:
+        draw_line(Vector2(size.x - 2.0, 8.0), Vector2(size.x - 2.0, size.y - 8.0), hi, 2.0)
+    if (active & RESIZE_TOP) != 0:
+        draw_line(Vector2(8.0, 2.0), Vector2(size.x - 8.0, 2.0), hi, 2.0)
+    if (active & RESIZE_BOTTOM) != 0:
+        draw_line(Vector2(8.0, size.y - 2.0), Vector2(size.x - 8.0, size.y - 2.0), hi, 2.0)
+
+func debug_resizable_ready() -> bool:
+    return (
+        MIN_SIZE.x < BASE_SIZE.x
+        and MIN_SIZE.y < BASE_SIZE.y
+        and EDGE_GRAB >= 6.0
+        and not collapsed
+    )
+
+func debug_resize_edge_mask(local_pos: Vector2) -> int:
+    return _resize_mask_at(local_pos)
+
+func debug_set_widget_size(target_size: Vector2) -> void:
+    collapsed = false
+    custom_minimum_size = MIN_SIZE
+    var sx := maxf(absf(scale.x), 0.001)
+    var sy := maxf(absf(scale.y), 0.001)
+    var viewport_size := get_viewport_rect().size
+    var max_size := Vector2(viewport_size.x / sx, viewport_size.y / sy)
+    size = Vector2(
+        clampf(target_size.x, MIN_SIZE.x, max_size.x),
+        clampf(target_size.y, MIN_SIZE.y, max_size.y)
+    )
+    expanded_size = size
+    if mount_slot >= 0:
+        _snap_to_mount(mount_slot)
+    else:
         _clamp_to_viewport()
-        accept_event()
+    queue_redraw()
 
 func _toggle_collapsed() -> void:
     collapsed = not collapsed
-    size = Vector2(BASE_SIZE.x, HEADER_H if collapsed else BASE_SIZE.y)
-    custom_minimum_size = size
+    if collapsed:
+        expanded_size = Vector2(maxf(size.x, MIN_SIZE.x), maxf(size.y, MIN_SIZE.y))
+        custom_minimum_size = Vector2(MIN_SIZE.x, HEADER_H)
+        size = Vector2(expanded_size.x, HEADER_H)
+    else:
+        custom_minimum_size = MIN_SIZE
+        size = Vector2(maxf(expanded_size.x, MIN_SIZE.x), maxf(expanded_size.y, MIN_SIZE.y))
     if mount_slot >= 0:
         _snap_to_mount(mount_slot)
+    else:
+        _clamp_to_viewport()
     queue_redraw()
 
 func _cycle_mount() -> void:
