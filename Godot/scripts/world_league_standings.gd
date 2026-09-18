@@ -141,6 +141,11 @@ func _player_league_rank() -> int:
         if bool(rows[i]["player"]): return i + 1
     return rows.size()
 
+func _league_chase_progress(current_assets: float, target_assets: float) -> int:
+    if target_assets <= 0.0:
+        return 100
+    return clampi(int(floor(current_assets / target_assets * 100.0)), 0, 100)
+
 func _league_chase_summary(rows: Array) -> String:
     var player_idx := -1
     for i in range(rows.size()):
@@ -151,8 +156,11 @@ func _league_chase_summary(rows: Array) -> String:
         return "DYNASTY TARGET: You lead the Bitcoin mining league. Defend #1."
     var target: Dictionary = rows[player_idx - 1]
     var current: Dictionary = rows[player_idx]
-    var gap := maxf(0.0, float(target["assets"]) - float(current["assets"]))
-    return "CHASE TARGET: #%d %s • Asset gap $%d" % [player_idx, String(target["name"]), int(ceil(gap))]
+    var target_assets := float(target["assets"])
+    var current_assets := float(current["assets"])
+    var gap := maxf(0.0, target_assets - current_assets)
+    var chase_progress := _league_chase_progress(current_assets, target_assets)
+    return "CHASE TARGET: #%d %s • Asset gap $%d • %d%% to overtake" % [player_idx, String(target["name"]), int(ceil(gap)), chase_progress]
 
 func _open_league_standings() -> void:
     var rows: Array = _league_rows()
@@ -175,4 +183,4 @@ func _refresh_ui() -> void:
 
 func debug_league_standings_ready() -> bool:
     var rows: Array = _league_rows()
-    return rows.size() == 10 and _player_league_rank() >= 1 and _player_league_rank() <= 10
+    return rows.size() == 10 and _player_league_rank() >= 1 and _player_league_rank() <= 10 and _league_chase_progress(50.0, 100.0) == 50
