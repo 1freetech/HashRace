@@ -1,6 +1,8 @@
 class_name HashRaceRackContainer
 extends Node2D
 
+const RackSlot = preload("res://components/building/rack_slot.gd")
+
 ## Reusable rack/container with explicit physical slots.
 ## Slots can be ASIC, COOLING, POWER, NETWORK, or ANY.
 
@@ -12,7 +14,7 @@ signal installed_item_changed
 @export var slot_spacing := Vector2(0.0, 18.0)
 @export var auto_build_slots := true
 
-var slots: Array[HashRaceRackSlot] = []
+var slots: Array = []
 
 func _ready() -> void:
     if auto_build_slots and slots.is_empty():
@@ -26,7 +28,7 @@ func rebuild_slots() -> void:
 
     var start := -slot_spacing * float(slot_count - 1) * 0.5
     for i in range(slot_count):
-        var slot := HashRaceRackSlot.new()
+        var slot = RackSlot.new()
         slot.name = "Slot_%02d" % i
         slot.slot_id = "%s:%02d" % [name, i]
         slot.slot_type = default_slot_type
@@ -38,18 +40,18 @@ func rebuild_slots() -> void:
     layout_changed.emit()
     queue_redraw()
 
-func first_free_slot(item: HashRaceItemResource) -> HashRaceRackSlot:
+func first_free_slot(item: Resource):
     for slot in slots:
         if slot.can_install(item):
             return slot
     return null
 
-func install(item: HashRaceItemResource) -> bool:
-    var slot := first_free_slot(item)
+func install(item: Resource) -> bool:
+    var slot = first_free_slot(item)
     return slot.install_item(item) if slot != null else false
 
-func installed_items() -> Array[HashRaceItemResource]:
-    var result: Array[HashRaceItemResource] = []
+func installed_items() -> Array:
+    var result: Array = []
     for slot in slots:
         if slot.installed_hardware != null:
             result.append(slot.installed_hardware)
@@ -61,10 +63,10 @@ func aggregate_live_stats() -> Dictionary:
     var heat_mw := 0.0
     var cooling_mw := 0.0
     for item in installed_items():
-        hashrate_ph += item.base_hashrate_ph
-        load_mw += item.power_draw_mw
-        heat_mw += item.heat_generated_mw
-        cooling_mw += item.cooling_capacity_mw
+        hashrate_ph += float(item.get("base_hashrate_ph"))
+        load_mw += float(item.get("power_draw_mw"))
+        heat_mw += float(item.get("heat_generated_mw"))
+        cooling_mw += float(item.get("cooling_capacity_mw"))
     return {
         "hashrate_ph": hashrate_ph,
         "load_mw": load_mw,
@@ -72,7 +74,7 @@ func aggregate_live_stats() -> Dictionary:
         "cooling_mw": cooling_mw
     }
 
-func _on_slot_changed(_item: HashRaceItemResource) -> void:
+func _on_slot_changed(_item) -> void:
     installed_item_changed.emit()
     queue_redraw()
 
