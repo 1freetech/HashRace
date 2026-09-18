@@ -319,5 +319,5 @@ func _open_rival_rep(entity: Dictionary) -> void:
     dialog_text.text+="\n\n"+_rival_intent_text(rivals[rival_idx])
 
 func debug_v090_ready() -> bool:
-    var native_nav_ready:=grid_nav!=null and grid_nav.has_method("debug_native_astar_ready") and grid_nav.debug_native_astar_ready()
+    var native_nav_ready: bool = grid_nav != null and grid_nav.has_method("debug_native_astar_ready") and bool(grid_nav.debug_native_astar_ready())
     return V090_STRATEGY_REVISION==1 and PowerDispatch.debug_contract_ready() and UtilityStrategyAI.debug_contract_ready() and native_nav_ready and _battery_reserve_pct()>=0.0 and _battery_reserve_pct()<=100.0
