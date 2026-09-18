@@ -4,7 +4,7 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.086**. The current **main** development build is **v0.086**.
+The latest verified public desktop release is **v0.086**. The current **main** development build is **v0.087**.
 
 - **[Windows x64 — Hash Race v0.086](https://github.com/1freetech/HashRace/releases/download/v0.086/HashRace-v0.086-windows-x64.zip)**
 - **[Linux x64 — Hash Race v0.086](https://github.com/1freetech/HashRace/releases/download/v0.086/HashRace-v0.086-linux-x64.tar.gz)**

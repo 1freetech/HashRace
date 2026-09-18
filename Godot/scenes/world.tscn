@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v086.gd -> world_v085.gd -> world_v082.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.086 adds proactive computer-company supplier offers during normal play while preserving the v0.085 turn shortcut, v0.082 microtile visuals, negotiation, infrastructure, simulation, and Mining Ops HUD.
-[ext_resource path="res://scripts/world_v086.gd" type="Script" id="1_world"]
+; world_v087.gd -> world_v086.gd -> world_v085.gd -> world_v082.gd -> res://scripts/world_v073.gd -> world_v072.gd -> existing visual/gameplay stack. v0.087 adds high-density one-pixel character finishing detail and the sprite-rig/palette pipeline while preserving v0.086 computer-company offers, the v0.085 turn shortcut, v0.082 microtiles, negotiation, infrastructure, simulation, and Mining Ops HUD.
+[ext_resource path="res://scripts/world_v087.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
