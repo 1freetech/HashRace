@@ -97,8 +97,10 @@ jobs:
         run: python tools/test_life_ops_contract.py
       - name: Test energy deployment and visual contract
         run: python tools/test_energy_visual_contract.py
-      - name: Test draggable live Mining Ops widget contract
+      - name: Test compact consolidated Mining Ops widget contract
         run: python tools/test_mining_ops_widget_contract.py
+      - name: Test v0.068 modular architecture contract
+        run: python tools/test_modular_architecture_contract.py
       - name: Test pixel landscape and compact UI contract
         run: python tools/test_pixel_landscape_ui_contract.py
 
