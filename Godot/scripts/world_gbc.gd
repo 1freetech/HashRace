@@ -8,6 +8,7 @@ extends "res://scripts/world_grid.gd"
 const GBPaint = preload("res://scripts/gbstudio_paint.gd")
 const TileOps = preload("res://scripts/tilemap_studio_ops.gd")
 const VisualStack = preload("res://scripts/visual_reference_stack.gd")
+const BuildingDetails = preload("res://scripts/procedural_building_details.gd")
 
 const ART_TILE_SIZE: float = 48.0
 const TILE_GRASS: int = 0
@@ -359,6 +360,13 @@ func _draw_pixel_facility(pos: Vector2, size_value: Vector2, accent: Color, floo
 	# Vger-inspired layered stroke and Simple2D-style roof gradient make every
 	# facility read as a distinct pixel building instead of a flat rectangle.
 	_draw_layered_stroke_rect(body, Color("0b1720"), Color("020609"), accent.darkened(0.58), 4.0)
+	# Procedural facade material: mining halls use metal panels while office/HQ
+	# silhouettes receive staggered masonry. Both are code-drawn, not textures.
+	var facade_rect := Rect2(left + 5.0, top + 27.0, size_value.x - 10.0, maxf(12.0, size_value.y - 35.0))
+	if floors <= 1:
+		BuildingDetails.draw_panel_wall(self, facade_rect, Color("26343b"), Color("10191e"))
+	else:
+		BuildingDetails.draw_brick_wall(self, facade_rect, Color("303a3d"), Color("172126"), Color("465255"))
 	var roof_rect := Rect2(left, top, size_value.x, 14.0)
 	draw_polygon(VisualStack.quad_points(roof_rect), VisualStack.quad_colors(accent.darkened(0.18), accent.lightened(0.16)))
 	var floor_h: float = (size_value.y - 28.0) / float(maxi(floors, 1))
@@ -369,8 +377,7 @@ func _draw_pixel_facility(pos: Vector2, size_value: Vector2, accent: Color, floo
 			draw_rect(Rect2(wx, fy, 18.0, 12.0), accent.darkened(0.48), true)
 			draw_rect(Rect2(wx + 4.0, fy + 3.0, 10.0, 6.0), Color(accent.r, accent.g, accent.b, 0.72), true)
 	# Door and rooftop tech mast.
-	draw_rect(Rect2(snapped_pos + Vector2(-14.0, size_value.y * 0.12), Vector2(28.0, size_value.y * 0.27)), Color("020609"), true)
-	draw_rect(Rect2(snapped_pos + Vector2(-11.0, size_value.y * 0.15), Vector2(7.0, size_value.y * 0.20)), accent.darkened(0.25), true)
+	BuildingDetails.draw_door(self, Rect2(snapped_pos + Vector2(-14.0, size_value.y * 0.12), Vector2(28.0, size_value.y * 0.27)), Color("111a1e"), accent.darkened(0.32), Color("d8b65a"))
 	draw_rect(Rect2(snapped_pos + Vector2(size_value.x * 0.28, -size_value.y * 0.76), Vector2(6.0, 35.0)), accent.darkened(0.15), true)
 	draw_rect(Rect2(snapped_pos + Vector2(size_value.x * 0.23, -size_value.y * 0.80), Vector2(26.0, 7.0)), accent, true)
 	draw_rect(Rect2(left + 8.0, top + 17.0, 42.0, 18.0), GBC_INK, true)
