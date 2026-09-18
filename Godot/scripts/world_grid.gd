@@ -6,6 +6,7 @@ extends "res://scripts/world_towns.gd"
 # and water instead of walking through scenery.
 
 const GridNavigation = preload("res://scripts/grid_navigation.gd")
+const WorldScale = preload("res://scripts/world_scale_rules.gd")
 const NAV_CELL_SIZE: float = 48.0
 
 var grid_nav
@@ -48,28 +49,11 @@ func _rebuild_navigation_grid() -> void:
         if kind == "rival_rep" or kind == "partner_rep":
             continue
         var pos: Vector2 = entity["pos"]
-        var half_width: float = 102.0
-        var top_height: float = 112.0
-        var bottom_height: float = 72.0
-        if kind == "partner":
-            half_width = 90.0
-            top_height = 72.0
-            bottom_height = 64.0
-        elif kind == "machines" or kind == "power":
-            half_width = 96.0
-            top_height = 68.0
-            bottom_height = 64.0
-        elif kind == "bank" or kind == "land":
-            half_width = 92.0
-            top_height = 106.0
-            bottom_height = 64.0
-        grid_nav.block_rect(Rect2(
-            pos + Vector2(-half_width, -top_height),
-            Vector2(half_width * 2.0, top_height + bottom_height)
-        ))
-        # Leave an interaction apron below each building so pathfinding can
-        # deliver the player to the front door rather than inside the building.
-        grid_nav.carve_world_point(pos + Vector2(0.0, bottom_height + 44.0), 0)
+        if WorldScale.is_building_kind(kind):
+            grid_nav.block_rect(WorldScale.collision_rect(kind, pos))
+            # Use the same scale contract as the renderer so mouse routing lands
+            # on the visible front-door apron instead of an obsolete footprint.
+            grid_nav.carve_world_point(WorldScale.front_door_world_pos(kind, pos), 0)
 
     # The wider v0.052+ layout placed buildings on the old fixed carve points.
     # Carve only the live HQ front-door spawn and a known-open road junction so
