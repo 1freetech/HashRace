@@ -6,6 +6,7 @@ root = Path(__file__).resolve().parents[1]
 version = (root / "VERSION").read_text(encoding="utf-8").strip()
 scene = (root / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (root / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
+parent_world = (root / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 widget = (root / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encoding="utf-8")
 
@@ -13,7 +14,7 @@ assert version == "v0.068"
 assert 'res://scripts/world_v068.gd' in scene
 assert 'extends "res://scripts/world_v067.gd"' in world
 assert 'MODULAR_ARCHITECTURE_REVISION' in world
-assert 'debug_mining_ops_widget_ready' in world
+assert 'debug_mining_ops_widget_ready' in parent_world
 
 for marker in [
     '"HASHRATE"', '"POWER"', '"EFFICIENCY"', '"UPTIME"', '"BTC TREASURY"', '"USD CASH"',
