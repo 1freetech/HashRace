@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; world_v068.gd -> world_v067.gd -> world_v065.gd -> world_v059.gd -> world_v055.gd -> existing visual/gameplay stack. v0.068 adds Resource-backed infrastructure, physical rack slots/placement, a fixed-tick live simulation manager, and one consolidated upper-right Mining Ops HUD without duplicate persistent metrics.
-[ext_resource path="res://scripts/world_v068.gd" type="Script" id="1_world"]
+; world_v070.gd -> world_v068.gd -> world_v067.gd -> existing visual/gameplay stack. v0.070 ships Resource-backed infrastructure, physical rack slots/placement, a fixed-tick live simulation manager, and one consolidated upper-right Mining Ops HUD without duplicate persistent metrics.
+[ext_resource path="res://scripts/world_v070.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
