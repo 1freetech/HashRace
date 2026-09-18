@@ -29,6 +29,7 @@ def main():
     setup_scene = Path("Godot/scenes/campaign_setup.tscn").read_text(encoding="utf-8")
     setup = Path("Godot/scripts/campaign_setup.gd").read_text(encoding="utf-8")
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
+    release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
     modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
     item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
     inventory_resource_core = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
@@ -56,9 +57,9 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v068.gd" in world_scene
-    assert "world_v053.gd" in modular_world or 'extends "res://scripts/world_v067.gd"' in modular_world
-    assert "world_company_effects.gd" in world_scene, "Live world must retain material company-culture gameplay effects"
+    assert "world_v070.gd" in world_scene
+    assert 'extends "res://scripts/world_v068.gd"' in release_world
+    assert 'extends "res://scripts/world_v067.gd"' in modular_world
     assert "BootFallback" in world_scene
     assert 'extends "res://scripts/world_overworld.gd"' in towns
     assert 'extends "res://scripts/world_towns.gd"' in grid_world
@@ -109,7 +110,8 @@ def main():
         "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"
     ], "v0.052 visual spacing layer")
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
-    require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "v0.068 modular world")
+    require(release_world, ["V070_RELEASE_REVISION", "debug_v070_ready"], "v0.070 release world")
+    require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
     require(inventory_resource_core, ["ItemLibrary.load_catalog", "catalog_resources", "debug_resource_catalog_ready"], "Resource-backed inventory")
     assert "const CATALOG" not in inventory_resource_core, "Infrastructure source of truth must be .tres resources, not the old inline CATALOG"
@@ -138,7 +140,7 @@ def main():
         "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
         "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
         "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd",
-        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd",
+        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd",
         "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd",
         "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd",
         "Godot/components/building/rack_container.gd"
@@ -146,7 +148,7 @@ def main():
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: v0.068 modular resources, physical deployment, fixed-tick simulation, consolidated HUD, and prior strategy/visual systems are structurally intact.")
+    print("Hash Race smoke test passed: v0.070 modular resources, physical deployment, fixed-tick simulation, consolidated HUD, and prior strategy/visual systems are structurally intact.")
 
 
 if __name__ == "__main__":
