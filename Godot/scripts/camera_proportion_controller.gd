@@ -49,8 +49,15 @@ func _apply_zoom() -> void:
     camera.limit_bottom = int(world_size.y)
     zoom_changed.emit(value, ZOOM_NAMES[zoom_index])
 
+func _camera_shortcuts_allowed() -> bool:
+    if not is_inside_tree():
+        return false
+    # Do not steal +, -, 0 or Ctrl+wheel while the player is editing a field,
+    # operating a menu, or otherwise has keyboard focus inside the HUD.
+    return get_viewport().gui_get_focus_owner() == null
+
 func _unhandled_input(event: InputEvent) -> void:
-    if not is_instance_valid(camera):
+    if not is_instance_valid(camera) or not _camera_shortcuts_allowed():
         return
     if event is InputEventKey:
         var key_event := event as InputEventKey
@@ -84,3 +91,6 @@ func current_mode_name() -> String:
 
 func debug_camera_proportion_ready() -> bool:
     return ZOOM_LEVELS.size() == 4 and ZOOM_LEVELS[0] < 1.0 and ZOOM_LEVELS[ZOOM_LEVELS.size() - 1] >= 2.0
+
+func debug_focus_safe_shortcuts_ready() -> bool:
+    return has_method("_camera_shortcuts_allowed") and ZOOM_LEVELS.size() == ZOOM_NAMES.size()
