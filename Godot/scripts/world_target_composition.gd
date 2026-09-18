@@ -59,8 +59,13 @@ func _campus_path(rect: Rect2) -> void:
 
 func _campus_building(center: Vector2, size: Vector2, label: String, accent: Color, kind: int) -> void:
     var rect := Rect2(center - size * 0.5, size)
-    # Drop shadow, dark outline, wall, roof and highlight create chunky GBC depth.
-    draw_rect(Rect2(rect.position + Vector2(6.0, 8.0), rect.size), Color(0.03, 0.07, 0.08, 0.42), true)
+    # Anchor the campus structure to its lot at the bottom edge. Keeping the
+    # contact shadow tight to the footprint avoids the detached/floating look.
+    var ground_y: float = rect.end.y
+    draw_rect(Rect2(Vector2(rect.position.x + 5.0, ground_y - 4.0), Vector2(rect.size.x - 10.0, 12.0)), Color(0.03, 0.07, 0.08, 0.55), true)
+    draw_rect(Rect2(Vector2(rect.position.x - 3.0, ground_y - 7.0), Vector2(rect.size.x + 6.0, 9.0)), Color("52616a"), true)
+    draw_rect(Rect2(Vector2(rect.position.x + 2.0, ground_y - 5.0), Vector2(rect.size.x - 4.0, 3.0)), CAMPUS_DARK, true)
+    # Dark outline, wall, roof and highlight create chunky GBC depth.
     draw_rect(rect.grow(4.0), CAMPUS_DARK, true)
     draw_rect(rect, CAMPUS_WALL, true)
     draw_rect(Rect2(rect.position, Vector2(rect.size.x, 20.0)), CAMPUS_ROOF, true)
