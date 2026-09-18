@@ -9,15 +9,18 @@ manager = (ROOT / "Godot/autoloads/scene_manager.gd").read_text()
 doorway = (ROOT / "Godot/components/world/doorway.gd").read_text()
 roof = (ROOT / "Godot/components/world/roof_fade_area.gd").read_text()
 world = (ROOT / "Godot/scripts/world_v089.gd").read_text()
+quality_world = (ROOT / "Godot/scripts/world_v090.gd").read_text()
 grid = (ROOT / "Godot/scripts/world_grid.gd").read_text()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 project = (ROOT / "Godot/project.godot").read_text()
 template = (ROOT / "Godot/templates/Doorway.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
 
-assert version == "v0.089", version
+assert version.startswith("v0."), version
+assert int(version.split(".")[1]) >= 90, version
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
-assert "world_v089.gd" in scene
+assert "world_v090.gd" in scene
+assert 'extends "res://scripts/world_v089.gd"' in quality_world
 
 for marker in [
     "WORLD_TILE",
