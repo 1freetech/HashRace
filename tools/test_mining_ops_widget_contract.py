@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v0.070 compact consolidated Mining Ops widget contract."""
+"""v0.070+ compact consolidated Mining Ops widget contract."""
 from pathlib import Path
 import re
 
@@ -16,7 +16,8 @@ capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encodi
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-assert 'res://scripts/world_v082.gd' in scene
+live_world_path = f'res://scripts/world_v{version.split(".")[1]}.gd'
+assert live_world_path in scene, f"Live scene does not reference {live_world_path}"
 assert 'extends "res://scripts/world_v072.gd"' in live_world
 assert 'extends "res://scripts/world_v070.gd"' in current_world
 assert 'extends "res://scripts/world_v068.gd"' in release_world
