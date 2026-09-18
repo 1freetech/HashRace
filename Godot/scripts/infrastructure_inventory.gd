@@ -224,7 +224,7 @@ func current_energy_output_mw() -> float:
     var total := 0.0
     for raw in catalog_resources():
         var resource = raw
-        total += String(resource.get("effect"))ive_power_output_mw() * float(deployed_quantity(String(resource.get("id"))))
+        total += float(resource.call("effective_power_output_mw")) * float(deployed_quantity(String(resource.get("id"))))
     return total
 
 func deployed_power_cost_delta() -> float:
