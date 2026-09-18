@@ -9,6 +9,7 @@ energy = (ROOT / "Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
 world_v067 = (ROOT / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 world_v068 = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
 world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
+world_v072 = (ROOT / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = (ROOT / "VERSION").read_text().strip()
 
