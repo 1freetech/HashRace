@@ -1,7 +1,7 @@
 extends "res://scripts/world_rpg_strategy.gd"
 
-# Flexible season clock for Hash Race. One strategic turn can represent a day,
-# month, or year while all mining and operating economics remain based
+# Flexible season clock for Hash Race. Strategic turns can use common calendar
+# periods or a player-selected custom number of days while economics stay based
 # on the same per-day metrics.
 
 const TURN_LENGTHS: Array = [
@@ -18,6 +18,7 @@ var turn_length_idx: int = 1
 var elapsed_campaign_days: float = 0.0
 var next_halving_day: float = HALVING_DAYS
 var turn_scale_button: Button
+var custom_days_spin: SpinBox
 var custom_days: float = 14.0
 
 func _ready() -> void:
@@ -39,12 +40,26 @@ func _install_turn_scale_control() -> void:
     layer.name = "TurnScaleLayer"
     layer.layer = 12
     add_child(layer)
+
     turn_scale_button = Button.new()
-    turn_scale_button.position = Vector2(1080.0, 88.0)
-    turn_scale_button.size = Vector2(330.0, 42.0)
+    turn_scale_button.position = Vector2(1040.0, 88.0)
+    turn_scale_button.size = Vector2(370.0, 42.0)
     turn_scale_button.add_theme_font_size_override("font_size", 12)
+    turn_scale_button.tooltip_text = "Cycle strategic turn length. Hotkeys: 1 Day, 2 Month, 3 Quarter, 4 Year, 5 Custom."
     turn_scale_button.pressed.connect(_cycle_turn_length)
     layer.add_child(turn_scale_button)
+
+    custom_days_spin = SpinBox.new()
+    custom_days_spin.position = Vector2(1210.0, 134.0)
+    custom_days_spin.size = Vector2(200.0, 38.0)
+    custom_days_spin.min_value = 1.0
+    custom_days_spin.max_value = 3650.0
+    custom_days_spin.step = 1.0
+    custom_days_spin.value = custom_days
+    custom_days_spin.suffix = " days / turn"
+    custom_days_spin.tooltip_text = "Choose any strategic turn from 1 day to 10 years."
+    custom_days_spin.value_changed.connect(_on_custom_days_changed)
+    layer.add_child(custom_days_spin)
     _refresh_turn_scale_button()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -75,21 +90,39 @@ func _set_turn_length(new_idx: int) -> void:
     new_idx = clampi(new_idx, 0, TURN_LENGTHS.size() - 1)
     if new_idx == turn_length_idx:
         _feedback("TURN LENGTH: already set to %s (%.2f days)." % [turn_length_name(), turn_length_days()])
+        _refresh_turn_scale_button()
         return
     if live_quarter_confirmation_pending:
         _invalidate_quarter_preview("Turn preview cancelled because the turn length changed.")
     turn_length_idx = new_idx
     if is_instance_valid(quarter_button):
         quarter_button.text = "END %s TURN" % turn_length_name()
-    var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
-    campaign_turns = (turn - 1) + int(ceil(remaining_days / turn_length_days()))
+    _recalculate_campaign_turns()
     _refresh_turn_scale_button()
     _refresh_ui()
     _feedback("TURN LENGTH: 1 turn = %s (%.2f days). Mining output, power, operations, debt interest, partner income, rivals, and market movement remain scaled to elapsed time." % [turn_length_name(), turn_length_days()])
 
+func _on_custom_days_changed(days: float) -> void:
+    custom_days = clampf(days, 1.0, 3650.0)
+    if turn_length_name() != "CUSTOM":
+        return
+    if live_quarter_confirmation_pending:
+        _invalidate_quarter_preview("Turn preview cancelled because the custom turn length changed.")
+    _recalculate_campaign_turns()
+    _refresh_turn_scale_button()
+    _refresh_ui()
+    _feedback("CUSTOM TURN: %.0f days per turn. All mining and company economics use this elapsed time." % custom_days)
+
+func _recalculate_campaign_turns() -> void:
+    var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
+    campaign_turns = (turn - 1) + int(ceil(remaining_days / turn_length_days()))
+
 func set_custom_turn_days(days: float) -> void:
     custom_days = clampf(days, 1.0, 3650.0)
+    if is_instance_valid(custom_days_spin):
+        custom_days_spin.set_value_no_signal(custom_days)
     _set_turn_length(4)
+    _recalculate_campaign_turns()
     _refresh_turn_scale_button()
 
 func custom_turn_days() -> float:
@@ -97,7 +130,12 @@ func custom_turn_days() -> float:
 
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text = "TURN: %s  [1 DAY • 2 MONTH • 3 QTR • 4 YEAR • 5 CUSTOM • C]" % turn_length_name()
+        var detail: String = turn_length_name()
+        if turn_length_name() == "CUSTOM":
+            detail = "CUSTOM %.0f DAYS" % custom_days
+        turn_scale_button.text = "TURN: %s  [1 D • 2 M • 3 Q • 4 Y • 5 CUSTOM • C]" % detail
+    if is_instance_valid(custom_days_spin):
+        custom_days_spin.visible = turn_length_name() == "CUSTOM"
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
@@ -180,8 +218,7 @@ func _end_quarter() -> void:
         return
 
     turn += 1
-    var remaining_days: float = maxf(0.0, float(campaign_years) * DAYS_PER_YEAR - elapsed_campaign_days)
-    campaign_turns = (turn - 1) + int(ceil(remaining_days / turn_length_days()))
+    _recalculate_campaign_turns()
     var note: String = "%s TURN %d closed: %.2f days • mined %d sats • held %d • cash result $%d. %s" % [turn_length_name(), settled_turn, days, int(mined_sats), int(held_sats), int(profit), market_note]
     if halving_happened:
         note += " HALVING: subsidy is now %.4f BTC." % block_subsidy_btc
