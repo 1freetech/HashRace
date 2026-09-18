@@ -133,7 +133,15 @@ func _run() -> void:
     if String(scene.call("debug_culture_effects_summary")).is_empty():
         _fail("company gameplay-effect summary is missing")
         return
-\n    if not bool(scene.call("debug_computer_offer_ready")):\n        _fail("computer-company proactive offer system did not initialize")\n        return\n    var offer_snapshot: Dictionary = scene.call("debug_computer_offer_snapshot")\n    if int(offer_snapshot.get("companies", 0)) < 3:\n        _fail("computer-company offer catalog is missing suppliers")\n        return\n
+
+    if not bool(scene.call("debug_computer_offer_ready")):
+        _fail("computer-company proactive offer system did not initialize")
+        return
+    var offer_snapshot: Dictionary = scene.call("debug_computer_offer_snapshot")
+    if int(offer_snapshot.get("companies", 0)) < 3:
+        _fail("computer-company offer catalog is missing suppliers")
+        return
+
     # v0.052 visual/readability contract.
     if not bool(scene.call("debug_texture_spacing_ready")):
         _fail("wider-spaced textured overworld did not initialize")
