@@ -10,12 +10,13 @@ const MUTED := Color("88a9b3")
 const BG := Color("061015f5")
 
 var rows: Array = []
-var sort_key := "assets"
+var sort_key := "market_cap"
 var descending := true
 var table: VBoxContainer
 var sort_label: Label
 
 const COLUMNS := [
+	{"key":"market_cap","label":"MARKET CAP","unit":"$","lower":false},
 	{"key":"assets","label":"ASSET VALUE","unit":"$","lower":false},
 	{"key":"hashrate_ph","label":"HASHRATE","unit":" PH/s","lower":false},
 	{"key":"mw","label":"POWER","unit":" MW","lower":false},
@@ -114,7 +115,7 @@ func _refresh() -> void:
 func _row_text(rank: int, row: Dictionary) -> String:
 	return "%2d  %-22s | %10s | %9s | %8s | %9s | %11s | %11s | %8s | %8s | %9s" % [
 		rank, String(row.get("name","")),
-		_money(row.get("assets",0.0)),
+		_money(row.get("market_cap",0.0)),
 		"%.2f PH/s" % float(row.get("hashrate_ph",0.0)),
 		"%.2f MW" % float(row.get("mw",0.0)),
 		"%.1f J/TH" % float(row.get("efficiency_jth",0.0)),
