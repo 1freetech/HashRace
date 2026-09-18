@@ -29,6 +29,7 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
 
     var facing: String = "down"
     var animation_state: String = "down_idle"
+    var active_scanner: String = scanner
     var detail_accent: Color = accent
     var visor: Color = Color("39ff75")
     var skin: Color = Color("9a5d3c")
@@ -42,6 +43,8 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
         var outfit_idx: int = int(player.get("outfit_idx", CharacterCustomization.DEFAULT_OUTFIT))
         var tone: Dictionary = CharacterCustomization.skin_tone(skin_idx)
         var outfit: Dictionary = CharacterCustomization.outfit(outfit_idx)
+        var rep: Dictionary = COMPANY_REPS[company_idx]
+        active_scanner = String(rep.get("scanner", scanner))
         skin = Color(tone["skin"])
         detail_accent = Color(outfit["secondary"])
         visor = Color(outfit["neon"])
@@ -51,13 +54,13 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
         if v073_character_action == "victory":
             bob = -V073_PX
     else:
-        var seed: int = _v087_seed(pos, accent)
-        facing = _v087_npc_facing(seed)
+        var seed: int = _v073_seed(pos, accent)
+        facing = _v073_npc_facing(pos, seed)
         skin = V073_NPC_SKINS[seed % V073_NPC_SKINS.size()]
         hair_tint = _v087_npc_hair_tint(seed)
 
     var o: Vector2 = VisualStack.snap_to_pixel(pos + Vector2(0.0, bob))
-    _draw_v087_microdetail(o, facing, scanner, skin, detail_accent, visor, hair_tint, is_player)
+    _draw_v087_microdetail(o, facing, active_scanner, skin, detail_accent, visor, hair_tint, is_player)
 
 func _draw_v087_microdetail(
     o: Vector2,
@@ -221,13 +224,6 @@ func _v087_side_micro(
         source_x = -source_x - float(width)
     var p := o + Vector2(source_x, float(cell_y) * V087_SOURCE_CELL + float(px_y))
     draw_rect(Rect2(VisualStack.snap_to_pixel(p), Vector2(float(width), float(height))), color, true)
-
-func _v087_seed(pos: Vector2, accent: Color) -> int:
-    return abs(int(pos.x * 17.0 + pos.y * 31.0 + accent.r * 255.0 * 13.0 + accent.g * 255.0 * 7.0 + accent.b * 255.0 * 3.0))
-
-func _v087_npc_facing(seed: int) -> String:
-    var facings: Array[String] = ["down", "down", "left", "right", "up"]
-    return facings[seed % facings.size()]
 
 func _v087_player_hair_tint(outfit_idx: int) -> Color:
     var palette: Array[Color] = [
