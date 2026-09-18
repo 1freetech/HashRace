@@ -31,6 +31,7 @@ def main():
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
     release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
     character_release = Path("Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
+    pixel_release = Path("Godot/scripts/world_v080.gd").read_text(encoding="utf-8")
     modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
     item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
     inventory_resource_core = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
@@ -58,7 +59,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v073.gd" in world_scene
+    assert "world_v080.gd" in world_scene
+    assert 'extends "res://scripts/world_v073.gd"' in pixel_release
     assert 'extends "res://scripts/world_v072.gd"' in character_release
     assert 'extends "res://scripts/world_v068.gd"' in release_world
     assert 'extends "res://scripts/world_v067.gd"' in modular_world
@@ -106,6 +108,8 @@ def main():
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
     require(release_world, ["V070_RELEASE_REVISION", "debug_v070_ready"], "v0.070 release world")
     require(character_release, ["V073_CHARACTER_REVISION", "V073_PX", "V073_BODY_VARIANTS", "V073_HAIR_VARIANTS", "idle_down", "walk_left", "run_right", "mining", "victory", "_draw_v073_front", "_draw_v073_back", "_draw_v073_side", "debug_v073_ready"], "v0.073 reusable high-density character world")
+    require(pixel_release, ["V080_PIXEL_INTEGRATION_REVISION", "V080_BUILDING_PIXEL", "_v080_entity_depth", "_v080_depth_less", "_draw_pixel_facility", "_draw_facility_surface_detail", "position_smoothing_enabled = false", "debug_pixel_integration_ready", "debug_v080_ready"], "v0.080 pixel integration world")
+    assert 'window/stretch/mode="viewport"' in project
     require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "modular world")
     require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
     require(inventory_resource_core, ["ItemLibrary.load_catalog", "catalog_resources", "debug_resource_catalog_ready"], "Resource-backed inventory")
@@ -120,7 +124,7 @@ def main():
     require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready"], "Runtime validator")
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/scripts/world_v080.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
