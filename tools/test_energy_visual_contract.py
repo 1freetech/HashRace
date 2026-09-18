@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Energy/deployment contract retained by Hash Race v0.070."""
+"""Energy/deployment contract retained by Hash Race v0.070+."""
 from pathlib import Path
 import re
 
@@ -16,7 +16,10 @@ version = (ROOT / "VERSION").read_text().strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-assert 'res://scripts/world_v082.gd' in scene
+# The live scene may advance through thin version layers; verify the current
+# public version is the scene entry point instead of pinning CI to an old one.
+live_world = f'res://scripts/world_{version.replace(".", "")}.gd'
+assert live_world in scene, f"Live scene does not reference {live_world}"
 assert 'extends "res://scripts/world_v072.gd"' in world_v073
 assert 'extends "res://scripts/world_v070.gd"' in world_v072
 assert 'extends "res://scripts/world_v068.gd"' in world_v070
