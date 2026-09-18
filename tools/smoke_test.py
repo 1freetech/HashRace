@@ -29,6 +29,12 @@ def main():
     setup_scene = Path("Godot/scenes/campaign_setup.tscn").read_text(encoding="utf-8")
     setup = Path("Godot/scripts/campaign_setup.gd").read_text(encoding="utf-8")
     world_scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
+    modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
+    item_resource = Path("Godot/data/item_resource.gd").read_text(encoding="utf-8")
+    inventory_resource_core = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
+    simulation_manager = Path("Godot/systems/simulation_manager.gd").read_text(encoding="utf-8")
+    rack_slot = Path("Godot/components/building/rack_slot.gd").read_text(encoding="utf-8")
+    placement_grid = Path("Godot/systems/physical_placement_grid.gd").read_text(encoding="utf-8")
     overworld = Path("Godot/scripts/world_overworld.gd").read_text(encoding="utf-8")
     towns = Path("Godot/scripts/world_towns.gd").read_text(encoding="utf-8")
     grid_world = Path("Godot/scripts/world_grid.gd").read_text(encoding="utf-8")
@@ -50,7 +56,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v053.gd" in world_scene
+    assert "world_v068.gd" in world_scene
+    assert "world_v053.gd" in modular_world or 'extends "res://scripts/world_v067.gd"' in modular_world
     assert "world_company_effects.gd" in world_scene, "Live world must retain material company-culture gameplay effects"
     assert "BootFallback" in world_scene
     assert 'extends "res://scripts/world_overworld.gd"' in towns
@@ -102,6 +109,15 @@ def main():
         "_paint_lot_pixels", "_paint_water_pixels", "_draw_neon_character_name", "debug_texture_spacing_ready"
     ], "v0.052 visual spacing layer")
     require(building_placer, ["MIN_TARGET_SPACING", "PARTNER_POSITIONS", "RIVAL_POSITIONS", "minimum_building_spacing"], "Building placer")
+    require(modular_world, ["SimulationManager", "PhysicalPlacementGrid", "RackContainer", "debug_modular_architecture_ready", "debug_hud_consolidated"], "v0.068 modular world")
+    require(item_resource, ["class_name HashRaceItemResource", "base_hashrate_ph", "power_draw_mw", "heat_generated_mw", "slot_type"], "ItemResource")
+    require(inventory_resource_core, ["ItemLibrary.load_catalog", "catalog_resources", "debug_resource_catalog_ready"], "Resource-backed inventory")
+    assert "const CATALOG" not in inventory_resource_core, "Infrastructure source of truth must be .tres resources, not the old inline CATALOG"
+    require(simulation_manager, ["class_name HashRaceSimulationManager", "Timer.new", "tick_processed", "process_tick"], "Fixed-tick simulation manager")
+    require(rack_slot, ["class_name HashRaceRackSlot", "install_item", "installed_hardware"], "Physical rack slots")
+    require(placement_grid, ["class_name HashRacePhysicalPlacementGrid", "snap", "can_place", "serialize_layout"], "Physical placement grid")
+    item_files = list(Path("Godot/data/items").glob("*.tres"))
+    assert len(item_files) >= 34, f"Expected 34+ ItemResource files, found {len(item_files)}"
     require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"', 'Color("e9eeee")', 'Color("e07a2f")', 'Color("39ff75")'], "Character catalog")
     require(customization, [
         "CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender",
@@ -122,12 +138,15 @@ def main():
         "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd",
         "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd",
         "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd",
-        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd"
+        "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd",
+        "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd",
+        "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd",
+        "Godot/components/building/rack_container.gd"
     ]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: current Day/Month/Year strategy simulation, visual stack, company systems, and v0.065 energy/deployment contracts are structurally intact.")
+    print("Hash Race smoke test passed: v0.068 modular resources, physical deployment, fixed-tick simulation, consolidated HUD, and prior strategy/visual systems are structurally intact.")
 
 
 if __name__ == "__main__":
