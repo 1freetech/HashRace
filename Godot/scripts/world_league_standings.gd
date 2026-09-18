@@ -46,8 +46,11 @@ func _install_inventory_ui() -> void:
     league_button.get_parent().add_child(inventory_button)
 
 func _selected_inventory_item() -> Dictionary:
-    inventory_item_idx = clampi(inventory_item_idx, 0, InfrastructureInventory.CATALOG.size() - 1)
-    return InfrastructureInventory.CATALOG[inventory_item_idx]
+    var count := infrastructure_inventory.catalog_size()
+    if count <= 0:
+        return {}
+    inventory_item_idx = clampi(inventory_item_idx, 0, count - 1)
+    return infrastructure_inventory.catalog_item_at(inventory_item_idx)
 
 func _open_infrastructure_inventory() -> void:
     var prototype: Dictionary = _selected_inventory_item()
@@ -55,7 +58,7 @@ func _open_infrastructure_inventory() -> void:
     var owned: int = infrastructure_inventory.quantity(id)
     var stored: int = infrastructure_inventory.stored_quantity(id)
     var deployed: int = infrastructure_inventory.deployed_quantity(id)
-    dialog_title.text = "INFRASTRUCTURE // %d OF %d" % [inventory_item_idx + 1, InfrastructureInventory.CATALOG.size()]
+    dialog_title.text = "INFRASTRUCTURE // %d OF %d" % [inventory_item_idx + 1, infrastructure_inventory.catalog_size()]
     dialog_text.text = "%s\n%s • $%d\nBenefit: %s %s\n\nCash: $%d\nOwned: %d • Stored: %d • Deployed: %d\n\nBuying puts equipment in storage. Deploying activates its company benefit. Undeploying returns it to storage." % [String(prototype["name"]), String(prototype["category"]), int(prototype["price"]), String(prototype["effect"]), String(prototype["unit"]), int(player["cash"]), owned, stored, deployed]
     var actions: Array = [
         {"label":"< PREV", "call":Callable(self, "_inventory_prev")},
@@ -69,11 +72,13 @@ func _open_infrastructure_inventory() -> void:
     _set_actions(actions)
 
 func _inventory_prev() -> void:
-    inventory_item_idx = (inventory_item_idx - 1 + InfrastructureInventory.CATALOG.size()) % InfrastructureInventory.CATALOG.size()
+    var count := maxi(1, infrastructure_inventory.catalog_size())
+    inventory_item_idx = (inventory_item_idx - 1 + count) % count
     _open_infrastructure_inventory()
 
 func _inventory_next() -> void:
-    inventory_item_idx = (inventory_item_idx + 1) % InfrastructureInventory.CATALOG.size()
+    var count := maxi(1, infrastructure_inventory.catalog_size())
+    inventory_item_idx = (inventory_item_idx + 1) % count
     _open_infrastructure_inventory()
 
 func _inventory_buy() -> void:
