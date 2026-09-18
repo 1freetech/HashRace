@@ -4,8 +4,10 @@ extends "res://scripts/world_pixel_landscape.gd"
 # The old simulation panels still exist, but only one information module is
 # shown at a time. The map stays readable and the player opens detail on demand.
 
-const COMPACT_UI_REVISION: int = 1
+const COMPACT_UI_REVISION: int = 2
 const MENU_WIDTH: float = 270.0
+const COMPACT_PROMPT_REFRESH_SECONDS: float = 0.08
+const COMPACT_STATUS_REFRESH_SECONDS: float = 0.25
 
 var compact_ui_installed: bool = false
 var compact_layer: CanvasLayer
@@ -17,6 +19,8 @@ var turn_menu_button: Button
 var scanner_menu_button: Button
 var company_panel: Panel
 var market_panel: Panel
+var compact_prompt_accum: float = 0.0
+var compact_status_accum: float = 0.0
 
 func _ready() -> void:
     super._ready()
@@ -28,8 +32,15 @@ func _process(delta: float) -> void:
     super._process(delta)
     if not compact_ui_installed:
         _try_install_compact_ui()
-    if compact_ui_installed:
+        return
+
+    compact_prompt_accum += maxf(0.0, delta)
+    compact_status_accum += maxf(0.0, delta)
+    if compact_prompt_accum >= COMPACT_PROMPT_REFRESH_SECONDS:
+        compact_prompt_accum = fmod(compact_prompt_accum, COMPACT_PROMPT_REFRESH_SECONDS)
         _refresh_compact_prompt()
+    if compact_status_accum >= COMPACT_STATUS_REFRESH_SECONDS:
+        compact_status_accum = fmod(compact_status_accum, COMPACT_STATUS_REFRESH_SECONDS)
         _refresh_compact_status()
 
 func _try_install_compact_ui() -> void:
@@ -143,6 +154,8 @@ func _build_compact_layer() -> void:
 
     drawer_panel.visible = false
     _refresh_menu_button_text()
+    _refresh_compact_prompt()
+    _refresh_compact_status()
 
 func _add_menu_button(text_value: String, y: float, action: Callable) -> Button:
     var button := Button.new()
@@ -246,4 +259,7 @@ func _unhandled_input(event: InputEvent) -> void:
     super._unhandled_input(event)
 
 func debug_compact_ui_ready() -> bool:
-    return COMPACT_UI_REVISION == 1 and compact_ui_installed and is_instance_valid(menu_button)
+    return COMPACT_UI_REVISION >= 2 and compact_ui_installed and is_instance_valid(menu_button)
+
+func debug_compact_ui_throttle_ready() -> bool:
+    return COMPACT_PROMPT_REFRESH_SECONDS >= 0.05 and COMPACT_STATUS_REFRESH_SECONDS >= COMPACT_PROMPT_REFRESH_SECONDS

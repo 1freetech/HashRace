@@ -100,7 +100,11 @@ func set_screen_scale(viewport_size: Vector2) -> void:
 func force_refresh() -> void:
     if world == null or not is_instance_valid(world):
         return
-    _accept_sample(_sample_metrics())
+    # UI-triggered refreshes update the cards immediately without fabricating a
+    # new time-series point. History is recorded only by the fixed simulation
+    # tick (or the one-second fallback when no simulation snapshot exists).
+    current = _sample_metrics()
+    queue_redraw()
 
 func _accept_sample(sample: Dictionary) -> void:
     current = sample
@@ -118,10 +122,14 @@ func snapshot() -> Dictionary:
     return current.duplicate(true)
 
 func _process(delta: float) -> void:
+    # SimulationManager already supplies one authoritative snapshot per tick.
+    # Do not double-sample that same tick from the widget's own process loop.
+    if not simulation_snapshot.is_empty():
+        return
     sample_accum += delta
     if sample_accum >= SAMPLE_INTERVAL:
-        sample_accum = 0.0
-        force_refresh()
+        sample_accum = fmod(sample_accum, SAMPLE_INTERVAL)
+        _accept_sample(_sample_metrics())
 
 func _normalized_snapshot(raw: Dictionary) -> Dictionary:
     return {
@@ -366,12 +374,43 @@ func _bottom_text(key: String) -> String:
         pct *= -1.0
     return "%+.1f%%" % pct
 
+func _trend_direction(key: String) -> int:
+    var series: Array = histories.get(key, [])
+    if series.size() < 2:
+        return 0
+    var old_v := float(series[0])
+    var new_v := float(series[series.size() - 1])
+    var delta := new_v - old_v
+    var deadband := maxf(0.000001, absf(old_v) * 0.0005)
+    if absf(delta) <= deadband:
+        return 0
+    # Lower J/TH is an improvement, unlike the other tracked metrics.
+    if key == "efficiency":
+        delta *= -1.0
+    return 1 if delta > 0.0 else -1
+
 func _bottom_color(key: String) -> Color:
     if key == "uptime":
-        return MUTED
+        var uptime := float(current.get("uptime", 0.0))
+        if uptime < 85.0:
+            return BAD
+        if uptime < 94.0:
+            return WARNING
+        return GREEN
     if key == "power":
-        return WARNING if float(current.get("load_mw", 0.0)) > float(current.get("power", 0.0)) else GREEN
-    return GREEN
+        var load := float(current.get("load_mw", 0.0))
+        var power := float(current.get("power", 0.0))
+        if load > power:
+            return BAD
+        if load > power * 0.90:
+            return WARNING
+        return GREEN
+    var trend := _trend_direction(key)
+    if trend > 0:
+        return GREEN
+    if trend < 0:
+        return WARNING
+    return MUTED
 
 func _progress_for(key: String, value: float) -> float:
     match key:

@@ -13,6 +13,9 @@ const CAMPUS_BLUE := Color("17699a")
 const CAMPUS_GRASS := Color("4c913e")
 const CAMPUS_PATH := Color("a8a797")
 const CAMPUS_GOLD := Color("f5a623")
+const CAMPUS_ANIMATION_STEP_MS: int = 260
+
+var campus_animation_phase: int = -1
 
 func _draw_world_props_pixel() -> void:
     super._draw_world_props_pixel()
@@ -140,9 +143,16 @@ func _campus_tree(center: Vector2) -> void:
 
 func _process(delta: float) -> void:
     super._process(delta)
-    # Fans/status pixels use the existing redraw loop; this keeps the campus alive.
-    if int(Time.get_ticks_msec() / 260) % 2 == 0:
+    # Animated water/facility details only need a redraw when their discrete
+    # pixel-art phase changes. The old even/odd test queued redraw every frame
+    # for half of each cycle, causing unnecessary full-world redraw bursts.
+    var next_phase := int(Time.get_ticks_msec() / CAMPUS_ANIMATION_STEP_MS)
+    if next_phase != campus_animation_phase:
+        campus_animation_phase = next_phase
         queue_redraw()
 
 func debug_target_composition_ready() -> bool:
     return CAMPUS_WALL.a == 1.0 and town_zones.size() == 10
+
+func debug_animation_scheduler_ready() -> bool:
+    return CAMPUS_ANIMATION_STEP_MS >= 200 and CAMPUS_ANIMATION_STEP_MS <= 500
