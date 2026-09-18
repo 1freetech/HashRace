@@ -25,17 +25,19 @@ func cell_key(world_position: Vector2) -> Vector2i:
         int(round(snapped.y / float(maxi(1, grid_size.y))))
     )
 
-func can_place(world_position: Vector2, origin: Vector2 = world_position) -> bool:
-    if not PlacementFeedback.within_work_distance(origin, world_position, maximum_place_distance):
+func can_place(world_position: Vector2, origin: Variant = null) -> bool:
+    var source: Vector2 = world_position if origin == null else Vector2(origin)
+    if not PlacementFeedback.within_work_distance(source, world_position, maximum_place_distance):
         return false
     return not occupied.has(cell_key(world_position))
 
-func place(node: Node2D, world_position: Vector2, origin: Vector2 = world_position) -> bool:
+func place(node: Node2D, world_position: Vector2, origin: Variant = null) -> bool:
     if node == null:
         placement_rejected.emit("No node supplied.")
         return false
+    var source: Vector2 = world_position if origin == null else Vector2(origin)
     var key := cell_key(world_position)
-    if not can_place(world_position, origin):
+    if not can_place(world_position, source):
         placement_rejected.emit("Grid cell is blocked or out of placement range.")
         return false
     occupied[key] = node
