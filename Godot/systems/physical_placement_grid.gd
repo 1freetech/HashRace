@@ -1,6 +1,8 @@
 class_name HashRacePhysicalPlacementGrid
 extends Node2D
 
+const PlacementFeedback = preload("res://components/building/placement_feedback.gd")
+
 ## World-space placement registry inspired by GDQuest's EntityPlacer.
 ## It gives Hash Race a real physical deployment layer instead of stat-only buys.
 
@@ -14,7 +16,7 @@ var occupied: Dictionary = {}
 var placed_nodes: Array[Node2D] = []
 
 func snap(world_position: Vector2) -> Vector2:
-    return HashRacePlacementFeedback.snap_to_grid(world_position, grid_size)
+    return PlacementFeedback.snap_to_grid(world_position, grid_size)
 
 func cell_key(world_position: Vector2) -> Vector2i:
     var snapped := snap(world_position)
@@ -24,7 +26,7 @@ func cell_key(world_position: Vector2) -> Vector2i:
     )
 
 func can_place(world_position: Vector2, origin: Vector2 = world_position) -> bool:
-    if not HashRacePlacementFeedback.within_work_distance(origin, world_position, maximum_place_distance):
+    if not PlacementFeedback.within_work_distance(origin, world_position, maximum_place_distance):
         return false
     return not occupied.has(cell_key(world_position))
 
