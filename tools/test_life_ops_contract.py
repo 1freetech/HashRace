@@ -11,7 +11,7 @@ version = Path("VERSION").read_text().strip()
 release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-assert "world_v070.gd" in scene, "Live scene must boot through the current release layer"
+assert "world_v073.gd" in scene, "Live scene must boot through the current release layer"
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_burnout.gd"' in visual_detail, "Current visual/gameplay chain must retain burnout and life operations"
 assert 'extends "res://scripts/world_life_ops.gd"' in burnout
