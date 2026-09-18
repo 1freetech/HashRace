@@ -3,12 +3,14 @@
 from pathlib import Path
 
 inventory = Path("Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
-energy = Path("Godot/scripts/world_v065.gd").read_text(encoding="utf-8")\nworld_v067 = Path("Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
+energy = Path("Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
+world_v067 = Path("Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = Path("VERSION").read_text().strip()
 
 assert version == "v0.067"
-assert 'res://scripts/world_v067.gd' in scene\nassert 'extends "res://scripts/world_v065.gd"' in world_v067
+assert 'res://scripts/world_v067.gd' in scene
+assert 'extends "res://scripts/world_v065.gd"' in world_v067
 assert 'extends "res://scripts/world_v059.gd"' in energy
 
 for marker in [
