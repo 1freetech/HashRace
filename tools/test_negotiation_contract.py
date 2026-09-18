@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -50,5 +51,6 @@ require(scene, [
     "WalkAwayButton",
 ], "Negotiation scene tree")
 
-assert version == "v0.072", f"expected v0.072, got {version}"
+assert re.fullmatch(r"v0\.\d{3}", version), version
+assert int(version.split(".")[1]) >= 72, f"negotiation requires v0.072+, got {version}"
 print("Negotiation contract PASS")
