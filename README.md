@@ -4,11 +4,11 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.090**. The current **main** development build is **v0.091**.
+The latest verified public desktop release is **v0.091**. The current **main** development build is **v0.091**.
 
-- **[Windows x64 — Hash Race v0.090](https://github.com/1freetech/HashRace/releases/download/v0.090/HashRace-v0.090-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.090](https://github.com/1freetech/HashRace/releases/download/v0.090/HashRace-v0.090-linux-x64.tar.gz)**
-- **[Hash Race v0.090 release page](https://github.com/1freetech/HashRace/releases/tag/v0.090)**
+- **[Windows x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-windows-x64.zip)**
+- **[Linux x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-linux-x64.tar.gz)**
+- **[Hash Race v0.091 release page](https://github.com/1freetech/HashRace/releases/tag/v0.091)**
 - **[Latest release page](https://github.com/1freetech/HashRace/releases/latest)**
 
 v0.091 is the interaction-quality pass on top of v0.090: Space is interaction-only so talking/opening a target cannot accidentally advance the economy; buildings use their visible front-door position for interaction range; clicking a distant entity routes the player there and opens it on arrival; failed routes report clearly; the persistent scanner control is removed from the field while the compact menu remains available; turn-phase text only appears during confirmation; and building/town labels are limited to the nearest relevant location to keep the map readable.
