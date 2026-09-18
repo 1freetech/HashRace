@@ -7,7 +7,9 @@ extends "res://scripts/world_rpg_strategy.gd"
 const TURN_LENGTHS: Array = [
     {"name": "DAY", "days": 1.0},
     {"name": "MONTH", "days": 30.4375},
-    {"name": "YEAR", "days": 365.25}
+    {"name": "QUARTER", "days": 91.3125},
+    {"name": "YEAR", "days": 365.25},
+    {"name": "CUSTOM", "days": 14.0}
 ]
 const DAYS_PER_YEAR: float = 365.25
 const HALVING_DAYS: float = 1461.0
@@ -16,6 +18,7 @@ var turn_length_idx: int = 1
 var elapsed_campaign_days: float = 0.0
 var next_halving_day: float = HALVING_DAYS
 var turn_scale_button: Button
+var custom_days: float = 14.0
 
 func _ready() -> void:
     super._ready()
@@ -24,6 +27,8 @@ func _ready() -> void:
     _refresh_ui()
 
 func turn_length_days() -> float:
+    if turn_length_name() == "CUSTOM":
+        return custom_days
     return float(TURN_LENGTHS[turn_length_idx]["days"])
 
 func turn_length_name() -> String:
@@ -55,6 +60,8 @@ func _unhandled_input(event: InputEvent) -> void:
                 KEY_1: direct_turn_idx = 0
                 KEY_2: direct_turn_idx = 1
                 KEY_3: direct_turn_idx = 2
+                KEY_4: direct_turn_idx = 3
+                KEY_5: direct_turn_idx = 4
             if direct_turn_idx >= 0:
                 _set_turn_length(direct_turn_idx)
                 get_viewport().set_input_as_handled()
@@ -80,9 +87,17 @@ func _set_turn_length(new_idx: int) -> void:
     _refresh_ui()
     _feedback("TURN LENGTH: 1 turn = %s (%.2f days). Mining output, power, operations, debt interest, partner income, rivals, and market movement remain scaled to elapsed time." % [turn_length_name(), turn_length_days()])
 
+func set_custom_turn_days(days: float) -> void:
+    custom_days = clampf(days, 1.0, 3650.0)
+    _set_turn_length(4)
+    _refresh_turn_scale_button()
+
+func custom_turn_days() -> float:
+    return custom_days
+
 func _refresh_turn_scale_button() -> void:
     if is_instance_valid(turn_scale_button):
-        turn_scale_button.text = "TURN: %s  [1 DAY • 2 MONTH • 3 YEAR • C CYCLE]" % turn_length_name()
+        turn_scale_button.text = "TURN: %s  [1 DAY • 2 MONTH • 3 QTR • 4 YEAR • 5 CUSTOM • C]" % turn_length_name()
     if is_instance_valid(quarter_button) and not live_quarter_confirmation_pending and not campaign_complete:
         quarter_button.text = "END %s TURN" % turn_length_name()
 
