@@ -1,4 +1,4 @@
-extends "res://scripts/world_v068.gd"
+extends "res://scripts/world_v068.gd" # release inheritance
 
 # Hash Race v0.070 release layer.
 # Preserves the v0.069 maintenance fixes while making the modular architecture
