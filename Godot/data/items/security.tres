@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "security"
+display_name = "Site Security System"
+category = "RESILIENCE"
+slot_type = "SAFETY"
+price = 45000.0
+deployable = true
+effect = "asset_protection"
+effect_amount = 0.0200
+effect_unit = "risk"
+visual = "security"
+description = "Site Security System used by the Hash Race infrastructure and physical deployment systems."
