@@ -1,5 +1,9 @@
 extends "res://scripts/world_company_effects.gd"
 
+const InfrastructureInventory = preload("res://scripts/infrastructure_inventory.gd")
+var infrastructure_inventory = InfrastructureInventory.new()
+var inventory_button: Button
+
 # v0.044 release-safe league standings. The compact UI hides this legacy layer
 # during normal play and opens the same ten-miner standings on demand.
 
@@ -9,6 +13,7 @@ var league_rank_label: Label
 func _ready() -> void:
     super._ready()
     _install_league_ui()
+    _install_inventory_ui()
     _refresh_league_ui()
 
 func _install_league_ui() -> void:
@@ -32,6 +37,32 @@ func _install_league_ui() -> void:
     league_button.add_theme_font_size_override("font_size", 12)
     league_button.pressed.connect(_open_league_standings)
     layer.add_child(league_button)
+
+
+func _install_inventory_ui() -> void:
+    inventory_button = Button.new()
+    inventory_button.position = Vector2(1080.0, 88.0)
+    inventory_button.size = Vector2(150.0, 42.0)
+    inventory_button.text = "INFRASTRUCTURE"
+    inventory_button.tooltip_text = "Browse owned and purchasable mining infrastructure."
+    inventory_button.add_theme_font_size_override("font_size", 11)
+    inventory_button.pressed.connect(_open_infrastructure_inventory)
+    league_button.get_parent().add_child(inventory_button)
+
+func _open_infrastructure_inventory() -> void:
+    var lines: Array[String] = []
+    var categories: Array[String] = ["MINERS", "POWER", "ENERGY", "COOLING", "FACILITY", "NETWORK", "MAINTENANCE", "RESILIENCE", "STRATEGIC"]
+    for category in categories:
+        var available: Array[Dictionary] = infrastructure_inventory.by_category(category)
+        if available.is_empty():
+            continue
+        lines.append("\n" + category)
+        for prototype in available:
+            var id: String = String(prototype["id"])
+            lines.append("%s  x%d  •  $%d  •  %s %s" % [String(prototype["name"]), infrastructure_inventory.quantity(id), int(prototype["price"]), String(prototype["effect"]), String(prototype["unit"])])
+    dialog_title.text = "INFRASTRUCTURE INVENTORY // 30 ASSETS"
+    dialog_text.text = "Mining infrastructure is functional equipment, not decoration. Purchases affect hashrate, MW, efficiency, uptime, cost, capacity, discounts, or risk.\n" + "\n".join(lines)
+    _set_actions([])
 
 func _rival_asset_value(rival: Dictionary) -> float:
     return maxf(0.0, float(rival["cash"])) + float(rival["sats"]) / SATS_PER_BTC * btc_price + float(rival["mw"]) * 90000.0 + float(rival["acres"]) * land_price_per_acre + float(rival["machines"]) * 700.0
