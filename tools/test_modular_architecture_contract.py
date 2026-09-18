@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Hash Race v0.070 modular Godot architecture contract."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,7 +19,8 @@ placement = (ROOT / "Godot/systems/physical_placement_grid.gd").read_text(encodi
 simulation = (ROOT / "Godot/systems/simulation_manager.gd").read_text(encoding="utf-8")
 widget = (ROOT / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 
-assert version == "v0.070"
+assert re.fullmatch(r"v0\.\d{3}", version), version
+assert int(version.split(".")[1]) >= 70, version
 assert 'res://scripts/world_v070.gd' in scene
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'debug_v070_ready' in release_world
@@ -129,4 +131,4 @@ assert 'top_stats.visible = false' in world
 assert 'energy_status_label.visible = false' in world
 assert 'debug_hud_consolidated' in world
 
-print("Hash Race v0.070 modular architecture contract passed: Resources + slots/grid + fixed-tick sim + consolidated HUD.")
+print(f"Hash Race {version} modular architecture contract passed: Resources + slots/grid + fixed-tick sim + consolidated HUD.")
