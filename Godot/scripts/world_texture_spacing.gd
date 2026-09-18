@@ -9,8 +9,12 @@ extends "res://scripts/world_ui_compact.gd"
 
 const BuildingPlacer = preload("res://scripts/building_placer.gd")
 const TEXTURE_SPACING_REVISION: int = 1
-const CHARACTER_LABEL_GREEN := Color("f4f7f5")
+const CHARACTER_LABEL_GREEN := Color("39ff75")
 const CHARACTER_LABEL_SHADOW := Color("06120b")
+const BUILDING_LABEL_BG := Color("020609dc")
+const NAV_PATH_COLOR := Color("4df0ff66")
+const NAV_CORNER_COLOR := Color("4df0ff99")
+const NAV_TARGET_COLOR := Color("64ff8ccc")
 const BUILDING_LABEL_DISTANCE: float = 285.0
 const TOWN_LABEL_DISTANCE: float = 430.0
 
@@ -214,6 +218,10 @@ func _draw_building_name(entity: Dictionary, idx: int, accent: Color, y_offset: 
     if not _show_building_name(pos, idx):
         return
     var base := Vector2(pos.x - width * 0.5, pos.y + y_offset)
+    var plate := Rect2(base + Vector2(8.0, -14.0), Vector2(width - 16.0, 20.0))
+    draw_rect(plate, BUILDING_LABEL_BG, true)
+    var underline := accent.lightened(0.18) if idx == selected_entity_idx else accent.darkened(0.24)
+    draw_line(Vector2(plate.position.x + 8.0, plate.end.y - 2.0), Vector2(plate.end.x - 8.0, plate.end.y - 2.0), underline, 1.0)
     draw_string(ThemeDB.fallback_font, base + Vector2(1.0, 1.0), String(entity["name"]), HORIZONTAL_ALIGNMENT_CENTER, width, 11, Color("020609"))
     draw_string(ThemeDB.fallback_font, base, String(entity["name"]), HORIZONTAL_ALIGNMENT_CENTER, width, 11, accent.lightened(0.18))
 
@@ -329,14 +337,21 @@ func _draw() -> void:
     _draw_clean_navigation_path()
 
 func _draw_clean_navigation_path() -> void:
-    if nav_path.is_empty():
+    if nav_path.is_empty() or nav_path_index >= nav_path.size():
         return
     var previous: Vector2 = rep_pos
     for i in range(nav_path_index, nav_path.size()):
         var point: Vector2 = nav_path[i]
-        draw_line(previous, point, Color("4df0ff99"), 3.0)
-        draw_circle(point, 5.0, Color("64ff8ccc"))
+        draw_line(previous, point, NAV_PATH_COLOR, 2.0)
+        if i < nav_path.size() - 1:
+            draw_circle(point, 2.0, NAV_CORNER_COLOR)
         previous = point
+
+    # One destination reticle is easier to parse than a large bright circle at
+    # every path waypoint, especially after v0.090 compresses A* collinear runs.
+    var target: Vector2 = nav_path[nav_path.size() - 1]
+    draw_circle(target, 7.0, NAV_TARGET_COLOR, false, 2.0)
+    draw_circle(target, 2.0, NAV_TARGET_COLOR, true)
 
 func debug_texture_spacing_ready() -> bool:
     return clean_layout_min_spacing >= BuildingPlacer.MIN_TARGET_SPACING and TEXTURE_SPACING_REVISION >= 1

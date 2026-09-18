@@ -8,16 +8,16 @@ camera = (ROOT / "Godot/scripts/camera_proportion_controller.gd").read_text()
 manager = (ROOT / "Godot/autoloads/scene_manager.gd").read_text()
 doorway = (ROOT / "Godot/components/world/doorway.gd").read_text()
 roof = (ROOT / "Godot/components/world/roof_fade_area.gd").read_text()
-world = (ROOT / "Godot/scripts/world_v089.gd").read_text()
+world = (ROOT / "Godot/scripts/world_v090.gd").read_text()
 grid = (ROOT / "Godot/scripts/world_grid.gd").read_text()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 project = (ROOT / "Godot/project.godot").read_text()
 template = (ROOT / "Godot/templates/Doorway.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
 
-assert version == "v0.089", version
+assert version == "v0.090", version
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
-assert "world_v089.gd" in scene
+assert "world_v090.gd" in scene
 
 for marker in [
     "WORLD_TILE",
@@ -73,10 +73,10 @@ for marker in ["faded_alpha", "0.30", "target_path", "body_entered", "body_exite
     assert marker in roof, marker
 
 for marker in [
-    "V089_CAMERA_INPUT_REVISION",
-    "camera_proportion_controller",
-    "debug_focus_safe_shortcuts_ready",
-    "debug_v089_ready",
+    "V090_STRATEGY_REVISION",
+    "PowerDispatch",
+    "UtilityStrategyAI",
+    "debug_v090_ready",
 ]:
     assert marker in world, marker
 
@@ -84,4 +84,4 @@ assert "WorldScale.collision_rect" in grid
 assert "WorldScale.front_door_world_pos" in grid
 assert "CollisionShape2D" in template
 
-print("Hash Race v0.089 focus-safe camera, world scale, doorway, roof-fade and scene-transition contract passed.")
+print("Hash Race v0.090 strategy, focus-safe camera, world scale, doorway, roof-fade and scene-transition contract passed.")
