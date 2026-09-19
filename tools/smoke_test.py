@@ -81,7 +81,7 @@ def main():
     assert 'extends "res://scripts/world_customization.gd"' in character_detail
     assert "validate_overworld.gd" in workflow
 
-    require(setup, ["MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION", "CharacterPreview", "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone", "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"], "Campaign setup")
+    require(setup, ["MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION", "CharacterPreview", "CAMPAIGN LENGTH", "MAX_CAMPAIGN_YEARS: int = 100", "hashrace_company_idx", "hashrace_character_skin_tone", "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"], "Campaign setup")
 
     companies = ["VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining", "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining", "LatticeX Mining", "Epoch Vector Mining"]
     require(profiles, companies, "Mining-company profile")
