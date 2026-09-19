@@ -12,16 +12,21 @@ assert "world_v094.gd" in scene
 assert 'navigation_layer.name = "NavigationShell"' in release
 assert 'navigation_button.text = "NAV • WORLD"' in release
 assert '"MINING OPS", "ops"' in release
+assert '"INFRASTRUCTURE", "infrastructure"' in release
 assert '"BTC TREASURY", "treasury"' in release
 assert '"LIFE + SITE", "site"' in release
 assert '"WARDROBE", "wardrobe"' in release
 assert '"DIALOG", "dialog"' in release
 assert '"TOOLS", "tools"' in release
+assert '"WORLD / HIDE ALL", "world"' in release
 assert "func _hide_workspace_panels()" in release
 assert "dialog_panel.visible = false" in release
 assert "mining_ops_widget.hide()" in release
 assert "compact_prompt.visible = false" in release
 assert "menu_button.visible = false" in release
+assert 'call("_open_infrastructure_inventory")' in release
+assert 'call("_open_league_standings")' in release
+assert "func _open_life_overview()" in release
 assert "func _show_toast(" in release
 assert "TOAST_SECONDS" in release
 assert "func debug_v094_navigation_ready()" in release
