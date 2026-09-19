@@ -43,7 +43,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -285,5 +285,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.082 verified 8x8 microtile terrain/building composition on top of the v0.080 hard-grid camera/depth contract, Resource-backed infrastructure, physical rack placement, fixed-tick simulation, consolidated live metrics, and negotiation systems.")
+    print("HASH RACE OVERWORLD PASS: v0.094 verified world-first one-panel navigation on top of the existing pixel-world, simulation, mining operations, and negotiation systems.")
     quit(0)
