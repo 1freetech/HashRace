@@ -22,7 +22,7 @@ func _run() -> void:
         _fail("live character preview did not initialize")
         return
 
-    var preview := scene.get_node_or_null("CharacterPreview")
+    var preview := scene.find_child("CharacterPreview", true, false)
     if preview == null:
         _fail("CharacterPreview node is missing")
         return
