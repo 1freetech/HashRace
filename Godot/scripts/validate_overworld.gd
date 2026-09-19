@@ -227,6 +227,9 @@ func _run() -> void:
     if not bool(scene.call("debug_v093_ready")):
         _fail("v0.093 start-preview/UI cleanup layer did not initialize")
         return
+    if not bool(scene.call("debug_v094_navigation_ready")):
+        _fail("v0.094 one-panel navigation / world-first HUD did not initialize")
+        return
 
     # v0.052 character customization contract.
     if not bool(scene.call("debug_character_customization_ready")):
