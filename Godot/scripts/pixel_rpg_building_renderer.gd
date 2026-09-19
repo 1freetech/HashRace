@@ -213,7 +213,7 @@ func _draw_door(img: Image, w: int, h: int, p: Dictionary, style: String) -> voi
     var y := h - 9 - dh
 
     _rect(img, x - 2, y - 2, dw + 4, dh + 3, INK)
-    var door_color := WOOD_MID if style in ["hq", "partner", "bank", "land"] else p["roof_dark"]
+    var door_color: Color = WOOD_MID if style in ["hq", "partner", "bank", "land"] else Color(p["roof_dark"])
     _rect(img, x, y, dw, dh, door_color)
     _rect(img, x + 2, y + 2, 3, dh - 4, door_color.lightened(0.18))
     _rect(img, x + dw - 5, y + int(dh * 0.52), 2, 2, p["trim"])
