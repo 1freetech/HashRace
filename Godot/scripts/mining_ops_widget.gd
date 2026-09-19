@@ -7,10 +7,10 @@ extends Control
 signal close_requested
 signal mount_changed(slot: int)
 
-const BASE_SIZE := Vector2(528.0, 326.0)
-const MIN_SIZE := Vector2(420.0, 260.0)
+const BASE_SIZE := Vector2(528.0, 248.0)
+const MIN_SIZE := Vector2(420.0, 208.0)
 const EDGE_GRAB: float = 8.0
-const MIN_CARD_H: float = 72.0
+const MIN_CARD_H: float = 54.0
 
 const RESIZE_NONE: int = 0
 const RESIZE_LEFT: int = 1
@@ -18,13 +18,13 @@ const RESIZE_RIGHT: int = 2
 const RESIZE_TOP: int = 4
 const RESIZE_BOTTOM: int = 8
 
-const HEADER_H: float = 54.0
-const FOOTER_H: float = 30.0
-const CARD_TOP: float = 62.0
-const CARD_H: float = 106.0
+const HEADER_H: float = 44.0
+const FOOTER_H: float = 24.0
+const CARD_TOP: float = 50.0
+const CARD_H: float = 82.0
 const MARGIN_X: float = 12.0
 const CARD_GAP: float = 7.0
-const ROW_GAP: float = 7.0
+const ROW_GAP: float = 5.0
 const SAMPLE_INTERVAL: float = 1.0
 const MAX_HISTORY: int = 24
 
@@ -204,7 +204,7 @@ func _draw_shell(font: Font) -> void:
 
     draw_string(font, Vector2(34.0, 21.0), "MINING OPS", HORIZONTAL_ALIGNMENT_LEFT, 100.0, 10, WHITE)
     draw_string(font, Vector2(118.0, 21.0), "// LIVE", HORIZONTAL_ALIGNMENT_LEFT, 50.0, 8, GREEN)
-    draw_string(font, Vector2(34.0, 41.0), _context_line(), HORIZONTAL_ALIGNMENT_LEFT, size.x - 174.0, 8, Color("a9c8d7"))
+    draw_string(font, Vector2(34.0, 36.0), _context_line(), HORIZONTAL_ALIGNMENT_LEFT, size.x - 174.0, 7, Color("a9c8d7"))
 
     var bx := size.x - 108.0
     for i in range(3):
@@ -237,22 +237,22 @@ func _draw_cards(font: Font) -> void:
         var value := float(current.get(key, 0.0))
         var accent := _metric_color(key, value)
 
-        var icon_y := clampf(card_h * 0.18, 14.0, 17.0)
+        var icon_y := clampf(card_h * 0.20, 12.0, 15.0)
         _draw_metric_icon(key, rect.position + Vector2(16.0, icon_y), accent, font)
         draw_string(font, rect.position + Vector2(31.0, icon_y + 2.0), METRIC_LABELS[i], HORIZONTAL_ALIGNMENT_LEFT, card_w - 42.0, 8, Color("a9c8d7"))
         draw_circle(rect.position + Vector2(card_w - 10.0, 14.0), 2.0, accent)
 
-        var value_y := clampf(card_h * 0.42, 32.0, 45.0)
-        var value_font := clampi(int(round(13.0 * clampf(card_h / CARD_H, 0.90, 1.15))), 11, 15)
+        var value_y := clampf(card_h * 0.43, 27.0, 36.0)
+        var value_font := clampi(int(round(12.0 * clampf(card_h / CARD_H, 0.90, 1.12))), 10, 13)
         draw_string(font, rect.position + Vector2(10.0, value_y), _format_metric(key, value), HORIZONTAL_ALIGNMENT_LEFT, card_w - 18.0, value_font, GREEN_HI)
 
-        var progress_y := card_h - 18.0
+        var progress_y := card_h - 14.0
         var graph_y := value_y + 6.0
-        var graph_h := maxf(10.0, progress_y - graph_y - 6.0)
+        var graph_h := maxf(7.0, progress_y - graph_y - 4.0)
         var graph_rect := Rect2(rect.position + Vector2(10.0, graph_y), Vector2(card_w - 20.0, graph_h))
         _draw_sparkline(key, graph_rect, accent)
 
-        var progress_rect := Rect2(rect.position + Vector2(10.0, progress_y), Vector2(card_w - 20.0, 6.0))
+        var progress_rect := Rect2(rect.position + Vector2(10.0, progress_y), Vector2(card_w - 20.0, 4.0))
         _draw_progress(progress_rect, _progress_for(key, value), accent)
         draw_string(font, rect.position + Vector2(10.0, card_h - 5.0), _bottom_text(key), HORIZONTAL_ALIGNMENT_LEFT, card_w - 20.0, 7, _bottom_color(key))
 
