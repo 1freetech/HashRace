@@ -73,27 +73,41 @@ func _build_art_tilemap() -> void:
 	# road material in one operation, mirroring its Ctrl+click replace workflow.
 	tile_ops_changed = TileOps.substitute_tile(art_cells, TILE_ROAD_TEMP, TILE_ROAD)
 
-	# Stamp readable company lots around every mining HQ/town.
+	# Stamp readable company lots around every mining HQ/town. Lots may touch
+	# a curb, but never replace a live road or water tile.
 	for raw_zone in town_zones:
 		var zone: Dictionary = raw_zone
 		var center: Vector2 = zone["center"]
 		var c: Vector2i = _world_to_art_cell(center)
-		GBPaint.paint_rect(art_cells, c.x - 3, c.y - 3, 7, 6, TILE_LOT, art_columns, art_rows)
-		GBPaint.paint_rect(art_cells, c.x - 1, c.y + 3, 3, 1, TILE_PLAZA, art_columns, art_rows)
+		_paint_route_safe_rect(c.x - 3, c.y - 3, 7, 6, TILE_LOT)
+		_paint_route_safe_rect(c.x - 1, c.y + 3, 3, 1, TILE_PLAZA)
 
-	# Partner/business pads receive smaller paved footprints.
+	# Partner/business pads use the same road-preserving rule so a large paved
+	# apron cannot visually erase the street beside the building.
 	for raw_entity in entities:
 		var entity: Dictionary = raw_entity
 		var kind: String = String(entity["kind"])
 		if kind == "partner" or kind == "machines" or kind == "power" or kind == "bank" or kind == "land":
 			var c: Vector2i = _world_to_art_cell(entity["pos"])
-			GBPaint.paint_rect(art_cells, c.x - 2, c.y - 2, 5, 5, TILE_LOT, art_columns, art_rows)
-			GBPaint.paint_rect(art_cells, c.x, c.y + 2, 1, 1, TILE_PLAZA, art_columns, art_rows)
+			_paint_route_safe_rect(c.x - 2, c.y - 2, 5, 5, TILE_LOT)
+			_paint_route_safe_rect(c.x, c.y + 2, 1, 1, TILE_PLAZA)
 
 	# Use the Tilemap Studio queue-based flood fill on the north-west connected
 	# grass region to create a second terrain shade without touching roads/lots.
 	tile_ops_changed += TileOps.flood_fill(art_cells, Vector2i(0, 0), TILE_GRASS_DARK, art_columns, art_rows)
 	gbc_map_ready = true
+
+func _paint_route_safe_rect(x: int, y: int, width: int, height: int, value: int) -> void:
+	for xi in range(x, x + width):
+		for yi in range(y, y + height):
+			if xi < 0 or yi < 0 or xi >= art_columns or yi >= art_rows:
+				continue
+			var cell := Vector2i(xi, yi)
+			var existing: int = int(art_cells.get(cell, TILE_GRASS))
+			if existing == TILE_ROAD or existing == TILE_WATER:
+				continue
+			art_cells[cell] = value
+
 
 func _world_to_art_cell(pos: Vector2) -> Vector2i:
 	return Vector2i(
