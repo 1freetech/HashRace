@@ -27,6 +27,14 @@ func _run() -> void:
         _fail("CharacterPreview node is missing")
         return
 
+    var years := scene.get("years_option") as OptionButton
+    if years == null or years.item_count != 100:
+        _fail("campaign length selector must expose 100 yearly choices")
+        return
+    if years.get_item_id(years.item_count - 1) != 100:
+        _fail("campaign length selector does not reach 100 years")
+        return
+
     var skin := scene.get("skin_tone_option") as OptionButton
     var gender := scene.get("gender_option") as OptionButton
     if skin == null or gender == null:
@@ -43,5 +51,5 @@ func _run() -> void:
         _fail("preview did not follow edited skin/presentation values")
         return
 
-    print("HASH RACE CAMPAIGN SETUP PASS: live player preview follows customization controls.")
+    print("HASH RACE CAMPAIGN SETUP PASS: live player preview follows customization controls and campaign length reaches 100 years.")
     quit(0)
