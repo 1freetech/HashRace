@@ -6,10 +6,12 @@
 
 - **[Latest release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-- **[Windows x64 — v0.097](https://github.com/1freetech/HashRace/releases/download/v0.097/HashRace-v0.097-windows-x64.zip)**
-- **[Linux x64 — v0.097](https://github.com/1freetech/HashRace/releases/download/v0.097/HashRace-v0.097-linux-x64.tar.gz)**
+- **[Windows x64 — v0.102](https://github.com/1freetech/HashRace/releases/download/v0.102/HashRace-v0.102-windows-x64.zip)**
+- **[Linux x64 — v0.102](https://github.com/1freetech/HashRace/releases/download/v0.102/HashRace-v0.102-linux-x64.tar.gz)**
 
-v0.102 is the current live-source visual cleanup. The large decorative energy yard is removed from the overworld, repeated support houses and fixed transformer/fence clutter are gone, entrance walks now connect cleanly toward roads without crossing water, and landscaping skips water/road cells. A new **AI Operations Rack** is a real infrastructure inventory purchase; only when deployed does one compact engineered pixel rack appear beside the player's home.\n\nv0.097 introduced the pixel-art graphics rebuild. It replaces the older blocky facility treatment with a cohesive RPG-style pixel-art terrain/building renderer, adjacency-aware terrain edges, landscaping details, stronger 3/4 roof silhouettes, and corrected renderer typing/instancing so the visual layer boots cleanly. The release metadata and automated contracts now follow the live `world_v###.gd` layer instead of relying on stale hard-coded release numbers.
+v0.102 is the current live-source visual cleanup. The large decorative energy yard is removed from the overworld, repeated support houses and fixed transformer/fence clutter are gone, entrance walks now connect cleanly toward roads without crossing water, and landscaping skips water/road cells. A new **AI Operations Rack** is a real infrastructure inventory purchase; only when deployed does one compact engineered pixel rack appear beside the player's home.
+
+v0.097 introduced the pixel-art graphics rebuild. It replaces the older blocky facility treatment with a cohesive RPG-style pixel-art terrain/building renderer, adjacency-aware terrain edges, landscaping details, stronger 3/4 roof silhouettes, and corrected renderer typing/instancing so the visual layer boots cleanly. The release metadata and automated contracts now follow the live `world_v###.gd` layer instead of relying on stale hard-coded release numbers.
 
 v0.095 moves every interactive facility onto a **roadside parcel** instead of allowing building footprints or paved lots to cover live road/water tiles. The same update finishes the player scouter customization path: campaign setup offers eight lens colors plus left/right eye placement with a live character preview, and the in-game Wardrobe can change skin tone, presentation, outfit, scouter color, and scouter eye at any time. The active high-density player renderer now uses those scouter choices directly rather than falling back to the company representative's fixed visor side or the outfit's neon color.
 
