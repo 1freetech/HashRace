@@ -266,7 +266,7 @@ func _run() -> void:
         return
     var live_scouter_color: Color = scene.call("debug_live_scouter_color")
     var expected_scouter_color: Color = Color("bd8cff")
-    if live_scouter_color.distance_to(expected_scouter_color) > 0.01:
+    if not live_scouter_color.is_equal_approx(expected_scouter_color):
         _fail("active renderer ignored the selected scouter lens color")
         return
     if not bool(scene.call("debug_paid_outfits_use_game_cash")):
