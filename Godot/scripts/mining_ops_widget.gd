@@ -10,6 +10,7 @@ signal mount_changed(slot: int)
 const BASE_SIZE := Vector2(528.0, 248.0)
 const MIN_SIZE := Vector2(420.0, 208.0)
 const EDGE_GRAB: float = 8.0
+const RESIZE_STEP := Vector2(8.0, 8.0)
 const MIN_CARD_H: float = 54.0
 
 const RESIZE_NONE: int = 0
@@ -71,7 +72,7 @@ func setup(world_node: Node) -> void:
     mouse_filter = Control.MOUSE_FILTER_STOP
     clip_contents = true
     focus_mode = Control.FOCUS_NONE
-    tooltip_text = "Live Mining Ops. Drag the title bar to move it. Drag any top/side/bottom edge or corner to resize it."
+    tooltip_text = "Live Mining Ops. Drag the title bar to move it. Drag any edge or corner to resize in clean 8 px steps."
     for key in METRIC_KEYS:
         histories[key] = []
     set_process(true)
@@ -574,21 +575,21 @@ func _resize_from_global_pointer(pointer: Vector2) -> void:
 
     if (resize_mask & RESIZE_RIGHT) != 0:
         var max_w_right := maxf(min_size.x, (viewport_size.x - resize_start_position.x) / sx)
-        new_size.x = clampf(resize_start_size.x + local_delta.x, min_size.x, max_w_right)
+        new_size.x = _snap_resize_value(resize_start_size.x + local_delta.x, min_size.x, max_w_right, RESIZE_STEP.x)
     elif (resize_mask & RESIZE_LEFT) != 0:
         var right_edge := resize_start_position.x + resize_start_size.x * sx
         var max_w_left := maxf(min_size.x, right_edge / sx)
-        new_size.x = clampf(resize_start_size.x - local_delta.x, min_size.x, max_w_left)
+        new_size.x = _snap_resize_value(resize_start_size.x - local_delta.x, min_size.x, max_w_left, RESIZE_STEP.x)
         new_pos.x = right_edge - new_size.x * sx
 
     if not collapsed:
         if (resize_mask & RESIZE_BOTTOM) != 0:
             var max_h_bottom := maxf(min_size.y, (viewport_size.y - resize_start_position.y) / sy)
-            new_size.y = clampf(resize_start_size.y + local_delta.y, min_size.y, max_h_bottom)
+            new_size.y = _snap_resize_value(resize_start_size.y + local_delta.y, min_size.y, max_h_bottom, RESIZE_STEP.y)
         elif (resize_mask & RESIZE_TOP) != 0:
             var bottom_edge := resize_start_position.y + resize_start_size.y * sy
             var max_h_top := maxf(min_size.y, bottom_edge / sy)
-            new_size.y = clampf(resize_start_size.y - local_delta.y, min_size.y, max_h_top)
+            new_size.y = _snap_resize_value(resize_start_size.y - local_delta.y, min_size.y, max_h_top, RESIZE_STEP.y)
             new_pos.y = bottom_edge - new_size.y * sy
 
     size = new_size
@@ -599,6 +600,12 @@ func _resize_from_global_pointer(pointer: Vector2) -> void:
         expanded_size = new_size
     _clamp_to_viewport()
     queue_redraw()
+
+func _snap_resize_value(value: float, minimum: float, maximum: float, step: float) -> float:
+    var clamped := clampf(value, minimum, maximum)
+    if step <= 0.0:
+        return clamped
+    return clampf(roundf(clamped / step) * step, minimum, maximum)
 
 func _finish_resize() -> void:
     resizing = false
@@ -637,6 +644,8 @@ func debug_resizable_ready() -> bool:
         MIN_SIZE.x < BASE_SIZE.x
         and MIN_SIZE.y < BASE_SIZE.y
         and EDGE_GRAB >= 6.0
+        and RESIZE_STEP.x >= 4.0
+        and RESIZE_STEP.y >= 4.0
         and not collapsed
     )
 
@@ -651,8 +660,8 @@ func debug_set_widget_size(target_size: Vector2) -> void:
     var viewport_size := get_viewport_rect().size
     var max_size := Vector2(viewport_size.x / sx, viewport_size.y / sy)
     size = Vector2(
-        clampf(target_size.x, MIN_SIZE.x, max_size.x),
-        clampf(target_size.y, MIN_SIZE.y, max_size.y)
+        _snap_resize_value(target_size.x, MIN_SIZE.x, max_size.x, RESIZE_STEP.x),
+        _snap_resize_value(target_size.y, MIN_SIZE.y, max_size.y, RESIZE_STEP.y)
     )
     expanded_size = size
     if mount_slot >= 0:
