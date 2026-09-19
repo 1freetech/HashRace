@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> world_v086.gd -> world_v085.gd -> world_v082.gd -> prior visual/gameplay stack. v0.094 adds world-first one-panel navigation and minimizes persistent gameplay UI.
-[ext_resource path="res://scripts/world_v094.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> world_v086.gd -> world_v085.gd -> world_v082.gd -> prior visual/gameplay stack. v0.095 makes Escape return active interfaces to the unobstructed world while preserving the v0.094 world-first navigation shell.
+[ext_resource path="res://scripts/world_v095.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
