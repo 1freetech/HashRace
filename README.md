@@ -4,11 +4,6 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.091**. The current development build is **v0.094**.
-
-- **[Windows x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-windows-x64.zip)**
-- **[Linux x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-linux-x64.tar.gz)**
-- **[Hash Race v0.091 release page](https://github.com/1freetech/HashRace/releases/tag/v0.091)**
 - **[Latest release page](https://github.com/1freetech/HashRace/releases/latest)**
 
 v0.094 introduces a **world-first navigation shell** for gameplay. Normal play now leaves only one small NAV control on-screen; Company, Market, Mining Ops, Infrastructure, BTC Treasury, Life + Site, League, Wardrobe, Dialogue, and Tools are opened one at a time, with the other interfaces minimized automatically. The old persistent menu button and always-on control prompt are hidden, the large dialogue panel no longer occupies the bottom of the screen during ordinary movement, and routine feedback appears as a temporary toast instead of reopening a large interface. The NAV panel also keeps turn preview/confirmation directly accessible without restoring the old dashboard clutter.\n\nv0.093 adds a live player-model preview to the campaign setup screen so skin tone and presentation changes are visible immediately, compresses the Mining Ops dashboard from 326 px to 248 px tall while keeping all six live metrics and resize/drag behavior, removes the legacy full-width `HASH RACE // COMPANY OVERWORLD` header from gameplay, and extends selectable campaign length from 20 years to 100 years with matching runtime caps so long campaigns are not silently truncated.\n
