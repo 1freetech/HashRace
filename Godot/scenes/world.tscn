@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior visual/gameplay stack. v0.095 keeps buildings off roads/water and binds live scouter color/eye customization to the active player renderer.
-[ext_resource path="res://scripts/world_v095.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v096.gd -> world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior visual/gameplay stack. v0.096 improves navigation responsiveness, workspace clarity, keyboard access, and UI recovery without changing simulation state.
+[ext_resource path="res://scripts/world_v096.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
