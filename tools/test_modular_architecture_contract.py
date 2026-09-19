@@ -61,7 +61,7 @@ for marker in ["SimulationManager","PhysicalPlacementGrid","RackContainer","_syn
 assert 'window/stretch/scale_mode="integer"' in project
 assert '2d/snap/snap_2d_transforms_to_pixel=true' in project
 assert '2d/snap/snap_2d_vertices_to_pixel=true' in project
-assert 'const BASE_SIZE := Vector2(528.0, 326.0)' in widget
+assert 'const BASE_SIZE := Vector2(528.0, 248.0)' in widget
 assert 'var mount_slot: int = 1' in widget
 assert 'func mount_top_right()' in widget
 assert 'func apply_simulation_snapshot' in widget
