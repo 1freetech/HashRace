@@ -89,20 +89,22 @@ func _palette(style: String, accent: Color) -> Dictionary:
             pass
     return {
         "roof": roof,
-        "roof_dark": roof.darkened(0.30),
-        "roof_light": roof.lightened(0.16),
+        "roof_dark": roof.darkened(0.38),
+        "roof_light": roof.lightened(0.24),
         "wall": wall,
-        "wall_light": wall_light,
-        "wall_dark": wall_dark,
+        "wall_light": wall_light.lightened(0.06),
+        "wall_dark": wall_dark.darkened(0.10),
         "trim": trim,
         "accent": accent,
     }
 
 func _draw_ground_shadow(img: Image, w: int, h: int) -> void:
-    var y0 := h - 12
-    for y in range(y0, h - 4):
-        var inset := 6 + absi(y - (y0 + 3))
-        _rect(img, inset + 6, y, w - (inset + 6) * 2, 1, Color(0.08, 0.12, 0.12, 0.34))
+    # Stronger authored contact shadow. The world layer adds the longer cast
+    # shadow; this source shadow keeps the sprite grounded at its foundation.
+    var y0 := h - 16
+    for y in range(y0, h - 3):
+        var inset := 5 + absi(y - (y0 + 5))
+        _rect(img, inset + 4, y, w - (inset + 4) * 2, 1, Color(0.08, 0.12, 0.12, 0.50))
 
 func _draw_facade(img: Image, w: int, h: int, p: Dictionary) -> void:
     var body_left := 8
@@ -113,9 +115,10 @@ func _draw_facade(img: Image, w: int, h: int, p: Dictionary) -> void:
     _rect(img, body_left - 2, body_top - 2, body_right - body_left + 5, body_bottom - body_top + 4, INK)
     _rect(img, body_left, body_top, body_right - body_left + 1, body_bottom - body_top + 1, p["wall"])
 
-    # One consistent top-left light source.
-    _rect(img, body_left, body_top, 3, body_bottom - body_top + 1, p["wall_light"])
-    _rect(img, body_right - 2, body_top, 3, body_bottom - body_top + 1, p["wall_dark"])
+    # One consistent top-left light source with a clearer light/shadow split.
+    _rect(img, body_left, body_top, 4, body_bottom - body_top + 1, p["wall_light"])
+    _rect(img, body_left + 4, body_top, 2, body_bottom - body_top + 1, p["wall_light"].darkened(0.10))
+    _rect(img, body_right - 4, body_top, 5, body_bottom - body_top + 1, p["wall_dark"])
 
     # Horizontal siding is low contrast and regularly spaced, like authored
     # pixel sprites rather than procedural noise.
@@ -259,17 +262,15 @@ func _draw_style_details(img: Image, w: int, h: int, p: Dictionary, style: Strin
         _rect(img, 19, int(h * 0.27) - 1, 7, 2, WOOD_MID)
 
 func _draw_landscaping(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
-    if style in ["machines", "power"]:
-        return
+    # Props are intentional instead of repeated on every building. Hero
+    # structures get one detailed landscape cue; secondary offices stay clean.
     var y := h - 16
-    # Two small bushes and flower pixels soften the building-ground seam.
-    _bush(img, 8, y - 4)
-    _bush(img, w - 18, y - 4)
-    if style in ["hq", "partner", "land"]:
-        for i in range(4):
-            var x := 20 + i * 6
-            _safe_pixel(img, x, h - 13, FLOWER_PINK if i % 2 == 0 else FLOWER_YELLOW)
-            _safe_pixel(img, x, h - 12, GREEN_DARK)
+    if style == "hq":
+        _bush(img, 8, y - 4)
+        _safe_pixel(img, 25, h - 13, FLOWER_YELLOW)
+        _safe_pixel(img, 25, h - 12, GREEN_DARK)
+    elif style == "land":
+        _bush(img, w - 18, y - 4)
 
 func _roof_window(img: Image, x: int, y: int) -> void:
     _rect(img, x - 8, y - 5, 18, 12, INK)
