@@ -12,7 +12,7 @@ release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
 live_match = re.search(
-    r'ext_resource path="res://scripts/(world_v(\\d+)\\.gd)" type="Script" id="1_world"',
+    r'ext_resource path="res://scripts/(world_v([0-9]+)[.]gd)" type="Script" id="1_world"',
     scene,
 )
 assert live_match, "Live scene must declare a versioned world_v###.gd gameplay script"
