@@ -129,8 +129,8 @@ def main():
     require(placement_grid, ["class_name HashRacePhysicalPlacementGrid", "snap", "can_place", "serialize_layout"], "Physical placement grid")
     item_files = list(Path("Godot/data/items").glob("*.tres"))
     assert len(item_files) >= 34, f"Expected 34+ ItemResource files, found {len(item_files)}"
-    require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "Operator Suit", "Grid Runner", "Night Shift", '"cost"', 'Color("e9eeee")', 'Color("e07a2f")', 'Color("39ff75")'], "Character catalog")
-    require(customization, ["CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender", "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_customization_ready", "debug_paid_outfits_use_game_cash"], "Character customization")
+    require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "SCOUTER_COLORS", "SCOUTER_EYES", "Neon Operator Armor", "Grid Runner", "Night Shift", '"cost"', 'Color("171b20")', 'Color("39ff75")', "scouter_lens_color", "scouter_scanner_side"], "Character catalog")
+    require(customization, ["CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender", "_cycle_scouter_color", "_cycle_scouter_eye", "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_character_customization_ready", "debug_paid_outfits_use_game_cash"], "Character customization")
     require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready", "debug_v080_ready", "debug_pixel_integration_ready"], "Runtime validator")
 
