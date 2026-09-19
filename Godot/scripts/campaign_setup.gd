@@ -16,7 +16,7 @@ var gender_option: OptionButton
 var company_label: Label
 var summary_label: Label
 var character_summary: Label
-var character_preview: Control
+var character_preview
 
 func _ready() -> void:
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
