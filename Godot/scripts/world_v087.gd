@@ -43,11 +43,12 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
         var outfit_idx: int = int(player.get("outfit_idx", CharacterCustomization.DEFAULT_OUTFIT))
         var tone: Dictionary = CharacterCustomization.skin_tone(skin_idx)
         var outfit: Dictionary = CharacterCustomization.outfit(outfit_idx)
-        var rep: Dictionary = COMPANY_REPS[company_idx]
-        active_scanner = String(rep.get("scanner", scanner))
+        var scouter_color_idx: int = int(player.get("scouter_color_idx", CharacterCustomization.DEFAULT_SCOUTER_COLOR))
+        var scouter_eye_idx: int = int(player.get("scouter_eye_idx", CharacterCustomization.DEFAULT_SCOUTER_EYE))
+        active_scanner = CharacterCustomization.scouter_scanner_side(scouter_eye_idx)
         skin = Color(tone["skin"])
         detail_accent = Color(outfit["secondary"])
-        visor = Color(outfit["neon"])
+        visor = CharacterCustomization.scouter_lens_color(scouter_color_idx)
         hair_tint = _v087_player_hair_tint(outfit_idx)
         if not animation_state.ends_with("_idle") and absf(sin(rep_step_phase)) > 0.55:
             bob = -V073_PX
