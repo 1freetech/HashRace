@@ -58,13 +58,13 @@ jobs:
         shell: bash
         run: |
           if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
-      - name: Render and validate actual company-town frame
+      - name: Capture and validate gameplay screenshot
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_overworld.gd 2>&1 | tee /tmp/hashrace-visual.log
-          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|VISUAL PROOF FAIL" /tmp/hashrace-visual.log; then exit 1; fi
-          test -s visual-proof/hashrace-overworld.png
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-visual.log; then exit 1; fi
+          test -s visual-proof/hashrace-screenshot.png
       - name: Render and validate close-up 2D detail frame
         shell: bash
         run: |
@@ -86,11 +86,11 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-proof.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-negotiation-proof.log; then exit 1; fi
           test -s visual-proof/hashrace-negotiation-scene.png
-      - name: Upload actual rendered game frame
+      - name: Upload gameplay screenshot
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-overworld-visual-proof
-          path: visual-proof/hashrace-overworld.png
+          name: hashrace-gameplay-screenshot
+          path: visual-proof/hashrace-screenshot.png
           if-no-files-found: error
       - name: Upload close-up 2D detail proof
         uses: actions/upload-artifact@v4
