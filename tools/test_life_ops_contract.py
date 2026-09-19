@@ -11,7 +11,8 @@ version = Path("VERSION").read_text().strip()
 release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-assert "world_v082.gd" in scene, "Live scene must boot through the current release layer"
+expected_world = "world_v%s.gd" % version.removeprefix("v0.")
+assert expected_world in scene, f"Live scene must boot through the current {version} release layer ({expected_world})"
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_burnout.gd"' in visual_detail, "Current visual/gameplay chain must retain burnout and life operations"
 assert 'extends "res://scripts/world_life_ops.gd"' in burnout
@@ -57,4 +58,4 @@ assert burnout.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < burnout.index(
 train_override = burnout.split("func _train_operator", 1)[1].split("func _open_life_overview", 1)[0]
 assert train_override.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < train_override.index("return super._train_operator(silent)")
 
-print(f"Hash Race {version} life + operations contract passed: manual and automatic routines protect company cash, elapsed-time normalization holds, and burnout safety remains active.")
+print(f"Hash Race {version} life + operations contract passed: {expected_world} is live, manual and automatic routines protect company cash, elapsed-time normalization holds, and burnout safety remains active.")
