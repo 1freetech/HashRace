@@ -8,6 +8,8 @@ setup = (ROOT / "Godot/scripts/campaign_setup.gd").read_text(encoding="utf-8")
 preview = (ROOT / "Godot/scripts/character_preview.gd").read_text(encoding="utf-8")
 widget = (ROOT / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 compact = (ROOT / "Godot/scripts/world_ui_compact.gd").read_text(encoding="utf-8")
+overworld = (ROOT / "Godot/scripts/world_overworld.gd").read_text(encoding="utf-8")
+campaign = (ROOT / "Godot/scripts/world_campaign.gd").read_text(encoding="utf-8")
 release = (ROOT / "Godot/scripts/world_v093.gd").read_text(encoding="utf-8")
 
 assert version == "v0.093", version
@@ -19,6 +21,8 @@ assert "LIVE PLAYER PREVIEW" in preview
 assert "func set_character(" in preview
 assert "CharacterCustomization.skin_tone" in preview
 assert "CharacterCustomization.outfit" in preview
+assert "MAX_CAMPAIGN_YEARS: int = 100" in setup
+assert "range(1, MAX_CAMPAIGN_YEARS + 1)" in setup
 
 assert 'const BASE_SIZE := Vector2(528.0, 248.0)' in widget
 assert 'const MIN_SIZE := Vector2(420.0, 208.0)' in widget
@@ -28,5 +32,7 @@ assert "overworld_header_panel" in compact
 assert "overworld_header_panel.visible = false" in compact
 assert "debug_overworld_header_removed" in compact
 assert "debug_v093_ready" in release
+assert "MAX_CAMPAIGN_YEARS: int = 100" in overworld
+assert "MAX_CAMPAIGN_YEARS := 100" in campaign
 
-print("v0.093 start-menu preview / thin dashboard / overworld-header cleanup contract PASS")
+print("v0.093 start-menu preview / thin dashboard / overworld-header / 100-year campaign contract PASS")
