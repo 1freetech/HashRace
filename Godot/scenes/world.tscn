@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v107.gd -> world_v106.gd -> world_v105.gd -> world_v104.gd -> world_v103.gd -> world_v102.gd -> world_v101.gd -> world_v100.gd -> world_v099.gd -> world_v098.gd -> world_v097.gd -> world_v096.gd -> world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior gameplay stack. v0.107 strengthens intentional-world composition with larger hero structures, fewer props, harder cast shadows, stepped terrain blending, and more organic path edges.
-[ext_resource path="res://scripts/world_v107.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v108.gd -> world_v107.gd -> world_v106.gd -> world_v105.gd -> world_v104.gd -> world_v103.gd -> world_v102.gd -> world_v101.gd -> world_v100.gd -> world_v099.gd -> world_v098.gd -> world_v097.gd -> world_v096.gd -> world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior gameplay stack. v0.108 makes negative-cash turn previews actionable by recommending the longest shorter preset projected to keep cash non-negative.
+[ext_resource path="res://scripts/world_v108.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
