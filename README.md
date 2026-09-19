@@ -4,12 +4,14 @@
 
 ## Play Hash Race
 
-The latest verified public desktop release is **v0.091**. The current **main** development build is **v0.091**.
+The latest verified public desktop release is **v0.091**. The current development build is **v0.093**.
 
 - **[Windows x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-windows-x64.zip)**
 - **[Linux x64 — Hash Race v0.091](https://github.com/1freetech/HashRace/releases/download/v0.091/HashRace-v0.091-linux-x64.tar.gz)**
 - **[Hash Race v0.091 release page](https://github.com/1freetech/HashRace/releases/tag/v0.091)**
 - **[Latest release page](https://github.com/1freetech/HashRace/releases/latest)**
+
+v0.093 adds a live player-model preview to the campaign setup screen so skin tone and presentation changes are visible immediately, compresses the Mining Ops dashboard from 326 px to 248 px tall while keeping all six live metrics and resize/drag behavior, removes the legacy full-width `HASH RACE // COMPANY OVERWORLD` header from gameplay, and extends selectable campaign length from 20 years to 100 years with matching runtime caps so long campaigns are not silently truncated.
 
 v0.091 is the interaction-quality pass on top of v0.090: Space is interaction-only so talking/opening a target cannot accidentally advance the economy; buildings use their visible front-door position for interaction range; clicking a distant entity routes the player there and opens it on arrival; failed routes report clearly; the persistent scanner control is removed from the field while the compact menu remains available; turn-phase text only appears during confirmation; and building/town labels are limited to the nearest relevant location to keep the map readable.
 
@@ -59,7 +61,7 @@ Owned quantities are tracked separately from deployed quantities. Equipment in w
 
 ## Flexible turn system
 
-The default strategic turn is **one month**, but the live game supports three clear time references:
+Campaign length is selectable from **1 to 100 years**. The default strategic turn is **one month**, but the live game supports three clear time references:
 
 - **Day** — one turn represents one day
 - **Month** — one turn represents one average month
