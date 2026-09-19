@@ -45,7 +45,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_v095_ready", "debug_building_road_overlap_count", "debug_building_water_overlap_count", "debug_live_scouter_color", "debug_live_scouter_side", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_v095_ready", "debug_v107_ready", "debug_building_road_overlap_count", "debug_building_water_overlap_count", "debug_live_scouter_color", "debug_live_scouter_side", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -235,6 +235,9 @@ func _run() -> void:
     if not bool(scene.call("debug_v095_ready")):
         _fail("v0.095 roadside/scouter layer did not initialize")
         return
+    if not bool(scene.call("debug_v107_ready")):
+        _fail("v0.107 intentional-world visual composition layer did not initialize")
+        return
     if int(scene.call("debug_building_road_overlap_count")) != 0:
         _fail("one or more interactive buildings still overlap road tiles")
         return
@@ -313,5 +316,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.095 verified roadside buildings, road/water-safe lots, live scouter color/eye customization, and the existing world-first navigation stack.")
+    print("HASH RACE OVERWORLD PASS: v0.107 verified the intentional-world visual composition layer plus roadside buildings, road/water-safe lots, customization, and the existing world-first navigation stack.")
     quit(0)
