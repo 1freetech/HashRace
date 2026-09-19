@@ -49,7 +49,8 @@ assert 'debug_resize_edge_mask' in capture
 assert 'debug_set_widget_size' in capture
 assert 'responsive Mining Ops widget did not grow after resize' in capture
 
-assert 'const BASE_SIZE := Vector2(528.0, 326.0)' in widget
+assert 'const BASE_SIZE := Vector2(528.0, 248.0)' in widget
+assert 'const MIN_SIZE := Vector2(420.0, 208.0)' in widget
 assert 'var mount_slot: int = 1' in widget
 assert 'MINING_OPS_WIDGET_REVISION: int = 2' in parent_world
 assert 'top_stats.visible = false' in world

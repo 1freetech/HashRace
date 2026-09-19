@@ -19,6 +19,7 @@ var turn_menu_button: Button
 var scanner_menu_button: Button
 var company_panel: Panel
 var market_panel: Panel
+var overworld_header_panel: Panel
 var compact_prompt_accum: float = 0.0
 var compact_status_accum: float = 0.0
 
@@ -68,7 +69,9 @@ func _find_base_hud_panels() -> void:
         for control in layer.get_children():
             if control is Panel:
                 var panel := control as Panel
-                if panel.position.x > 1000.0 and panel.position.y < 120.0:
+                if panel.position.y < 80.0 and panel.size.x > 1000.0:
+                    overworld_header_panel = panel
+                elif panel.position.x > 1000.0 and panel.position.y < 120.0:
                     company_panel = panel
                 elif panel.position.x < 100.0 and panel.position.y > 600.0 and panel.position.y < 705.0:
                     market_panel = panel
@@ -78,6 +81,8 @@ func _hide_legacy_overlays() -> void:
         var layer := get_node_or_null(layer_name) as CanvasLayer
         if layer != null:
             layer.visible = false
+    if is_instance_valid(overworld_header_panel):
+        overworld_header_panel.visible = false
     if is_instance_valid(company_panel):
         company_panel.visible = false
     if is_instance_valid(market_panel):
@@ -263,3 +268,7 @@ func debug_compact_ui_ready() -> bool:
 
 func debug_compact_ui_throttle_ready() -> bool:
     return COMPACT_PROMPT_REFRESH_SECONDS >= 0.05 and COMPACT_STATUS_REFRESH_SECONDS >= COMPACT_PROMPT_REFRESH_SECONDS
+
+
+func debug_overworld_header_removed() -> bool:
+    return is_instance_valid(overworld_header_panel) and not overworld_header_panel.visible

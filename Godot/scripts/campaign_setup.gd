@@ -2,10 +2,12 @@ extends Control
 
 const Profiles = preload("res://scripts/company_profiles.gd")
 const CharacterCustomization = preload("res://scripts/character_customization.gd")
+const CharacterPreview = preload("res://scripts/character_preview.gd")
 const GREEN := Color("64ff8c")
 const CYAN := Color("52e7ff")
 const WHITE := Color("dffaff")
 const PANEL := Color("091119f2")
+const MAX_CAMPAIGN_YEARS: int = 100
 
 var company_option: OptionButton
 var years_option: OptionButton
@@ -14,6 +16,7 @@ var gender_option: OptionButton
 var company_label: Label
 var summary_label: Label
 var character_summary: Label
+var character_preview
 
 func _ready() -> void:
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -108,17 +111,23 @@ func build_menu() -> void:
     character_hdr.add_theme_color_override("font_color", CYAN)
     panel.add_child(character_hdr)
 
+    character_preview = CharacterPreview.new()
+    character_preview.name = "CharacterPreview"
+    character_preview.position = Vector2(526, 392)
+    character_preview.size = Vector2(236, 270)
+    panel.add_child(character_preview)
+
     var skin_label := Label.new()
     skin_label.position = Vector2(78, 397)
-    skin_label.size = Vector2(320, 22)
+    skin_label.size = Vector2(210, 22)
     skin_label.text = "SKIN TONE"
     skin_label.add_theme_font_size_override("font_size", 11)
     skin_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(skin_label)
 
     var gender_label := Label.new()
-    gender_label.position = Vector2(432, 397)
-    gender_label.size = Vector2(320, 22)
+    gender_label.position = Vector2(300, 397)
+    gender_label.size = Vector2(210, 22)
     gender_label.text = "GENDER / PRESENTATION"
     gender_label.add_theme_font_size_override("font_size", 11)
     gender_label.add_theme_color_override("font_color", Color("b8dce5"))
@@ -126,7 +135,7 @@ func build_menu() -> void:
 
     skin_tone_option = OptionButton.new()
     skin_tone_option.position = Vector2(78, 420)
-    skin_tone_option.size = Vector2(330, 40)
+    skin_tone_option.size = Vector2(210, 40)
     skin_tone_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.SKIN_TONES.size()):
         skin_tone_option.add_item(String(CharacterCustomization.SKIN_TONES[i]["name"]), i)
@@ -135,8 +144,8 @@ func build_menu() -> void:
     panel.add_child(skin_tone_option)
 
     gender_option = OptionButton.new()
-    gender_option.position = Vector2(432, 420)
-    gender_option.size = Vector2(330, 40)
+    gender_option.position = Vector2(300, 420)
+    gender_option.size = Vector2(210, 40)
     gender_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.GENDERS.size()):
         gender_option.add_item(String(CharacterCustomization.GENDERS[i]["name"]), i)
@@ -146,14 +155,14 @@ func build_menu() -> void:
 
     character_summary = Label.new()
     character_summary.position = Vector2(78, 466)
-    character_summary.size = Vector2(684, 40)
+    character_summary.size = Vector2(432, 40)
     character_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     character_summary.add_theme_font_size_override("font_size", 11)
     character_summary.add_theme_color_override("font_color", GREEN)
     panel.add_child(character_summary)
 
     var clock_label := Label.new()
-    clock_label.position = Vector2(78, 512)
+    clock_label.position = Vector2(78, 520)
     clock_label.size = Vector2(300, 28)
     clock_label.text = "CAMPAIGN LENGTH"
     clock_label.add_theme_font_size_override("font_size", 17)
@@ -161,18 +170,18 @@ func build_menu() -> void:
     panel.add_child(clock_label)
 
     years_option = OptionButton.new()
-    years_option.position = Vector2(78, 542)
-    years_option.size = Vector2(684, 42)
+    years_option.position = Vector2(78, 550)
+    years_option.size = Vector2(432, 42)
     years_option.add_theme_font_size_override("font_size", 14)
-    for years in range(1, 21):
+    for years in range(1, MAX_CAMPAIGN_YEARS + 1):
         years_option.add_item("%d year%s" % [years, "" if years == 1 else "s"], years)
     years_option.select(3)
     years_option.item_selected.connect(_on_clock_changed)
     panel.add_child(years_option)
 
     summary_label = Label.new()
-    summary_label.position = Vector2(78, 592)
-    summary_label.size = Vector2(684, 62)
+    summary_label.position = Vector2(78, 600)
+    summary_label.size = Vector2(432, 62)
     summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     summary_label.add_theme_font_size_override("font_size", 12)
     summary_label.add_theme_color_override("font_color", Color("b8dce5"))
@@ -218,10 +227,12 @@ func _on_character_changed(_index: int) -> void:
         return
     var skin_idx: int = skin_tone_option.get_item_id(skin_tone_option.selected)
     var gender_idx: int = gender_option.get_item_id(gender_option.selected)
-    character_summary.text = "%s skin tone  •  %s presentation  •  Starter Operator Suit included" % [
+    character_summary.text = "%s skin tone  •  %s presentation\nStarter Operator Suit included" % [
         String(CharacterCustomization.skin_tone(skin_idx)["name"]),
         String(CharacterCustomization.gender(gender_idx)["name"])
     ]
+    if is_instance_valid(character_preview):
+        character_preview.set_character(skin_idx, gender_idx)
 
 func _on_clock_changed(index: int) -> void:
     var years := years_option.get_item_id(index)
@@ -241,3 +252,12 @@ func start_campaign() -> void:
     if get_tree().has_meta("hashrace_campaign_turns"):
         get_tree().remove_meta("hashrace_campaign_turns")
     get_tree().change_scene_to_file("res://scenes/world.tscn")
+
+
+func debug_character_preview_ready() -> bool:
+    return is_instance_valid(character_preview) and character_preview.has_method("debug_preview_ready") and bool(character_preview.debug_preview_ready())
+
+func debug_character_preview_selection() -> Vector2i:
+    if not is_instance_valid(character_preview):
+        return Vector2i(-1, -1)
+    return Vector2i(int(character_preview.skin_idx), int(character_preview.gender_idx))

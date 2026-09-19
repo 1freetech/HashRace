@@ -22,6 +22,12 @@ jobs:
           set -euo pipefail
           godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-setup.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-setup.log; then exit 1; fi
+      - name: Validate live campaign character preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_campaign_setup.gd 2>&1 | tee /tmp/hashrace-campaign-preview.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE CAMPAIGN SETUP FAIL" /tmp/hashrace-campaign-preview.log; then exit 1; fi
       - name: Parse pixel landscape directly
         shell: bash
         run: |
@@ -130,6 +136,8 @@ jobs:
         run: python tools/test_strategy_power_ai_contract.py
       - name: Test v0.091 interaction-quality contract
         run: python tools/test_v091_interaction_quality.py
+      - name: Test v0.093 start preview and UI cleanup contract
+        run: python tools/test_v093_start_ui_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract

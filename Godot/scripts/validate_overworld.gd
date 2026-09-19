@@ -9,8 +9,8 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
     set_meta("hashrace_company_idx", 2)
-    set_meta("hashrace_campaign_years", 3)
-    set_meta("hashrace_campaign_turns", 12)
+    set_meta("hashrace_campaign_years", 100)
+    set_meta("hashrace_campaign_turns", 1200)
     set_meta("hashrace_character_skin_tone", 4)
     set_meta("hashrace_character_gender", 1)
     set_meta("hashrace_character_outfit", 0)
@@ -43,7 +43,7 @@ func _run() -> void:
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
         "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -53,6 +53,9 @@ func _run() -> void:
 
     if not bool(scene.call("debug_world_ready")):
         _fail("overworld did not initialize player/entities/camera")
+        return
+    if int(scene.get("campaign_years")) != 100:
+        _fail("100-year campaign selection was truncated by the live world")
         return
     if int(scene.call("debug_entity_count")) < 39:
         _fail("expected company buildings, land market, mining reps and partner reps")
@@ -217,6 +220,12 @@ func _run() -> void:
         return
     if not bool(scene.call("debug_v091_ready")):
         _fail("v0.091 interaction-quality layer did not initialize")
+        return
+    if not bool(scene.call("debug_v092_ready")):
+        _fail("v0.092 input/route readability layer did not initialize")
+        return
+    if not bool(scene.call("debug_v093_ready")):
+        _fail("v0.093 start-preview/UI cleanup layer did not initialize")
         return
 
     # v0.052 character customization contract.
