@@ -6,7 +6,7 @@ extends "res://scripts/world_v093.gd"
 # temporary toast instead of keeping the large dialogue panel visible.
 
 const V094_NAVIGATION_REVISION: int = 1
-const NAV_PANEL_SIZE := Vector2(288.0, 336.0)
+const NAV_PANEL_SIZE := Vector2(288.0, 378.0)
 const TOAST_SECONDS: float = 4.0
 
 var navigation_layer: CanvasLayer
@@ -93,15 +93,17 @@ func _install_navigation_shell() -> void:
     _add_navigation_button("MINING OPS", "ops", 0, 1)
     _add_navigation_button("COMPANY", "company", 1, 0)
     _add_navigation_button("MARKET", "market", 1, 1)
-    _add_navigation_button("BTC TREASURY", "treasury", 2, 0)
-    _add_navigation_button("LIFE + SITE", "site", 2, 1)
-    _add_navigation_button("LEAGUE", "league", 3, 0)
-    _add_navigation_button("WARDROBE", "wardrobe", 3, 1)
-    _add_navigation_button("DIALOG", "dialog", 4, 0)
-    _add_navigation_button("TOOLS", "tools", 4, 1)
+    _add_navigation_button("INFRASTRUCTURE", "infrastructure", 2, 0)
+    _add_navigation_button("BTC TREASURY", "treasury", 2, 1)
+    _add_navigation_button("LIFE + SITE", "site", 3, 0)
+    _add_navigation_button("LEAGUE", "league", 3, 1)
+    _add_navigation_button("WARDROBE", "wardrobe", 4, 0)
+    _add_navigation_button("DIALOG", "dialog", 4, 1)
+    _add_navigation_button("TOOLS", "tools", 5, 0)
+    _add_navigation_button("WORLD / HIDE ALL", "world", 5, 1)
 
     navigation_turn_button = Button.new()
-    navigation_turn_button.position = Vector2(14.0, 286.0)
+    navigation_turn_button.position = Vector2(14.0, 328.0)
     navigation_turn_button.size = Vector2(260.0, 34.0)
     navigation_turn_button.text = "PREVIEW TURN"
     navigation_turn_button.tooltip_text = "Preview the selected Day, Month, or Year turn. Press again to confirm."
@@ -218,14 +220,20 @@ func _activate_workspace(workspace: String) -> void:
         "market":
             if is_instance_valid(market_panel):
                 market_panel.visible = true
+        "infrastructure":
+            if has_method("_open_infrastructure_inventory"):
+                call("_open_infrastructure_inventory")
+            if is_instance_valid(dialog_panel):
+                dialog_panel.visible = true
         "treasury":
             _show_layer_only("LiveTreasuryLayer")
         "site":
             _show_layer_only("LifeOpsLayer")
         "league":
-            _show_layer_only("LeagueStandingsLayer")
-            if has_method("_refresh_league_ui"):
-                call("_refresh_league_ui")
+            if has_method("_open_league_standings"):
+                call("_open_league_standings")
+            if is_instance_valid(dialog_panel):
+                dialog_panel.visible = true
         "wardrobe":
             if has_method("_show_wardrobe"):
                 call("_show_wardrobe")
@@ -255,6 +263,8 @@ func _refresh_navigation_status() -> void:
             label = "BTC TREASURY"
         "site":
             label = "LIFE + SITE"
+        "infrastructure":
+            label = "INFRA"
     if is_instance_valid(navigation_button):
         navigation_button.text = "NAV • %s" % label
     if is_instance_valid(navigation_status):
@@ -301,6 +311,11 @@ func _feedback(message: String) -> void:
     super._feedback(message)
     _show_toast(message)
 
+func _open_life_overview() -> void:
+    super._open_life_overview()
+    if navigation_installed:
+        _activate_workspace("dialog")
+
 func _refresh_ui() -> void:
     super._refresh_ui()
     _refresh_nav_turn_button()
@@ -338,4 +353,8 @@ func debug_v094_navigation_ready() -> bool:
         and not mining_ops_widget.visible
         and (not is_instance_valid(menu_button) or not menu_button.visible)
         and (not is_instance_valid(compact_prompt) or not compact_prompt.visible)
+        and (get_node_or_null("LeagueStandingsLayer") == null or not (get_node("LeagueStandingsLayer") as CanvasLayer).visible)
+        and (get_node_or_null("LifeOpsLayer") == null or not (get_node("LifeOpsLayer") as CanvasLayer).visible)
+        and (get_node_or_null("LiveTreasuryLayer") == null or not (get_node("LiveTreasuryLayer") as CanvasLayer).visible)
+        and (get_node_or_null("WardrobeLayer") == null or not (get_node("WardrobeLayer") as CanvasLayer).visible)
     )
