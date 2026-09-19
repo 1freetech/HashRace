@@ -44,7 +44,8 @@ func transition_to(
         tree.root.remove_child(current)
         _scene_stack.append({
             "node": current,
-            "scene_path": current.scene_file_path
+            "scene_path": current.scene_file_path,
+            "return_payload": payload.duplicate(true)
         })
         next_scene = packed.instantiate()
         tree.root.add_child(next_scene)
@@ -85,6 +86,10 @@ func return_to_previous(spawn_point_name: String = "", payload: Dictionary = {})
         current.queue_free()
 
     var entry: Dictionary = _scene_stack.pop_back()
+    if payload.is_empty():
+        var stored_payload: Variant = entry.get("return_payload", {})
+        if stored_payload is Dictionary:
+            transition_payload = (stored_payload as Dictionary).duplicate(true)
     var previous: Node = entry.get("node")
     if not is_instance_valid(previous):
         _busy = false
