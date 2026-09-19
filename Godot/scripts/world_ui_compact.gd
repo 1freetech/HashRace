@@ -268,3 +268,7 @@ func debug_compact_ui_ready() -> bool:
 
 func debug_compact_ui_throttle_ready() -> bool:
     return COMPACT_PROMPT_REFRESH_SECONDS >= 0.05 and COMPACT_STATUS_REFRESH_SECONDS >= COMPACT_PROMPT_REFRESH_SECONDS
+
+
+func debug_overworld_header_removed() -> bool:
+    return is_instance_valid(overworld_header_panel) and not overworld_header_panel.visible
