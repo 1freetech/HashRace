@@ -111,6 +111,7 @@ func build_menu() -> void:
     panel.add_child(character_hdr)
 
     character_preview = CharacterPreview.new()
+    character_preview.name = "CharacterPreview"
     character_preview.position = Vector2(526, 392)
     character_preview.size = Vector2(236, 270)
     panel.add_child(character_preview)
@@ -250,3 +251,12 @@ func start_campaign() -> void:
     if get_tree().has_meta("hashrace_campaign_turns"):
         get_tree().remove_meta("hashrace_campaign_turns")
     get_tree().change_scene_to_file("res://scenes/world.tscn")
+
+
+func debug_character_preview_ready() -> bool:
+    return is_instance_valid(character_preview) and character_preview.has_method("debug_preview_ready") and bool(character_preview.debug_preview_ready())
+
+func debug_character_preview_selection() -> Vector2i:
+    if not is_instance_valid(character_preview):
+        return Vector2i(-1, -1)
+    return Vector2i(int(character_preview.skin_idx), int(character_preview.gender_idx))
