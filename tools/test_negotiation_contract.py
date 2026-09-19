@@ -71,7 +71,28 @@ assert "_threaten" not in scene_script, "Threaten action must stay removed from 
 assert "ThreatenButton" not in scene, "Threaten button must stay removed from negotiation scene"
 assert "THREATEN" not in scene, "Threaten label must stay removed from negotiation scene"
 
-assert "world_v086.gd" in world_scene, "Live world must boot through v0.086"
+live_match = re.search(
+    r'ext_resource path="res://scripts/(world_v([0-9]+)[.]gd)" type="Script" id="1_world"',
+    world_scene,
+)
+assert live_match, "Live world must declare a versioned world_v###.gd gameplay script"
+live_script = live_match.group(1)
+cursor = live_script
+seen: set[str] = set()
+found_v086 = False
+while cursor and cursor not in seen:
+    seen.add(cursor)
+    if cursor == "world_v086.gd":
+        found_v086 = True
+        break
+    cursor_path = ROOT / "Godot/scripts" / cursor
+    assert cursor_path.is_file(), f"Missing live world layer: {cursor}"
+    parent_match = re.search(
+        r'extends "res://scripts/(world_v[0-9]+[.]gd)"',
+        cursor_path.read_text(encoding="utf-8"),
+    )
+    cursor = parent_match.group(1) if parent_match else ""
+assert found_v086, f"Live world inheritance from {live_script} must retain v0.086 computer offers"
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 86, f"computer offers require v0.086+, got {version}"
 print("Negotiation contract PASS")
