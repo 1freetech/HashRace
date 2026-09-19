@@ -4,6 +4,8 @@ class_name HashRaceCharacterCustomization
 const DEFAULT_SKIN_TONE: int = 2
 const DEFAULT_GENDER: int = 0
 const DEFAULT_OUTFIT: int = 0
+const DEFAULT_SCOUTER_COLOR: int = 0
+const DEFAULT_SCOUTER_EYE: int = 1
 
 const SKIN_TONES: Array = [
     {"id":"deep", "name":"Deep", "skin":Color("5d3526"), "highlight":Color("875239")},
@@ -20,10 +22,28 @@ const GENDERS: Array = [
     {"id":"man", "name":"Man"}
 ]
 
-# Skin tone and gender/presentation are free identity choices. Outfit skins are
-# gameplay cosmetics purchased with company cash after the campaign begins.
-# v0.053 updates the starter Operator Suit to the approved light shell + orange
-# armor-pad palette while retaining its neon-green scanner display.
+# The eye scouter is independent from the suit palette. Players can pick its
+# lens color and which eye wears it during campaign setup, then change both
+# later from the same in-game character customization panel.
+const SCOUTER_COLORS: Array = [
+    {"id":"neon_green", "name":"Neon Green", "color":Color("39ff75")},
+    {"id":"cyan", "name":"Cyan", "color":Color("52e7ff")},
+    {"id":"electric_blue", "name":"Electric Blue", "color":Color("4b7cff")},
+    {"id":"violet", "name":"Violet", "color":Color("bd8cff")},
+    {"id":"magenta", "name":"Magenta", "color":Color("ff66c4")},
+    {"id":"amber", "name":"Amber", "color":Color("ffd36e")},
+    {"id":"orange", "name":"Orange", "color":Color("ff8d28")},
+    {"id":"red", "name":"Red", "color":Color("ff5c68")}
+]
+
+const SCOUTER_EYES: Array = [
+    {"id":"left", "name":"Left Eye", "scanner":"left"},
+    {"id":"right", "name":"Right Eye", "scanner":"right"}
+]
+
+# Skin tone, gender/presentation and scouter settings are free identity choices.
+# Outfit skins are gameplay cosmetics purchased with company cash after the
+# campaign begins.
 const OUTFITS: Array = [
     {"id":"operator", "name":"Operator Suit", "cost":0.0, "primary":Color("e9eeee"), "secondary":Color("e07a2f"), "neon":Color("39ff75")},
     {"id":"grid_runner", "name":"Grid Runner", "cost":12000.0, "primary":Color("17273a"), "secondary":Color("315d78"), "neon":Color("52e7ff")},
@@ -41,6 +61,18 @@ static func gender(index: int) -> Dictionary:
 
 static func outfit(index: int) -> Dictionary:
     return OUTFITS[clampi(index, 0, OUTFITS.size() - 1)]
+
+static func scouter_color(index: int) -> Dictionary:
+    return SCOUTER_COLORS[clampi(index, 0, SCOUTER_COLORS.size() - 1)]
+
+static func scouter_eye(index: int) -> Dictionary:
+    return SCOUTER_EYES[clampi(index, 0, SCOUTER_EYES.size() - 1)]
+
+static func scouter_lens_color(index: int) -> Color:
+    return Color(scouter_color(index)["color"])
+
+static func scouter_scanner_side(index: int) -> String:
+    return String(scouter_eye(index)["scanner"])
 
 static func outfit_name(index: int) -> String:
     return String(outfit(index)["name"])
