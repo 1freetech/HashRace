@@ -13,6 +13,8 @@ var company_option: OptionButton
 var years_option: OptionButton
 var skin_tone_option: OptionButton
 var gender_option: OptionButton
+var scouter_color_option: OptionButton
+var scouter_eye_option: OptionButton
 var company_label: Label
 var summary_label: Label
 var character_summary: Label
@@ -153,16 +155,52 @@ func build_menu() -> void:
     gender_option.item_selected.connect(_on_character_changed)
     panel.add_child(gender_option)
 
+    var scouter_color_label := Label.new()
+    scouter_color_label.position = Vector2(78, 468)
+    scouter_color_label.size = Vector2(210, 20)
+    scouter_color_label.text = "SCOUTER COLOR"
+    scouter_color_label.add_theme_font_size_override("font_size", 11)
+    scouter_color_label.add_theme_color_override("font_color", Color("b8dce5"))
+    panel.add_child(scouter_color_label)
+
+    var scouter_eye_label := Label.new()
+    scouter_eye_label.position = Vector2(300, 468)
+    scouter_eye_label.size = Vector2(210, 20)
+    scouter_eye_label.text = "SCOUTER EYE"
+    scouter_eye_label.add_theme_font_size_override("font_size", 11)
+    scouter_eye_label.add_theme_color_override("font_color", Color("b8dce5"))
+    panel.add_child(scouter_eye_label)
+
+    scouter_color_option = OptionButton.new()
+    scouter_color_option.position = Vector2(78, 490)
+    scouter_color_option.size = Vector2(210, 40)
+    scouter_color_option.add_theme_font_size_override("font_size", 13)
+    for i in range(CharacterCustomization.SCOUTER_COLORS.size()):
+        scouter_color_option.add_item(String(CharacterCustomization.SCOUTER_COLORS[i]["name"]), i)
+    scouter_color_option.select(CharacterCustomization.DEFAULT_SCOUTER_COLOR)
+    scouter_color_option.item_selected.connect(_on_character_changed)
+    panel.add_child(scouter_color_option)
+
+    scouter_eye_option = OptionButton.new()
+    scouter_eye_option.position = Vector2(300, 490)
+    scouter_eye_option.size = Vector2(210, 40)
+    scouter_eye_option.add_theme_font_size_override("font_size", 13)
+    for i in range(CharacterCustomization.SCOUTER_EYES.size()):
+        scouter_eye_option.add_item(String(CharacterCustomization.SCOUTER_EYES[i]["name"]), i)
+    scouter_eye_option.select(CharacterCustomization.DEFAULT_SCOUTER_EYE)
+    scouter_eye_option.item_selected.connect(_on_character_changed)
+    panel.add_child(scouter_eye_option)
+
     character_summary = Label.new()
-    character_summary.position = Vector2(78, 466)
-    character_summary.size = Vector2(432, 40)
+    character_summary.position = Vector2(78, 536)
+    character_summary.size = Vector2(432, 36)
     character_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     character_summary.add_theme_font_size_override("font_size", 11)
     character_summary.add_theme_color_override("font_color", GREEN)
     panel.add_child(character_summary)
 
     var clock_label := Label.new()
-    clock_label.position = Vector2(78, 520)
+    clock_label.position = Vector2(78, 575)
     clock_label.size = Vector2(300, 28)
     clock_label.text = "CAMPAIGN LENGTH"
     clock_label.add_theme_font_size_override("font_size", 17)
@@ -170,7 +208,7 @@ func build_menu() -> void:
     panel.add_child(clock_label)
 
     years_option = OptionButton.new()
-    years_option.position = Vector2(78, 550)
+    years_option.position = Vector2(78, 602)
     years_option.size = Vector2(432, 42)
     years_option.add_theme_font_size_override("font_size", 14)
     for years in range(1, MAX_CAMPAIGN_YEARS + 1):
@@ -180,16 +218,16 @@ func build_menu() -> void:
     panel.add_child(years_option)
 
     summary_label = Label.new()
-    summary_label.position = Vector2(78, 600)
-    summary_label.size = Vector2(432, 62)
+    summary_label.position = Vector2(78, 650)
+    summary_label.size = Vector2(432, 42)
     summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     summary_label.add_theme_font_size_override("font_size", 12)
     summary_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(summary_label)
 
     var rule := Label.new()
-    rule.position = Vector2(78, 660)
-    rule.size = Vector2(684, 44)
+    rule.position = Vector2(78, 700)
+    rule.size = Vector2(684, 40)
     rule.text = "Identity choices are free. Extra outfit skins are bought with in-game company cash from the Wardrobe menu."
     rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     rule.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -198,7 +236,7 @@ func build_menu() -> void:
     panel.add_child(rule)
 
     var start := Button.new()
-    start.position = Vector2(250, 722)
+    start.position = Vector2(250, 748)
     start.size = Vector2(340, 56)
     start.text = "START MINING RACE"
     start.add_theme_font_size_override("font_size", 18)
@@ -227,12 +265,22 @@ func _on_character_changed(_index: int) -> void:
         return
     var skin_idx: int = skin_tone_option.get_item_id(skin_tone_option.selected)
     var gender_idx: int = gender_option.get_item_id(gender_option.selected)
-    character_summary.text = "%s skin tone  •  %s presentation\nStarter Operator Suit included" % [
+    var scouter_color_idx: int = scouter_color_option.get_item_id(scouter_color_option.selected)
+    var scouter_eye_idx: int = scouter_eye_option.get_item_id(scouter_eye_option.selected)
+    character_summary.text = "%s skin  •  %s  •  %s scouter / %s\nNeon Operator Armor included" % [
         String(CharacterCustomization.skin_tone(skin_idx)["name"]),
-        String(CharacterCustomization.gender(gender_idx)["name"])
+        String(CharacterCustomization.gender(gender_idx)["name"]),
+        String(CharacterCustomization.scouter_color(scouter_color_idx)["name"]),
+        String(CharacterCustomization.scouter_eye(scouter_eye_idx)["name"])
     ]
     if is_instance_valid(character_preview):
-        character_preview.set_character(skin_idx, gender_idx)
+        character_preview.set_character(
+            skin_idx,
+            gender_idx,
+            CharacterCustomization.DEFAULT_OUTFIT,
+            scouter_color_idx,
+            scouter_eye_idx
+        )
 
 func _on_clock_changed(index: int) -> void:
     var years := years_option.get_item_id(index)
@@ -249,6 +297,8 @@ func start_campaign() -> void:
     get_tree().set_meta("hashrace_character_skin_tone", skin_tone_option.get_item_id(skin_tone_option.selected))
     get_tree().set_meta("hashrace_character_gender", gender_option.get_item_id(gender_option.selected))
     get_tree().set_meta("hashrace_character_outfit", CharacterCustomization.DEFAULT_OUTFIT)
+    get_tree().set_meta("hashrace_character_scouter_color", scouter_color_option.get_item_id(scouter_color_option.selected))
+    get_tree().set_meta("hashrace_character_scouter_eye", scouter_eye_option.get_item_id(scouter_eye_option.selected))
     if get_tree().has_meta("hashrace_campaign_turns"):
         get_tree().remove_meta("hashrace_campaign_turns")
     get_tree().change_scene_to_file("res://scenes/world.tscn")
@@ -261,3 +311,8 @@ func debug_character_preview_selection() -> Vector2i:
     if not is_instance_valid(character_preview):
         return Vector2i(-1, -1)
     return Vector2i(int(character_preview.skin_idx), int(character_preview.gender_idx))
+
+func debug_character_preview_scouter_selection() -> Vector2i:
+    if not is_instance_valid(character_preview):
+        return Vector2i(-1, -1)
+    return Vector2i(int(character_preview.scouter_color_idx), int(character_preview.scouter_eye_idx))
