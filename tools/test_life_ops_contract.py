@@ -11,7 +11,17 @@ version = Path("VERSION").read_text().strip()
 release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-assert "world_v082.gd" in scene, "Live scene must boot through the current release layer"
+live_match = re.search(
+    r'ext_resource path="res://scripts/(world_v(\\d+)\\.gd)" type="Script" id="1_world"',
+    scene,
+)
+assert live_match, "Live scene must declare a versioned world_v###.gd gameplay script"
+live_script = live_match.group(1)
+live_number = int(live_match.group(2))
+assert (Path("Godot/scripts") / live_script).is_file(), f"Live scene script is missing: {live_script}"
+assert version == f"v0.{live_number:03d}", (
+    f"VERSION ({version}) must match the live scene layer (v0.{live_number:03d})"
+)
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_burnout.gd"' in visual_detail, "Current visual/gameplay chain must retain burnout and life operations"
 assert 'extends "res://scripts/world_life_ops.gd"' in burnout
