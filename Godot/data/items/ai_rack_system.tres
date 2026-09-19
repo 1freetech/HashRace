@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "ai_rack_system"
+display_name = "AI Operations Rack"
+category = "FACILITY"
+slot_type = "NETWORK"
+price = 165000.0
+deployable = true
+power_draw_mw = 0.035
+heat_generated_mw = 0.030
+effect = "uptime"
+effect_amount = 0.0040
+effect_unit = "uptime"
+visual = "ai_rack"
+tier = 2
+maintenance = 1800.0
+description = "Rack-mounted automation, telemetry and site-control compute. While deployed it improves operational uptime and appears as one separate rack beside the player's home."
