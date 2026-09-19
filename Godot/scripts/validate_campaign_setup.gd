@@ -37,12 +37,16 @@ func _run() -> void:
 
     var skin := scene.get("skin_tone_option") as OptionButton
     var gender := scene.get("gender_option") as OptionButton
-    if skin == null or gender == null:
+    var scouter_color := scene.get("scouter_color_option") as OptionButton
+    var scouter_eye := scene.get("scouter_eye_option") as OptionButton
+    if skin == null or gender == null or scouter_color == null or scouter_eye == null:
         _fail("character selectors are missing")
         return
 
     skin.select(5)
     gender.select(2)
+    scouter_color.select(3)
+    scouter_eye.select(0)
     scene.call("_on_character_changed", 0)
     await process_frame
 
@@ -51,5 +55,10 @@ func _run() -> void:
         _fail("preview did not follow edited skin/presentation values")
         return
 
-    print("HASH RACE CAMPAIGN SETUP PASS: live player preview follows customization controls and campaign length reaches 100 years.")
+    var scouter_selection: Vector2i = scene.call("debug_character_preview_scouter_selection")
+    if scouter_selection != Vector2i(3, 0):
+        _fail("preview did not follow edited scouter color/eye values")
+        return
+
+    print("HASH RACE CAMPAIGN SETUP PASS: live preview follows skin, presentation, scouter color and scouter eye; campaign length reaches 100 years.")
     quit(0)
