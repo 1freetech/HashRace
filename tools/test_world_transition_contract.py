@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -8,6 +9,8 @@ camera = (ROOT / "Godot/scripts/camera_proportion_controller.gd").read_text()
 manager = (ROOT / "Godot/autoloads/scene_manager.gd").read_text()
 doorway = (ROOT / "Godot/components/world/doorway.gd").read_text()
 roof = (ROOT / "Godot/components/world/roof_fade_area.gd").read_text()
+# The scale/camera feature under test was introduced in v0.089 and must remain
+# present in its source layer even as later public versions inherit it.
 world = (ROOT / "Godot/scripts/world_v089.gd").read_text()
 grid = (ROOT / "Godot/scripts/world_grid.gd").read_text()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
@@ -15,9 +18,11 @@ project = (ROOT / "Godot/project.godot").read_text()
 template = (ROOT / "Godot/templates/Doorway.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
 
-assert version == "v0.089", version
+match = re.fullmatch(r"v0\.(\d{3})", version)
+assert match, version
+live_world = f"world_v{match.group(1)}.gd"
+assert live_world in scene, (version, live_world)
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
-assert "world_v089.gd" in scene
 
 for marker in [
     "WORLD_TILE",
@@ -84,4 +89,4 @@ assert "WorldScale.collision_rect" in grid
 assert "WorldScale.front_door_world_pos" in grid
 assert "CollisionShape2D" in template
 
-print("Hash Race v0.089 focus-safe camera, world scale, doorway, roof-fade and scene-transition contract passed.")
+print(f"Hash Race {version} retained v0.089 focus-safe camera, world scale, doorway, roof-fade and scene-transition contract; live scene boots through {live_world}.")
