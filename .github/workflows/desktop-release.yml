@@ -68,17 +68,17 @@ jobs:
             sudo apt-get install -y xvfb
           fi
 
-      - name: Render and validate actual release frame
+      - name: Capture and validate release screenshot
         if: matrix.platform == 'linux-x64'
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_overworld.gd 2>&1 | tee /tmp/hashrace-release-visual.log
-          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|VISUAL PROOF FAIL" /tmp/hashrace-release-visual.log; then
-            echo "Rendered release proof failed."
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-release-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-release-visual.log; then
+            echo "Release screenshot capture failed."
             exit 1
           fi
-          test -s visual-proof/hashrace-overworld.png
+          test -s visual-proof/hashrace-screenshot.png
 
       - name: Render and validate close-up 2D detail proof
         if: matrix.platform == 'linux-x64'
@@ -158,13 +158,13 @@ jobs:
           path: HashRace-${{ steps.version.outputs.value }}-${{ matrix.package_name }}
           if-no-files-found: error
 
-      - name: Upload rendered game previews
+      - name: Upload release screenshots and visual checks
         if: matrix.platform == 'linux-x64'
         uses: actions/upload-artifact@v4
         with:
-          name: HashRace-${{ steps.version.outputs.value }}-visual-proof
+          name: HashRace-${{ steps.version.outputs.value }}-screenshots
           path: |
-            visual-proof/hashrace-overworld.png
+            visual-proof/hashrace-screenshot.png
             visual-proof/hashrace-2d-detail.png
             visual-proof/hashrace-mining-ops-widget.png
             visual-proof/hashrace-negotiation-scene.png
@@ -199,7 +199,19 @@ jobs:
         run: |
           set -euo pipefail
           ls -lah release
-          NOTES="Hash Race $VERSION is the roadside-world and player-scouter customization pass. Every interactive facility is placed on a grid-aligned parcel beside the road network, building footprints are validated against road and water geometry, and facility lot painting preserves live road/water tiles instead of covering them. Campaign setup includes a live character preview with eight scouter lens colors and left/right eye placement; the in-game Wardrobe keeps skin tone, presentation, outfit, scouter color, and scouter eye editable throughout the campaign. The active high-density character renderer now reads those live scouter choices directly. CI validates zero building road/water overlaps, customization propagation, the existing world-first navigation stack, rendered proofs, and Windows/Linux exports."
+          SCREENSHOT_URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/hashrace-screenshot.png"
+          NOTES=$(cat <<EOF
+          Hash Race $VERSION
+
+          This release includes the current Windows and Linux builds plus a fresh screenshot captured directly from the running Godot game.
+
+          ## Screenshot
+
+          ![Hash Race gameplay screenshot]($SCREENSHOT_URL)
+
+          The screenshot is generated during the release workflow and the release fails if a valid gameplay image is not produced.
+          EOF
+          )
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release upload "$VERSION" release/* --clobber
             gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
