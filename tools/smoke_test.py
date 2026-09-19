@@ -63,7 +63,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    assert "world_v086.gd" in world_scene
+    live_world_path = f'res://scripts/world_v{version.split(".")[1]}.gd'
+    assert live_world_path in world_scene, f"Live scene does not reference {live_world_path}"
     assert 'extends "res://scripts/world_v080.gd"' in microtile_release
     assert 'extends "res://scripts/world_v073.gd"' in pixel_release
     assert 'extends "res://scripts/world_v072.gd"' in character_release
@@ -80,7 +81,7 @@ def main():
     assert 'extends "res://scripts/world_customization.gd"' in character_detail
     assert "validate_overworld.gd" in workflow
 
-    require(setup, ["MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION", "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone", "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"], "Campaign setup")
+    require(setup, ["MINING COMPANY", "YOUR CHARACTER", "SKIN TONE", "GENDER / PRESENTATION", "CharacterPreview", "CAMPAIGN LENGTH", "range(1, 21)", "hashrace_company_idx", "hashrace_character_skin_tone", "hashrace_character_gender", "hashrace_character_outfit", "START MINING RACE", "BACKGROUND:", "CONTROVERSY:", "AGG %d", "RISK %d", "Turn length can change"], "Campaign setup")
 
     companies = ["VantaGrid Mining", "NeonForge Mining", "ArcShift Mining", "IronVector Mining", "Meridian Zero Mining", "BlueNova Mining", "SignalFlux Mining", "Parallax Core Mining", "LatticeX Mining", "Epoch Vector Mining"]
     require(profiles, companies, "Mining-company profile")
@@ -133,7 +134,7 @@ def main():
     require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
     require(validator, ["debug_world_ready", "debug_entity_count", "debug_has_dialogue_ui", "debug_company_rep_count", "debug_gbc_map_ready", "debug_rpg_collision_ready", "debug_culture_effects_ready", "debug_culture_effects_are_material", "debug_texture_spacing_ready", "debug_character_customization_ready", "debug_v080_ready", "debug_pixel_integration_ready"], "Runtime validator")
 
-    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/scripts/world_v080.gd", "Godot/scripts/world_v082.gd", "Godot/scripts/world_v085.gd", "Godot/scripts/world_v086.gd", "Godot/scripts/gen2_microtile_rules.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
+    required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/character_preview.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/world_v053.gd", "Godot/scripts/world_v068.gd", "Godot/scripts/world_v070.gd", "Godot/scripts/world_v072.gd", "Godot/scripts/world_v073.gd", "Godot/scripts/world_v080.gd", "Godot/scripts/world_v082.gd", "Godot/scripts/world_v085.gd", "Godot/scripts/world_v086.gd", "Godot/scripts/gen2_microtile_rules.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
