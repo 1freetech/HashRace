@@ -15,6 +15,8 @@ var wardrobe_summary: Label
 var wardrobe_feedback: Label
 var skin_tone_button: Button
 var gender_button: Button
+var scouter_color_button: Button
+var scouter_eye_button: Button
 var outfit_buttons: Array[Button] = []
 
 func _initialize_player() -> void:
@@ -22,16 +24,24 @@ func _initialize_player() -> void:
     var skin_idx: int = CharacterCustomization.DEFAULT_SKIN_TONE
     var gender_idx: int = CharacterCustomization.DEFAULT_GENDER
     var outfit_idx: int = CharacterCustomization.DEFAULT_OUTFIT
+    var scouter_color_idx: int = CharacterCustomization.DEFAULT_SCOUTER_COLOR
+    var scouter_eye_idx: int = CharacterCustomization.DEFAULT_SCOUTER_EYE
     if get_tree().has_meta("hashrace_character_skin_tone"):
         skin_idx = clampi(int(get_tree().get_meta("hashrace_character_skin_tone")), 0, CharacterCustomization.SKIN_TONES.size() - 1)
     if get_tree().has_meta("hashrace_character_gender"):
         gender_idx = clampi(int(get_tree().get_meta("hashrace_character_gender")), 0, CharacterCustomization.GENDERS.size() - 1)
     if get_tree().has_meta("hashrace_character_outfit"):
         outfit_idx = clampi(int(get_tree().get_meta("hashrace_character_outfit")), 0, CharacterCustomization.OUTFITS.size() - 1)
+    if get_tree().has_meta("hashrace_character_scouter_color"):
+        scouter_color_idx = clampi(int(get_tree().get_meta("hashrace_character_scouter_color")), 0, CharacterCustomization.SCOUTER_COLORS.size() - 1)
+    if get_tree().has_meta("hashrace_character_scouter_eye"):
+        scouter_eye_idx = clampi(int(get_tree().get_meta("hashrace_character_scouter_eye")), 0, CharacterCustomization.SCOUTER_EYES.size() - 1)
 
     player["skin_tone_idx"] = skin_idx
     player["gender_idx"] = gender_idx
     player["outfit_idx"] = outfit_idx
+    player["scouter_color_idx"] = scouter_color_idx
+    player["scouter_eye_idx"] = scouter_eye_idx
     var owned: Dictionary = {CharacterCustomization.DEFAULT_OUTFIT: true}
     if outfit_idx == CharacterCustomization.DEFAULT_OUTFIT:
         owned[outfit_idx] = true
@@ -68,7 +78,7 @@ func _try_install_wardrobe() -> void:
 
     wardrobe_panel = Panel.new()
     wardrobe_panel.position = Vector2(900.0, 138.0)
-    wardrobe_panel.size = Vector2(516.0, 610.0)
+    wardrobe_panel.size = Vector2(516.0, 680.0)
     var style := StyleBoxFlat.new()
     style.bg_color = Color("06141df5")
     style.border_width_left = 3
@@ -101,9 +111,11 @@ func _try_install_wardrobe() -> void:
 
     skin_tone_button = _wardrobe_button(18.0, 108.0, 232.0, "", Callable(self, "_cycle_skin_tone"))
     gender_button = _wardrobe_button(266.0, 108.0, 232.0, "", Callable(self, "_cycle_gender"))
+    scouter_color_button = _wardrobe_button(18.0, 158.0, 232.0, "", Callable(self, "_cycle_scouter_color"))
+    scouter_eye_button = _wardrobe_button(266.0, 158.0, 232.0, "", Callable(self, "_cycle_scouter_eye"))
 
     var outfits_header := Label.new()
-    outfits_header.position = Vector2(18.0, 158.0)
+    outfits_header.position = Vector2(18.0, 208.0)
     outfits_header.size = Vector2(480.0, 28.0)
     outfits_header.text = "OUTFIT SKINS // BUY WITH GAME CASH"
     outfits_header.add_theme_font_size_override("font_size", 13)
@@ -112,18 +124,18 @@ func _try_install_wardrobe() -> void:
 
     outfit_buttons.clear()
     for i in range(CharacterCustomization.OUTFITS.size()):
-        var button := _wardrobe_button(18.0, 192.0 + float(i) * 50.0, 480.0, "", Callable(self, "_choose_outfit").bind(i))
+        var button := _wardrobe_button(18.0, 242.0 + float(i) * 50.0, 480.0, "", Callable(self, "_choose_outfit").bind(i))
         outfit_buttons.append(button)
 
     wardrobe_feedback = Label.new()
-    wardrobe_feedback.position = Vector2(18.0, 502.0)
+    wardrobe_feedback.position = Vector2(18.0, 548.0)
     wardrobe_feedback.size = Vector2(480.0, 44.0)
     wardrobe_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     wardrobe_feedback.add_theme_font_size_override("font_size", 11)
     wardrobe_feedback.add_theme_color_override("font_color", Color("ffcf72"))
     wardrobe_panel.add_child(wardrobe_feedback)
 
-    var close := _wardrobe_button(18.0, 556.0, 480.0, "CLOSE WARDROBE", Callable(self, "_hide_wardrobe"))
+    var close := _wardrobe_button(18.0, 612.0, 480.0, "CLOSE WARDROBE", Callable(self, "_hide_wardrobe"))
     close.add_theme_color_override("font_color", Color("d8f8e3"))
 
     wardrobe_layer.visible = false
@@ -172,6 +184,22 @@ func _cycle_gender() -> void:
     _refresh_wardrobe()
     queue_redraw()
 
+func _cycle_scouter_color() -> void:
+    var next_idx: int = (int(player.get("scouter_color_idx", CharacterCustomization.DEFAULT_SCOUTER_COLOR)) + 1) % CharacterCustomization.SCOUTER_COLORS.size()
+    player["scouter_color_idx"] = next_idx
+    get_tree().set_meta("hashrace_character_scouter_color", next_idx)
+    wardrobe_feedback.text = "Scouter lens changed. Suit colors stay independent."
+    _refresh_wardrobe()
+    queue_redraw()
+
+func _cycle_scouter_eye() -> void:
+    var next_idx: int = (int(player.get("scouter_eye_idx", CharacterCustomization.DEFAULT_SCOUTER_EYE)) + 1) % CharacterCustomization.SCOUTER_EYES.size()
+    player["scouter_eye_idx"] = next_idx
+    get_tree().set_meta("hashrace_character_scouter_eye", next_idx)
+    wardrobe_feedback.text = "Scouter moved to %s." % String(CharacterCustomization.scouter_eye(next_idx)["name"])
+    _refresh_wardrobe()
+    queue_redraw()
+
 func _choose_outfit(outfit_idx: int) -> void:
     outfit_idx = clampi(outfit_idx, 0, CharacterCustomization.OUTFITS.size() - 1)
     var owned: Dictionary = player.get("owned_outfits", {CharacterCustomization.DEFAULT_OUTFIT: true})
@@ -204,13 +232,17 @@ func _refresh_wardrobe() -> void:
     var skin_idx: int = int(player.get("skin_tone_idx", CharacterCustomization.DEFAULT_SKIN_TONE))
     var gender_idx: int = int(player.get("gender_idx", CharacterCustomization.DEFAULT_GENDER))
     var outfit_idx: int = int(player.get("outfit_idx", CharacterCustomization.DEFAULT_OUTFIT))
+    var scouter_color_idx: int = int(player.get("scouter_color_idx", CharacterCustomization.DEFAULT_SCOUTER_COLOR))
+    var scouter_eye_idx: int = int(player.get("scouter_eye_idx", CharacterCustomization.DEFAULT_SCOUTER_EYE))
     var owned: Dictionary = player.get("owned_outfits", {CharacterCustomization.DEFAULT_OUTFIT: true})
 
-    wardrobe_summary.text = "Cash $%d  •  Equipped: %s\nSkin tone and gender/presentation can be changed without charge." % [
+    wardrobe_summary.text = "Cash $%d  •  Equipped: %s\nIdentity + scouter settings are free to change." % [
         int(player["cash"]), CharacterCustomization.outfit_name(outfit_idx)
     ]
     skin_tone_button.text = "SKIN TONE: %s" % String(CharacterCustomization.skin_tone(skin_idx)["name"])
     gender_button.text = "GENDER: %s" % String(CharacterCustomization.gender(gender_idx)["name"])
+    scouter_color_button.text = "SCOUTER: %s" % String(CharacterCustomization.scouter_color(scouter_color_idx)["name"])
+    scouter_eye_button.text = "EYE: %s" % String(CharacterCustomization.scouter_eye(scouter_eye_idx)["name"])
 
     for i in range(outfit_buttons.size()):
         var button: Button = outfit_buttons[i]
@@ -239,6 +271,10 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     var armor_hi: Color = outfit["secondary"]
     var neon: Color = outfit["neon"]
     var neon_dark: Color = neon.darkened(0.55)
+    var scouter_color_idx: int = int(player.get("scouter_color_idx", CharacterCustomization.DEFAULT_SCOUTER_COLOR))
+    var scouter_eye_idx: int = int(player.get("scouter_eye_idx", CharacterCustomization.DEFAULT_SCOUTER_EYE))
+    var scouter_neon: Color = CharacterCustomization.scouter_lens_color(scouter_color_idx)
+    var scouter_dark: Color = scouter_neon.darkened(0.55)
     var black := Color("070b11")
     var hair := Color("11141b")
     var hair_hi := Color("292b3c")
@@ -326,10 +362,12 @@ func _draw_hashrace_player(pos: Vector2) -> void:
     _part(o, 5, -9, 1, 3, metal)
     _part(o, -5, -8, 1, 2, neon)
     _part(o, 5, -8, 1, 2, neon)
-    _part(o, 1, -9, 5, 4, black)
-    _part(o, 1, -8, 4, 2, neon_dark)
-    _part(o, 2, -8, 2, 1, neon)
-    _part(o, 2, -8, 1, 1, neon.lightened(0.45))
+    var scanner_side: String = CharacterCustomization.scouter_scanner_side(scouter_eye_idx)
+    var visor_x: int = -6 if scanner_side == "left" else 1
+    _part(o, visor_x, -9, 5, 4, black)
+    _part(o, visor_x, -8, 4, 2, scouter_dark)
+    _part(o, visor_x + 1, -8, 2, 1, scouter_neon)
+    _part(o, visor_x + 1, -8, 1, 1, scouter_neon.lightened(0.45))
     _part(o, -2, 0, 4, 3, black)
     _part(o, -1, 0, 2, 3, neon)
 
@@ -344,6 +382,12 @@ func debug_character_gender() -> int:
 
 func debug_character_outfit() -> int:
     return int(player.get("outfit_idx", -1))
+
+func debug_character_scouter_color() -> int:
+    return int(player.get("scouter_color_idx", -1))
+
+func debug_character_scouter_eye() -> int:
+    return int(player.get("scouter_eye_idx", -1))
 
 func debug_paid_outfits_use_game_cash() -> bool:
     for i in range(1, CharacterCustomization.OUTFITS.size()):
