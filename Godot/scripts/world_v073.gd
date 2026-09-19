@@ -80,7 +80,8 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
         var outfit_idx: int = int(player.get("outfit_idx", CharacterCustomization.DEFAULT_OUTFIT))
         var tone: Dictionary = CharacterCustomization.skin_tone(skin_idx)
         var outfit: Dictionary = CharacterCustomization.outfit(outfit_idx)
-        var rep: Dictionary = COMPANY_REPS[company_idx]
+        var scouter_color_idx: int = int(player.get("scouter_color_idx", CharacterCustomization.DEFAULT_SCOUTER_COLOR))
+        var scouter_eye_idx: int = int(player.get("scouter_eye_idx", CharacterCustomization.DEFAULT_SCOUTER_EYE))
         var body_variant: int = (company_idx + presentation_idx + outfit_idx) % V073_BODY_VARIANTS
         var hair_variant: int = (presentation_idx * 2 + outfit_idx) % V073_HAIR_VARIANTS
         _draw_v073_character(
@@ -89,8 +90,8 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
             Color(tone["highlight"]),
             Color(outfit["primary"]),
             Color(outfit["secondary"]),
-            Color(outfit["neon"]),
-            String(rep.get("scanner", scanner)),
+            CharacterCustomization.scouter_lens_color(scouter_color_idx),
+            CharacterCustomization.scouter_scanner_side(scouter_eye_idx),
             rep_facing,
             body_variant,
             hair_variant,
