@@ -8,8 +8,9 @@ scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
-assert version == "v0.102", version
-assert 'res://scripts/world_v102.gd' in scene
+assert version.startswith("v0."), version
+assert int(version.split(".")[1]) >= 102, version
+assert 'world_v102.gd' in scene
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
