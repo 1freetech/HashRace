@@ -45,7 +45,7 @@ const SCOUTER_EYES: Array = [
 # Outfit skins are gameplay cosmetics purchased with company cash after the
 # campaign begins.
 const OUTFITS: Array = [
-    {"id":"operator", "name":"Operator Suit", "cost":0.0, "primary":Color("e9eeee"), "secondary":Color("e07a2f"), "neon":Color("39ff75")},
+    {"id":"operator", "name":"Neon Operator Armor", "cost":0.0, "primary":Color("171b20"), "secondary":Color("39ff75"), "neon":Color("39ff75")},
     {"id":"grid_runner", "name":"Grid Runner", "cost":12000.0, "primary":Color("17273a"), "secondary":Color("315d78"), "neon":Color("52e7ff")},
     {"id":"silicon_tech", "name":"Silicon Tech", "cost":18000.0, "primary":Color("21182f"), "secondary":Color("60447a"), "neon":Color("bd8cff")},
     {"id":"hydro_tech", "name":"Hydro Tech", "cost":24000.0, "primary":Color("0f2930"), "secondary":Color("276b75"), "neon":Color("4df0ff")},
