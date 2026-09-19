@@ -8,6 +8,7 @@ const SATS_PER_BTC: float = 100000000.0
 const QUARTER_DAYS: float = 91.25
 const TURNS_PER_YEAR: int = 4
 const HALVING_TURNS: int = 16
+const MAX_CAMPAIGN_YEARS: int = 100
 
 const GREEN: Color = Color("64ff8c")
 const CYAN: Color = Color("52e7ff")
@@ -101,9 +102,9 @@ func _read_campaign_selection() -> void:
     if get_tree().has_meta("hashrace_company_idx"):
         company_idx = clampi(int(get_tree().get_meta("hashrace_company_idx")), 0, Profiles.PROFILES.size() - 1)
     if get_tree().has_meta("hashrace_campaign_years"):
-        campaign_years = clampi(int(get_tree().get_meta("hashrace_campaign_years")), 1, 20)
+        campaign_years = clampi(int(get_tree().get_meta("hashrace_campaign_years")), 1, MAX_CAMPAIGN_YEARS)
     if get_tree().has_meta("hashrace_campaign_turns"):
-        campaign_turns = clampi(int(get_tree().get_meta("hashrace_campaign_turns")), 4, 80)
+        campaign_turns = clampi(int(get_tree().get_meta("hashrace_campaign_turns")), 4, MAX_CAMPAIGN_YEARS * 12)
     else:
         campaign_turns = campaign_years * 4
 
