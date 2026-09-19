@@ -1,10 +1,10 @@
 extends RefCounted
 
 # Hash Race grid navigation helper.
-# The primary point-to-point solver uses Godot's native AStarGrid2D so route
-# expansion runs in engine code. The bounded scanner/reachable helper remains a
-# small GDScript breadth-first search because it intentionally returns every
-# reachable cell inside a short tactical radius rather than one route.
+# Native AStarGrid2D handles primary routes; bounded tactical scans remain small
+# breadth-first searches. v0.109 improves edge correctness, deterministic open
+# cell recovery, bounded-route safety, and route presentation without changing
+# the game's existing movement rules.
 
 var world_size: Vector2 = Vector2.ZERO
 var cell_size: float = 48.0
@@ -14,7 +14,7 @@ var blocked: Dictionary = {}
 var astar_grid: AStarGrid2D = AStarGrid2D.new()
 
 func configure(size: Vector2, requested_cell_size: float = 48.0) -> void:
-    world_size = size
+    world_size = Vector2(maxf(0.0, size.x), maxf(0.0, size.y))
     cell_size = maxf(16.0, requested_cell_size)
     columns = int(ceil(world_size.x / cell_size))
     rows = int(ceil(world_size.y / cell_size))
@@ -47,43 +47,53 @@ func set_blocked(cell: Vector2i, value: bool = true) -> void:
     astar_grid.set_point_solid(cell, value)
 
 func block_rect(rect: Rect2) -> void:
-    if columns <= 0 or rows <= 0:
+    if columns <= 0 or rows <= 0 or rect.size.x <= 0.0 or rect.size.y <= 0.0:
         return
-    var min_cell: Vector2i = world_to_cell(rect.position)
-    var max_point: Vector2 = rect.position + rect.size - Vector2.ONE
-    var max_cell: Vector2i = world_to_cell(max_point)
+    var world_bounds := Rect2(Vector2.ZERO, world_size)
+    var clipped := rect.intersection(world_bounds)
+    if clipped.size.x <= 0.0 or clipped.size.y <= 0.0:
+        return
+    var min_cell: Vector2i = world_to_cell(clipped.position)
+    var max_cell: Vector2i = world_to_cell(clipped.end - Vector2(0.001, 0.001))
     for y in range(min_cell.y, max_cell.y + 1):
         for x in range(min_cell.x, max_cell.x + 1):
             set_blocked(Vector2i(x, y), true)
 
 func carve_world_point(world_pos: Vector2, radius_cells: int = 0) -> void:
+    if not _world_point_in_bounds(world_pos):
+        return
     var center: Vector2i = world_to_cell(world_pos)
-    for y in range(center.y - radius_cells, center.y + radius_cells + 1):
-        for x in range(center.x - radius_cells, center.x + radius_cells + 1):
+    for y in range(center.y - maxi(0, radius_cells), center.y + maxi(0, radius_cells) + 1):
+        for x in range(center.x - maxi(0, radius_cells), center.x + maxi(0, radius_cells) + 1):
             set_blocked(Vector2i(x, y), false)
 
 func is_walkable(cell: Vector2i) -> bool:
     return _in_bounds(cell) and not blocked.has(cell)
 
 func world_is_walkable(world_pos: Vector2) -> bool:
-    return is_walkable(world_to_cell(world_pos))
+    return _world_point_in_bounds(world_pos) and is_walkable(world_to_cell(world_pos))
 
 func nearest_open(cell: Vector2i, max_radius: int = 10) -> Vector2i:
     if is_walkable(cell):
         return cell
     for radius in range(1, max_radius + 1):
+        var ring: Array[Vector2i] = []
         for y in range(cell.y - radius, cell.y + radius + 1):
             for x in range(cell.x - radius, cell.x + radius + 1):
                 var candidate := Vector2i(x, y)
-                if abs(candidate.x - cell.x) + abs(candidate.y - cell.y) != radius:
-                    continue
-                if is_walkable(candidate):
-                    return candidate
+                if abs(candidate.x - cell.x) + abs(candidate.y - cell.y) == radius and is_walkable(candidate):
+                    ring.append(candidate)
+        if not ring.is_empty():
+            ring.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+                if a.y == b.y:
+                    return a.x < b.x
+                return a.y < b.y)
+            return ring[0]
     return Vector2i(-1, -1)
 
 func reachable_cells(start_world: Vector2, max_steps: int = 7) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
-    if columns <= 0 or rows <= 0 or max_steps < 0:
+    if columns <= 0 or rows <= 0 or max_steps < 0 or not _world_point_in_bounds(start_world):
         return result
     var start: Vector2i = nearest_open(world_to_cell(start_world))
     if start.x < 0:
@@ -105,16 +115,29 @@ func reachable_cells(start_world: Vector2, max_steps: int = 7) -> Array[Vector2i
             queue.append(neighbor)
     return result
 
+func reachable_frontier(start_world: Vector2, max_steps: int = 7) -> Array[Vector2i]:
+    var reachable := reachable_cells(start_world, max_steps)
+    var lookup: Dictionary = {}
+    for cell in reachable:
+        lookup[cell] = true
+    var frontier: Array[Vector2i] = []
+    for cell in reachable:
+        for neighbor in _neighbors(cell):
+            if not lookup.has(neighbor):
+                frontier.append(cell)
+                break
+    return frontier
+
 func find_path(start_world: Vector2, end_world: Vector2) -> Array[Vector2]:
     var result: Array[Vector2] = []
-    if columns <= 0 or rows <= 0:
+    if columns <= 0 or rows <= 0 or not _world_point_in_bounds(start_world) or not _world_point_in_bounds(end_world):
         return result
     var start := nearest_open(world_to_cell(start_world))
     var goal := nearest_open(world_to_cell(end_world))
     if start.x < 0 or goal.x < 0:
         return result
     if start == goal:
-        result.append(cell_to_world(goal))
+        result.append(_safe_goal_point(end_world, goal))
         return result
     var ids: Array[Vector2i] = []
     for point in astar_grid.get_id_path(start, goal, false):
@@ -124,14 +147,21 @@ func find_path(start_world: Vector2, end_world: Vector2) -> Array[Vector2]:
     ids = _compress_collinear_cells(ids)
     for i in range(1, ids.size()):
         result.append(cell_to_world(ids[i]))
+    if goal == world_to_cell(end_world) and not result.is_empty():
+        result[result.size() - 1] = _safe_goal_point(end_world, goal)
     return result
 
 func find_path_in_range(start_world: Vector2, end_world: Vector2, allowed_cells: Array[Vector2i]) -> Array[Vector2]:
     var allowed_lookup: Dictionary = {}
     for cell in allowed_cells:
-        allowed_lookup[cell] = true
-    var start := nearest_open(world_to_cell(start_world))
-    var goal := nearest_open(world_to_cell(end_world))
+        if is_walkable(cell):
+            allowed_lookup[cell] = true
+    if not _world_point_in_bounds(start_world) or not _world_point_in_bounds(end_world):
+        return []
+    var start := world_to_cell(start_world)
+    var goal := world_to_cell(end_world)
+    if not allowed_lookup.has(start) or not allowed_lookup.has(goal):
+        return []
     return _find_path_cells_bounded(start, goal, allowed_lookup)
 
 func _find_path_cells_bounded(start: Vector2i, goal: Vector2i, allowed_lookup: Dictionary) -> Array[Vector2]:
@@ -160,8 +190,22 @@ func _find_path_cells_bounded(start: Vector2i, goal: Vector2i, allowed_lookup: D
             queue.append(neighbor)
     return result
 
+func route_distance(path: Array[Vector2], start_world: Vector2) -> float:
+    var total := 0.0
+    var previous := start_world
+    for point in path:
+        total += previous.distance_to(point)
+        previous = point
+    return total
+
 func blocked_count() -> int:
     return blocked.size()
+
+func _safe_goal_point(requested: Vector2, goal: Vector2i) -> Vector2:
+    if world_to_cell(requested) == goal and is_walkable(goal):
+        var inset := 1.0
+        return Vector2(clampf(requested.x, inset, maxf(inset, world_size.x - inset)), clampf(requested.y, inset, maxf(inset, world_size.y - inset)))
+    return cell_to_world(goal)
 
 func _reconstruct_world_path(came_from: Dictionary, current: Vector2i, start: Vector2i) -> Array[Vector2]:
     var cells: Array[Vector2i] = [current]
@@ -192,8 +236,14 @@ func _compress_collinear_cells(cells: Array[Vector2i]) -> Array[Vector2i]:
 func _neighbors(cell: Vector2i) -> Array[Vector2i]:
     return [Vector2i(cell.x + 1, cell.y), Vector2i(cell.x - 1, cell.y), Vector2i(cell.x, cell.y + 1), Vector2i(cell.x, cell.y - 1)]
 
+func _world_point_in_bounds(point: Vector2) -> bool:
+    return point.x >= 0.0 and point.y >= 0.0 and point.x < world_size.x and point.y < world_size.y
+
 func _in_bounds(cell: Vector2i) -> bool:
     return cell.x >= 0 and cell.y >= 0 and cell.x < columns and cell.y < rows
 
 func debug_native_astar_ready() -> bool:
     return columns > 0 and rows > 0 and astar_grid.region.size == Vector2i(columns, rows) and astar_grid.diagonal_mode == AStarGrid2D.DIAGONAL_MODE_NEVER
+
+func debug_v109_navigation_ready() -> bool:
+    return has_method("reachable_frontier") and has_method("route_distance") and has_method("_world_point_in_bounds")
