@@ -7,7 +7,8 @@ scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 renderer = (ROOT / "Godot/scripts/pixel_rpg_building_renderer.gd").read_text(encoding="utf-8")
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
-assert version == "v0.103", version
+assert version.startswith("v0."), version
+assert int(version.split(".")[1]) >= 103, version
 assert "world_v103.gd" in scene
 assert 'extends "res://scripts/world_v102.gd"' in world
 
