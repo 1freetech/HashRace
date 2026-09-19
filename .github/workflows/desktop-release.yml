@@ -205,6 +205,11 @@ jobs:
 
           This release includes the current Windows and Linux builds plus a fresh screenshot captured directly from the running Godot game.
 
+          ## Downloads
+
+          - [Windows x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-windows-x64.zip)
+          - [Linux x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-linux-x64.tar.gz)
+
           ## Screenshot
 
           ![Hash Race gameplay screenshot]($SCREENSHOT_URL)
