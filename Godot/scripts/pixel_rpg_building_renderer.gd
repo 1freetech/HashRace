@@ -33,7 +33,7 @@ const GREEN_LIGHT := Color("86c95d")
 const FLOWER_YELLOW := Color("f2d45b")
 const FLOWER_PINK := Color("e77a9a")
 
-static func create_texture(style: String, accent: Color, source_size: Vector2i) -> ImageTexture:
+func create_texture(style: String, accent: Color, source_size: Vector2i) -> ImageTexture:
     var w := maxi(72, source_size.x)
     var h := maxi(64, source_size.y)
     var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
@@ -50,7 +50,7 @@ static func create_texture(style: String, accent: Color, source_size: Vector2i) 
     _draw_landscaping(img, w, h, palette, style)
     return ImageTexture.create_from_image(img)
 
-static func _palette(style: String, accent: Color) -> Dictionary:
+func _palette(style: String, accent: Color) -> Dictionary:
     var roof := accent.darkened(0.18)
     var wall := WALL_MID
     var wall_light := WALL_LIGHT
@@ -98,13 +98,13 @@ static func _palette(style: String, accent: Color) -> Dictionary:
         "accent": accent,
     }
 
-static func _draw_ground_shadow(img: Image, w: int, h: int) -> void:
+func _draw_ground_shadow(img: Image, w: int, h: int) -> void:
     var y0 := h - 12
     for y in range(y0, h - 4):
         var inset := 6 + absi(y - (y0 + 3))
         _rect(img, inset + 6, y, w - (inset + 6) * 2, 1, Color(0.08, 0.12, 0.12, 0.34))
 
-static func _draw_facade(img: Image, w: int, h: int, p: Dictionary) -> void:
+func _draw_facade(img: Image, w: int, h: int, p: Dictionary) -> void:
     var body_left := 8
     var body_right := w - 9
     var body_top := int(round(float(h) * 0.48))
@@ -128,7 +128,7 @@ static func _draw_facade(img: Image, w: int, h: int, p: Dictionary) -> void:
     _rect(img, body_left, body_bottom - 4, body_right - body_left + 1, 5, p["wall_dark"].darkened(0.18))
     _rect(img, body_left + 3, body_bottom - 4, body_right - body_left - 5, 2, p["wall_light"].darkened(0.18))
 
-static func _draw_roof(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_roof(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     var roof_top := 5
     var eave_y := int(round(float(h) * 0.52))
     var cx := int(w / 2)
@@ -173,7 +173,7 @@ static func _draw_roof(img: Image, w: int, h: int, p: Dictionary, style: String)
         _roof_vent(img, int(w * 0.30), int(h * 0.25))
         _roof_vent(img, int(w * 0.62), int(h * 0.23))
 
-static func _draw_front_gable(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_front_gable(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     if style in ["machines", "power"]:
         return
     var base_y := int(round(float(h) * 0.58))
@@ -193,7 +193,7 @@ static func _draw_front_gable(img: Image, w: int, h: int, p: Dictionary, style: 
     var ay := peak_y + 9
     _window(img, cx - int(aw / 2), ay, aw, 9, p)
 
-static func _draw_windows(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_windows(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     var y := int(round(float(h) * 0.66))
     var ww := maxi(14, int(round(float(w) * 0.14)))
     var wh := maxi(9, int(round(float(h) * 0.10)))
@@ -206,7 +206,7 @@ static func _draw_windows(img: Image, w: int, h: int, p: Dictionary, style: Stri
         _window(img, 16, y, ww, wh, p)
         _window(img, w - 16 - ww, y, ww, wh, p)
 
-static func _draw_door(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_door(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     var dw := maxi(13, int(round(float(w) * 0.14)))
     var dh := maxi(20, int(round(float(h) * 0.25)))
     var x := int(w / 2) - int(dw / 2)
@@ -222,7 +222,7 @@ static func _draw_door(img: Image, w: int, h: int, p: Dictionary, style: String)
     _rect(img, x - 5, y - 7, dw + 10, 3, INK)
     _rect(img, x - 3, y - 6, dw + 6, 4, p["accent"].darkened(0.18))
 
-static func _draw_style_details(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_style_details(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     if style == "machines":
         # Rooftop HVAC and front intake rhythm.
         for i in range(3):
@@ -258,7 +258,7 @@ static func _draw_style_details(img: Image, w: int, h: int, p: Dictionary, style
         _rect(img, 17, int(h * 0.27) - 2, 11, 4, INK)
         _rect(img, 19, int(h * 0.27) - 1, 7, 2, WOOD_MID)
 
-static func _draw_landscaping(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
+func _draw_landscaping(img: Image, w: int, h: int, p: Dictionary, style: String) -> void:
     if style in ["machines", "power"]:
         return
     var y := h - 16
@@ -271,19 +271,19 @@ static func _draw_landscaping(img: Image, w: int, h: int, p: Dictionary, style: 
             _safe_pixel(img, x, h - 13, FLOWER_PINK if i % 2 == 0 else FLOWER_YELLOW)
             _safe_pixel(img, x, h - 12, GREEN_DARK)
 
-static func _roof_window(img: Image, x: int, y: int) -> void:
+func _roof_window(img: Image, x: int, y: int) -> void:
     _rect(img, x - 8, y - 5, 18, 12, INK)
     _rect(img, x - 6, y - 3, 14, 8, GLASS_MID)
     _rect(img, x - 4, y - 2, 4, 3, GLASS_LIGHT)
     _rect(img, x + 1, y - 2, 5, 3, GLASS_DARK)
 
-static func _roof_vent(img: Image, x: int, y: int) -> void:
+func _roof_vent(img: Image, x: int, y: int) -> void:
     _rect(img, x - 7, y - 5, 16, 12, INK)
     _rect(img, x - 5, y - 3, 12, 8, METAL_MID)
     _rect(img, x - 3, y - 1, 8, 2, METAL_LIGHT)
     _rect(img, x - 3, y + 2, 8, 2, METAL_DARK)
 
-static func _window(img: Image, x: int, y: int, w: int, h: int, p: Dictionary) -> void:
+func _window(img: Image, x: int, y: int, w: int, h: int, p: Dictionary) -> void:
     _rect(img, x - 2, y - 2, w + 4, h + 4, INK)
     _rect(img, x, y, w, h, GLASS_MID)
     _rect(img, x + 2, y + 2, maxi(2, int(w * 0.35)), maxi(2, int(h * 0.28)), GLASS_LIGHT)
@@ -291,13 +291,13 @@ static func _window(img: Image, x: int, y: int, w: int, h: int, p: Dictionary) -
     _rect(img, x, y + int(h / 2), w, 1, GLASS_DARK)
     _rect(img, x - 1, y + h + 1, w + 2, 2, p["trim"].darkened(0.12))
 
-static func _bush(img: Image, x: int, y: int) -> void:
+func _bush(img: Image, x: int, y: int) -> void:
     _rect(img, x + 3, y + 8, 8, 4, GREEN_DARK)
     _rect(img, x + 1, y + 4, 12, 6, GREEN_MID)
     _rect(img, x + 4, y + 1, 7, 6, GREEN_LIGHT)
     _safe_pixel(img, x + 5, y + 2, Color("b0e27b"))
 
-static func _triangle(img: Image, a: Vector2i, b: Vector2i, c: Vector2i, color: Color) -> void:
+func _triangle(img: Image, a: Vector2i, b: Vector2i, c: Vector2i, color: Color) -> void:
     var min_y := maxi(0, mini(a.y, mini(b.y, c.y)))
     var max_y := mini(img.get_height() - 1, maxi(a.y, maxi(b.y, c.y)))
     for y in range(min_y, max_y + 1):
@@ -313,7 +313,7 @@ static func _triangle(img: Image, a: Vector2i, b: Vector2i, c: Vector2i, color: 
         for x in range(left, right + 1):
             img.set_pixel(x, y, color)
 
-static func _edge_intersection_y(a: Vector2i, b: Vector2i, y: int, xs: Array[float]) -> void:
+func _edge_intersection_y(a: Vector2i, b: Vector2i, y: int, xs: Array[float]) -> void:
     if a.y == b.y:
         if y == a.y:
             xs.append(float(a.x))
@@ -326,7 +326,7 @@ static func _edge_intersection_y(a: Vector2i, b: Vector2i, y: int, xs: Array[flo
     var t := float(y - a.y) / float(b.y - a.y)
     xs.append(lerpf(float(a.x), float(b.x), t))
 
-static func _rect(img: Image, x: int, y: int, w: int, h: int, color: Color) -> void:
+func _rect(img: Image, x: int, y: int, w: int, h: int, color: Color) -> void:
     if w <= 0 or h <= 0:
         return
     var x0 := maxi(0, x)
@@ -337,6 +337,6 @@ static func _rect(img: Image, x: int, y: int, w: int, h: int, color: Color) -> v
         for px in range(x0, x1):
             img.set_pixel(px, py, color)
 
-static func _safe_pixel(img: Image, x: int, y: int, color: Color) -> void:
+func _safe_pixel(img: Image, x: int, y: int, color: Color) -> void:
     if x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height():
         img.set_pixel(x, y, color)
