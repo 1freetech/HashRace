@@ -140,6 +140,8 @@ jobs:
         run: python tools/test_v093_start_ui_contract.py
       - name: Test v0.102 overworld visual cleanup contract
         run: python tools/test_v102_visual_cleanup_contract.py
+      - name: Test v0.103 intentional-world composition contract
+        run: python tools/test_v103_composition_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract
