@@ -37,6 +37,7 @@ const V097_FLOWER_PINK := Color("f29ab0")
 const V097_FLOWER_YELLOW := Color("f1dc68")
 
 var v097_building_cache: Dictionary = {}
+var v097_building_renderer = PixelRpgBuildingRenderer.new()
 
 func _ready() -> void:
     super._ready()
@@ -230,7 +231,7 @@ func _v097_texture(style: String, accent: Color, size_value: Vector2):
     var src := Vector2i(maxi(72, int(round(size_value.x * 0.5))), maxi(64, int(round(size_value.y * 0.5))))
     var key := "%s|%s|%dx%d" % [style, accent.to_html(false), src.x, src.y]
     if not v097_building_cache.has(key):
-        v097_building_cache[key] = PixelRpgBuildingRenderer.create_texture(style, accent, src)
+        v097_building_cache[key] = v097_building_renderer.create_texture(style, accent, src)
     return v097_building_cache[key]
 
 func _v097_draw_building(pos: Vector2, size_value: Vector2, accent: Color, style: String) -> void:
