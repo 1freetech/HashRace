@@ -7,6 +7,7 @@ const GREEN := Color("64ff8c")
 const CYAN := Color("52e7ff")
 const WHITE := Color("dffaff")
 const PANEL := Color("091119f2")
+const MAX_CAMPAIGN_YEARS: int = 100
 
 var company_option: OptionButton
 var years_option: OptionButton
@@ -172,7 +173,7 @@ func build_menu() -> void:
     years_option.position = Vector2(78, 550)
     years_option.size = Vector2(432, 42)
     years_option.add_theme_font_size_override("font_size", 14)
-    for years in range(1, 21):
+    for years in range(1, MAX_CAMPAIGN_YEARS + 1):
         years_option.add_item("%d year%s" % [years, "" if years == 1 else "s"], years)
     years_option.select(3)
     years_option.item_selected.connect(_on_clock_changed)
