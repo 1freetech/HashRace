@@ -1,5 +1,6 @@
 """v0.093 start-menu preview and UI cleanup regression contract."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -12,8 +13,16 @@ overworld = (ROOT / "Godot/scripts/world_overworld.gd").read_text(encoding="utf-
 campaign = (ROOT / "Godot/scripts/world_campaign.gd").read_text(encoding="utf-8")
 release = (ROOT / "Godot/scripts/world_v093.gd").read_text(encoding="utf-8")
 
-assert version == "v0.093", version
-assert "world_v093.gd" in scene
+assert re.fullmatch(r"v0\.\d{3}", version), version
+version_number = int(version.rsplit(".", 1)[1])
+assert version_number >= 93, f"v0.093 feature contract requires v0.093 or newer, got {version}"
+live_match = re.search(
+    r'ext_resource path="res://scripts/world_v([0-9]+)[.]gd" type="Script" id="1_world"',
+    scene,
+)
+assert live_match, "Live scene must declare a versioned world_v###.gd gameplay script"
+assert int(live_match.group(1)) >= 93, "Live world must retain the v0.093 feature layer or a newer descendant"
+assert (ROOT / "Godot/scripts/world_v093.gd").is_file(), "v0.093 feature layer must remain in the release chain"
 assert 'preload("res://scripts/character_preview.gd")' in setup
 assert 'character_preview.name = "CharacterPreview"' in setup
 assert "character_preview.set_character(skin_idx, gender_idx)" in setup
