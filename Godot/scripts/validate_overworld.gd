@@ -9,8 +9,8 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
     set_meta("hashrace_company_idx", 2)
-    set_meta("hashrace_campaign_years", 3)
-    set_meta("hashrace_campaign_turns", 12)
+    set_meta("hashrace_campaign_years", 100)
+    set_meta("hashrace_campaign_turns", 1200)
     set_meta("hashrace_character_skin_tone", 4)
     set_meta("hashrace_character_gender", 1)
     set_meta("hashrace_character_outfit", 0)
@@ -53,6 +53,9 @@ func _run() -> void:
 
     if not bool(scene.call("debug_world_ready")):
         _fail("overworld did not initialize player/entities/camera")
+        return
+    if int(scene.get("campaign_years")) != 100:
+        _fail("100-year campaign selection was truncated by the live world")
         return
     if int(scene.call("debug_entity_count")) < 39:
         _fail("expected company buildings, land market, mining reps and partner reps")
