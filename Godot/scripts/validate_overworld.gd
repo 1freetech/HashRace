@@ -14,6 +14,8 @@ func _run() -> void:
     set_meta("hashrace_character_skin_tone", 4)
     set_meta("hashrace_character_gender", 1)
     set_meta("hashrace_character_outfit", 0)
+    set_meta("hashrace_character_scouter_color", 3)
+    set_meta("hashrace_character_scouter_eye", 0)
 
     var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
     if packed == null:
@@ -41,9 +43,9 @@ func _run() -> void:
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
         "debug_culture_effects_summary", "debug_texture_spacing_ready", "debug_clean_layout_min_spacing",
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
-        "debug_character_outfit", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
+        "debug_character_outfit", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
-        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
+        "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_v095_ready", "debug_building_road_overlap_count", "debug_building_water_overlap_count", "debug_live_scouter_color", "debug_live_scouter_side", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
     ]
     for method_name in required_methods:
@@ -230,6 +232,15 @@ func _run() -> void:
     if not bool(scene.call("debug_v094_navigation_ready")):
         _fail("v0.094 one-panel navigation / world-first HUD did not initialize")
         return
+    if not bool(scene.call("debug_v095_ready")):
+        _fail("v0.095 roadside/scouter layer did not initialize")
+        return
+    if int(scene.call("debug_building_road_overlap_count")) != 0:
+        _fail("one or more interactive buildings still overlap road tiles")
+        return
+    if int(scene.call("debug_building_water_overlap_count")) != 0:
+        _fail("one or more interactive buildings overlap water")
+        return
 
     # v0.052 character customization contract.
     if not bool(scene.call("debug_character_customization_ready")):
@@ -243,6 +254,20 @@ func _run() -> void:
         return
     if int(scene.call("debug_character_outfit")) != 0:
         _fail("starter outfit did not initialize")
+        return
+    if int(scene.call("debug_character_scouter_color")) != 3:
+        _fail("campaign scouter color choice did not reach the playable sprite")
+        return
+    if int(scene.call("debug_character_scouter_eye")) != 0:
+        _fail("campaign scouter eye choice did not reach the playable sprite")
+        return
+    if String(scene.call("debug_live_scouter_side")) != "left":
+        _fail("active renderer ignored the selected scouter eye")
+        return
+    var live_scouter_color: Color = scene.call("debug_live_scouter_color")
+    var expected_scouter_color: Color = Color("bd8cff")
+    if live_scouter_color.distance_to(expected_scouter_color) > 0.01:
+        _fail("active renderer ignored the selected scouter lens color")
         return
     if not bool(scene.call("debug_paid_outfits_use_game_cash")):
         _fail("paid outfit catalog contains a free non-starter skin")
@@ -288,5 +313,5 @@ func _run() -> void:
         _fail("confirmed turn settlement did not advance the turn")
         return
 
-    print("HASH RACE OVERWORLD PASS: v0.094 verified world-first one-panel navigation on top of the existing pixel-world, simulation, mining operations, and negotiation systems.")
+    print("HASH RACE OVERWORLD PASS: v0.095 verified roadside buildings, road/water-safe lots, live scouter color/eye customization, and the existing world-first navigation stack.")
     quit(0)
