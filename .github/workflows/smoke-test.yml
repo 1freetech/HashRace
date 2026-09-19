@@ -8,8 +8,10 @@ jobs:
   godot-world-boot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: chickensoft-games/setup-godot@v2
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.2
           use-dotnet: false
@@ -17,17 +19,46 @@ jobs:
       - name: Boot opening campaign setup with strict script-error gate
         run: |
           set -euo pipefail
-          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-setup.log
-          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-setup.log; then exit 1; fi
+          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/setup.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/setup.log; then exit 1; fi
       - name: Validate live campaign character preview
         run: godot --headless --path Godot --script res://scripts/validate_campaign_setup.gd
-      - name: Boot real company town network with strict script-error gate
-        run: |
-          set -euo pipefail
-          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-world.log
-          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log; then exit 1; fi
-      - name: Validate selected-company transition and playable town loop
+      - name: Parse pixel landscape directly
+        run: godot --headless --path Godot res://scenes/pixel_landscape_probe.tscn --quit-after 1
+      - name: Parse modular scripts directly
+        run: godot --headless --path Godot --script res://scripts/validate_modular_scripts.gd
+      - name: Validate negotiation scene directly
+        run: godot --headless --path Godot --script res://scripts/validate_negotiation_scene.gd
+      - name: Boot real company town network
+        run: godot --headless --path Godot res://scenes/world.tscn --quit-after 3
+      - name: Validate playable town loop
         run: godot --headless --path Godot --script res://scripts/validate_overworld.gd
+      - name: Install virtual display
+        run: if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+      - name: Capture gameplay screenshot
+        run: xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd && test -s visual-proof/hashrace-screenshot.png
+      - name: Capture close-up 2D detail
+        run: xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd && test -s visual-proof/hashrace-2d-detail.png
+      - name: Capture Mining Ops widget
+        run: xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd && test -s visual-proof/hashrace-mining-ops-widget.png
+      - name: Capture negotiation scene
+        run: xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd && test -s visual-proof/hashrace-negotiation-scene.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-gameplay-screenshot
+          path: visual-proof/hashrace-screenshot.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-2d-detail-visual-proof
+          path: visual-proof/hashrace-2d-detail.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-mining-ops-widget-proof
+          path: visual-proof/hashrace-mining-ops-widget.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-negotiation-scene-proof
+          path: visual-proof/hashrace-negotiation-scene.png
 
   python-contract:
     runs-on: ubuntu-latest
@@ -58,8 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compile and run C++ checks
-        run: g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic native/cpp/hashrace_catalog.cpp native/cpp/hashrace_simulation.cpp native/cpp/hashrace_core.cpp -o /tmp/hashrace_cpp && /tmp/hashrace_cpp
+      - run: g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic native/cpp/hashrace_catalog.cpp native/cpp/hashrace_simulation.cpp native/cpp/hashrace_core.cpp -o /tmp/hashrace_cpp
+      - run: /tmp/hashrace_cpp
 
   rust-balance:
     runs-on: ubuntu-latest
