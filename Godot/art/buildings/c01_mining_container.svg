@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="102" viewBox="0 0 128 102" shape-rendering="crispEdges">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef1f2"/>
+      <stop offset="1" stop-color="#c4c9cb"/>
+    </linearGradient>
+    <linearGradient id="fan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b90c7"/>
+      <stop offset="1" stop-color="#145579"/>
+    </linearGradient>
+  </defs>
+
+  <!-- container shell -->
+  <rect x="4" y="7" width="120" height="88" rx="2" fill="#6c757b" stroke="#1a2227" stroke-width="2"/>
+  <rect x="8" y="10" width="112" height="81" fill="url(#body)" stroke="#879197" stroke-width="1"/>
+  <rect x="8" y="10" width="112" height="9" fill="#d9dddf"/>
+  <path d="M10 11h108 M12 14h104 M12 17h104" stroke="#aab1b5" stroke-width="1"/>
+
+  <!-- corrugation -->
+  <g stroke="#aab1b4" stroke-width="1" opacity=".8">
+    <path d="M73 21v64 M79 21v64 M85 21v64 M91 21v64 M97 21v64 M103 21v64 M109 21v64 M115 21v64"/>
+  </g>
+
+  <!-- reinforced corners -->
+  <g fill="#263139" stroke="#10161a" stroke-width="1">
+    <rect x="2" y="5" width="9" height="9" rx="1"/>
+    <rect x="117" y="5" width="9" height="9" rx="1"/>
+    <rect x="2" y="88" width="9" height="9" rx="1"/>
+    <rect x="117" y="88" width="9" height="9" rx="1"/>
+  </g>
+  <g fill="#68747b">
+    <rect x="5" y="8" width="3" height="3"/>
+    <rect x="120" y="8" width="3" height="3"/>
+    <rect x="5" y="91" width="3" height="3"/>
+    <rect x="120" y="91" width="3" height="3"/>
+  </g>
+
+  <!-- three blue cooling fans -->
+  <g>
+    <rect x="12" y="23" width="22" height="18" rx="1" fill="url(#fan)" stroke="#173b50" stroke-width="2"/>
+    <rect x="12" y="43" width="22" height="18" rx="1" fill="url(#fan)" stroke="#173b50" stroke-width="2"/>
+    <rect x="12" y="63" width="22" height="18" rx="1" fill="url(#fan)" stroke="#173b50" stroke-width="2"/>
+    <g fill="#1a252c" stroke="#b8c2c7" stroke-width="1">
+      <circle cx="23" cy="32" r="7"/><circle cx="23" cy="52" r="7"/><circle cx="23" cy="72" r="7"/>
+    </g>
+    <g stroke="#56666f" stroke-width="2">
+      <path d="M23 25v14 M16 32h14 M18 27l10 10 M28 27L18 37"/>
+      <path d="M23 45v14 M16 52h14 M18 47l10 10 M28 47L18 57"/>
+      <path d="M23 65v14 M16 72h14 M18 67l10 10 M28 67L18 77"/>
+    </g>
+    <g fill="#9eabb1">
+      <circle cx="23" cy="32" r="2"/><circle cx="23" cy="52" r="2"/><circle cx="23" cy="72" r="2"/>
+    </g>
+  </g>
+
+  <!-- coolant / exhaust manifold -->
+  <g fill="none" stroke="#59666d" stroke-width="3">
+    <path d="M35 28h7v46h-7"/>
+    <path d="M42 34h7v34h-7"/>
+    <path d="M49 39h5v24h-5"/>
+  </g>
+  <g fill="#89959a" stroke="#4b575d" stroke-width="1">
+    <rect x="38" y="24" width="5" height="8"/>
+    <rect x="38" y="72" width="5" height="8"/>
+    <rect x="45" y="31" width="5" height="7"/>
+    <rect x="45" y="66" width="5" height="7"/>
+  </g>
+
+  <!-- electrical cabinet -->
+  <rect x="55" y="28" width="13" height="36" rx="1" fill="#46545c" stroke="#202a30" stroke-width="2"/>
+  <rect x="58" y="31" width="7" height="4" fill="#64747c"/>
+  <path d="M61.5 39l4 7h-8z" fill="#e4bd35" stroke="#2a3135" stroke-width="1"/>
+  <path d="M62 41l-2 4h2l-1 4 4-6h-2l1-2z" fill="#30383d"/>
+  <circle cx="65" cy="58" r="1.5" fill="#f0b93e"/>
+
+  <!-- cable runs -->
+  <g stroke="#4b585f" stroke-width="2">
+    <path d="M57 66v18 M61 66v18 M65 66v18"/>
+  </g>
+
+  <!-- C-01 mark and inspection panel -->
+  <text x="87" y="48" font-family="monospace" font-size="13" font-weight="700" fill="#4b545a">C-01</text>
+  <path d="M88 52h28" stroke="#8d969b" stroke-width="2"/>
+  <path d="M88 56h18" stroke="#8d969b" stroke-width="1"/>
+  <rect x="91" y="68" width="22" height="13" rx="1" fill="#747f85" stroke="#3f4a50" stroke-width="2"/>
+  <g stroke="#aeb7bb" stroke-width="1">
+    <path d="M94 72h16 M94 75h16 M94 78h16"/>
+  </g>
+
+  <!-- lower sill / feet -->
+  <rect x="10" y="84" width="108" height="5" fill="#aeb4b7"/>
+  <g fill="#222b31">
+    <rect x="10" y="87" width="9" height="4"/><rect x="109" y="87" width="9" height="4"/>
+  </g>
+</svg>

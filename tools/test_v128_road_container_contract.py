@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     assert (ROOT / "VERSION").read_text().strip() >= "v0.128"
 
-    asset = ROOT / "Godot/art/buildings/c01_mining_container.png"
+    asset = ROOT / "Godot/art/buildings/c01_mining_container.svg"
     world = (ROOT / "Godot/scripts/world_v128.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
@@ -15,7 +15,7 @@ def main():
     assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
 
     assert 'extends "res://scripts/world_v127.gd"' in world
-    assert 'V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.png"' in world
+    assert 'V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.svg"' in world
     assert "CITY_ROAD_STYLES" in world
     assert "_v128_draw_city_road" in world
     assert "_v123_draw_ground" in world

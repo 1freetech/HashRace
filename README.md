@@ -2,7 +2,7 @@
 
 v0.128 removes the road pile-up that could occur when the inherited asphalt, dirt-road, and industrial-road layers all rendered inside the same mining campus. The live v0.128 layer owns the campus ground draw, keeps the authored grass underneath, and draws **one straight local road stretch only**. Each of the ten cities now has a selected local road language (industrial, dirt, gravel, or asphalt variants) without stacking multiple road systems on the same tiles.
 
-The supplied **C-01 mining-container artwork** is now a real game-source asset at `Godot/art/buildings/c01_mining_container.png`. Mining HQs and the player's live mining site render that container instead of the older house-like/procedural HQ facade. Capacity still scales through the existing 2x2 / 4x4 / 6x6 / 8x8 contract, while the live site is reduced to a container, one energy source, one transformer, and one command hut with deliberate negative space.
+The supplied **C-01 mining-container artwork** is now a real game-source asset at `Godot/art/buildings/c01_mining_container.svg`. Mining HQs and the player's live mining site render that container instead of the older house-like/procedural HQ facade. Capacity still scales through the existing 2x2 / 4x4 / 6x6 / 8x8 contract, while the live site is reduced to a container, one energy source, one transformer, and one command hut with deliberate negative space.
 
 ## v0.127 — uploaded game-asset bundle
 

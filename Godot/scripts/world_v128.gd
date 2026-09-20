@@ -8,7 +8,7 @@ extends "res://scripts/world_v127.gd"
 # mining-container artwork instead of another house-like/procedural facade.
 
 const V128_ROAD_CLEANUP_REVISION := 1
-const V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.png"
+const V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.svg"
 const V128_CONTAINER_ASPECT := 102.0 / 128.0
 
 # Each town chooses exactly one local road language. Styles can repeat when two
@@ -46,7 +46,12 @@ func _v128_load_texture(path: String) -> Texture2D:
     if not FileAccess.file_exists(absolute_path):
         return null
     var image := Image.new()
-    if image.load(absolute_path) != OK or image.is_empty():
+    var load_error := ERR_FILE_UNRECOGNIZED
+    if path.to_lower().ends_with(".svg"):
+        load_error = image.load_svg_from_string(FileAccess.get_file_as_string(absolute_path), 1.0)
+    else:
+        load_error = image.load(absolute_path)
+    if load_error != OK or image.is_empty():
         return null
     return ImageTexture.create_from_image(image)
 
