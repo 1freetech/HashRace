@@ -12,7 +12,8 @@ version=(ROOT/"VERSION").read_text().strip()
 
 assert version.startswith("v0."),version
 assert int(version.split(".")[1]) >= 90,version
-assert "world_v090.gd" in scene
+assert "world_v090.gd" in (ROOT/"Godot/scripts/validate_modular_scripts.gd").read_text()
+assert "world_v127.gd" in scene
 assert 'extends "res://scripts/world_v089.gd"' in world
 
 for marker in ["BATTERY_CAPACITY_MWH_PER_UNIT","BATTERY_POWER_MW_PER_UNIT","ROUND_TRIP_EFFICIENCY","simulate_period","source_energy_mwh","battery_charge_source_mwh","curtailed_mining_mwh","debug_contract_ready"]:
