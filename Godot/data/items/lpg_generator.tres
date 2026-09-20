@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "lpg_generator"
+display_name = "LPG / Propane Generator"
+category = "ENERGY"
+slot_type = "POWER"
+price = 640000.0
+deployable = true
+power_output_mw = 6.000
+capacity_factor = 0.950
+uptime_bonus = 0.0040
+power_cost_delta = -0.0025
+maintenance = 1000.0
+effect = "energy_source"
+effect_amount = 6.0000
+effect_unit = "MW"
+visual = "lpg"
+description = "Liquefied-petroleum-gas generator for modular, dispatchable site power."
