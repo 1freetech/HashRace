@@ -2,8 +2,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = (ROOT / "Godot/scripts/world_v117.gd").read_text(encoding="utf-8")
-SCENE = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
-VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 ENERGY = (ROOT / "Godot/systems/energy_visual_catalog.gd").read_text(encoding="utf-8")
 INFRA = (ROOT / "Godot/systems/infrastructure_visual_catalog.gd").read_text(encoding="utf-8")
 CAPTURE = (ROOT / "Godot/scripts/capture_energy_site.gd").read_text(encoding="utf-8")
@@ -25,9 +23,9 @@ ENERGY_IDS = [
 ]
 
 def main():
-    assert VERSION == "v0.117", VERSION
+    # This is a historical module contract, not a live-version pin. Later worlds
+    # must be allowed to inherit v0.117 without making this regression test fail.
     assert 'extends "res://scripts/world_v116.gd"' in WORLD
-    assert "world_v117.gd" in SCENE
 
     for marker in [
         "_v117_draw_energy_module",
@@ -42,7 +40,6 @@ def main():
     ]:
         assert marker in WORLD, marker
 
-    # Exact footprint scale followed by hierarchical district compression.
     for marker in [
         '"max_mw": 2.0',
         '"tiles": 2',
@@ -71,7 +68,6 @@ def main():
         body = item.read_text(encoding="utf-8")
         assert f'id = "{asset_id}"' in body
 
-    # The rendered verification scene explicitly deploys the entire library.
     assert "V117_CAPTURE_ENERGY_IDS" in CAPTURE
     for asset_id in ENERGY_IDS:
         assert f'"{asset_id}"' in CAPTURE, asset_id
