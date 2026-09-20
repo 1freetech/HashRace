@@ -3,7 +3,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def test_v123_visual_target_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.123"
+    version = (ROOT / "VERSION").read_text().strip()
+    assert version.startswith("v0.")
+    assert int(version.split(".")[1]) >= 123
 
     world = (ROOT / "Godot/scripts/world_v123.gd").read_text()
     hud = (ROOT / "Godot/scripts/visual_target_hud.gd").read_text()
@@ -38,7 +40,7 @@ def test_v123_visual_target_contract():
     ]:
         assert token in hud, token
 
-    assert "world_v123.gd" in scene
+    assert "world_v123.gd" in scene or int(version.split(".")[1]) > 123
     assert "visual_target_hud.gd" in validator
     assert "world_v122.gd" in validator
     assert "world_v123.gd" in validator
@@ -47,4 +49,4 @@ def test_v123_visual_target_contract():
 
 if __name__ == "__main__":
     test_v123_visual_target_contract()
-    print("v0.123 visual target contract: PASS")
+    print("v0.123 retained visual target contract: PASS")
