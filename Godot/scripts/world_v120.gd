@@ -44,7 +44,7 @@ func site_capacity_action_summary(load_mw: float = -1.0, capacity_mw: float = -1
         active_load = maxf(0.0, _machine_load_kw() / 1000.0)
     var active_capacity := capacity_mw
     if active_capacity < 0.0:
-        active_capacity = _v118_effective_site_capacity_mw()
+        active_capacity = maxf(0.0, _effective_available_mw())
     var plan := site_capacity_action(active_load, active_capacity)
     if float(plan["curtail_mw"]) > 0.0:
         return "%s | %.1f MW online | %.1f MW curtailed (%.0f%%)" % [String(plan["action"]), float(plan["online_mw"]), float(plan["curtail_mw"]), float(plan["curtail_percent"])]
