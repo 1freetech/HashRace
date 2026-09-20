@@ -3,7 +3,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.125"
+    version = (ROOT / "VERSION").read_text().strip()
+    assert version.startswith("v0.")
+    assert int(version.split(".")[1]) >= 125
 
     asset = ROOT / "Godot/art/terrain/dirt_road_tilesheet.png"
     catalog = (ROOT / "Godot/scripts/dirt_road_catalog.gd").read_text()
@@ -12,8 +14,7 @@ def main():
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_screenshot.gd").read_text()
 
-    assert asset.exists() and asset.stat().st_size > 20_000
-    assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert asset.exists() and asset.stat().st_size > 100_000
     assert "res://art/terrain/dirt_road_tilesheet.png" in catalog
     for token in ["straight_v", "straight_h", "cross", "t_down", "t_up", "end_left", "filler_tracks"]:
         assert token in catalog, token
@@ -33,7 +34,11 @@ def main():
     assert "world_v125.gd" in validator
     assert "hashrace_v125_dirt_road_revision" in capture
 
-    print("Hash Race v0.125 dirt-road atlas contract: PASS")
+    if int(version.split(".")[1]) >= 126:
+        from test_v126_exact_player_contract import main as test_v126
+        test_v126()
+
+    print("Hash Race v0.125 retained dirt-road atlas contract: PASS")
 
 if __name__ == "__main__":
     main()

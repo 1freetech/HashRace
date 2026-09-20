@@ -43,4 +43,4 @@ func _v121_walk_frame(moving: bool) -> int:
     return clampi(int(floor(phase * 4.0)), 0, 3)
 
 func debug_v121_ready() -> bool:
-    return V121_DEFAULT_PLAYER_REVISION == 1 and DefaultPlayerSheet.FRAME_REGIONS.size() == 4 and DefaultPlayerSheet.FRAME_SIZE == Vector2i(56, 56) and debug_v120_ready()
+    return V121_DEFAULT_PLAYER_REVISION == 1 and DefaultPlayerSheet.FRAME_REGIONS.size() == 4 and DefaultPlayerSheet.FRAME_SIZE == Vector2i(40, 62) and DefaultPlayerSheet.SHEET_SIZE == Vector2i(160, 248) and debug_v120_ready()

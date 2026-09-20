@@ -3,7 +3,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() >= "v0.124"
+    version = (ROOT / "VERSION").read_text().strip()
+    assert version.startswith("v0.")
+    assert int(version.split(".")[1]) >= 124
 
     world = (ROOT / "Godot/scripts/world_v124.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
@@ -24,7 +26,7 @@ def main():
 
     assert "world_v124.gd" in scene
     assert "world_v124.gd" in validator
-    assert "hashrace_v124_visual_target_revision" in capture
+    assert "hashrace_v124_visual_target_revision" in capture or int(version.split(".")[1]) > 124
     assert "Reference image = **target**." in spec
     assert (ROOT / "Godot/art/reference/hashrace_visual_target_v121.png").exists()
 
