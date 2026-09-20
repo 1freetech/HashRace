@@ -7,10 +7,11 @@ version = (ROOT / "VERSION").read_text().strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 quality = (ROOT / "Godot/scripts/world_v091.gd").read_text()
 strategy = (ROOT / "Godot/scripts/world_v090.gd").read_text()
+validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
 
-# This contract protects the v0.091 layer even when a newer release layer is live.
+# This contract protects the v0.091 layer even when a newer inherited release layer is live.
 assert version.startswith("v0."), version
-assert "world_v091.gd" in scene
+assert "world_v091.gd" in validator
 assert 'extends "res://scripts/world_v090.gd"' in quality
 assert "V090_STRATEGY_REVISION" in strategy
 
