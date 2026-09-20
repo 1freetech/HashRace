@@ -19,6 +19,9 @@ def main():
     assert "_v126_draw_grass_tile" in world126
     assert "GrassTerrainCatalog.variant_for_cell" in world126
     assert "hashrace_grass_terrain_asset_live" in world126
+    assert "FileAccess.file_exists(SHEET_PATH)" in catalog
+    assert "image.load(SHEET_PATH)" in catalog
+    assert "ImageTexture.create_from_image(image)" in catalog
     assert "grass_terrain_catalog.gd" in validator
     assert "world_v126.gd" in validator
     assert "hashrace_v126_grass_terrain_revision" in capture
