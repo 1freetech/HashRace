@@ -41,7 +41,7 @@ for marker in [
 ]:
     assert marker in inventory, f"Inventory missing deployment marker: {marker}"
 
-for source in ["solar_array", "wind_farm", "gas_turbine", "hydro_turbine", "oil_field", "coal_plant", "nuclear_smr"]:
+for source in ["battery", "solar_array", "wind_farm", "gas_turbine", "hydro_turbine", "oil_field", "coal_plant", "nuclear_smr", "methane_generator", "diesel_generator", "geothermal_generator", "lpg_generator", "hydrogen_fuel_cell"]:
     path = ROOT / f"Godot/data/items/{source}.tres"
     assert path.exists(), f"Missing energy ItemResource {source}"
     text = path.read_text(encoding="utf-8")
