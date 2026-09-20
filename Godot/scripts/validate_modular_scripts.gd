@@ -24,6 +24,8 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v086.gd",
     "res://scripts/character_sprite_rig.gd",
     "res://scripts/character_preview.gd",
+    "res://scripts/default_player_sprite_sheet.gd",
+    "res://scripts/default_player_visual.gd",
     "res://scripts/world_v087.gd",
     "res://scripts/world_scale_rules.gd",
     "res://scripts/camera_proportion_controller.gd",
@@ -44,6 +46,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v118.gd",
     "res://scripts/world_v119.gd",
     "res://scripts/world_v120.gd",
+    "res://scripts/world_v121.gd",
 ]
 
 func _initialize() -> void:
