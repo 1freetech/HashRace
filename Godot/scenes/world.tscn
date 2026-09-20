@@ -14,3 +14,6 @@ offset_right = 1.0
 offset_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("2_treasury")
+
+[node name="BootFallback" type="CanvasLayer" parent="."]
+layer = 100
