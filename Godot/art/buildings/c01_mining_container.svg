@@ -78,8 +78,8 @@
     <path d="M57 66v18 M61 66v18 M65 66v18"/>
   </g>
 
-  <!-- C-01 mark and inspection panel -->
-  <text x="87" y="48" font-family="monospace" font-size="13" font-weight="700" fill="#4b545a">C-01</text>
+  <!-- Bitcoin mining command-center mark and inspection panel -->
+  <text x="86" y="43" font-family="monospace" font-size="5" font-weight="700" text-anchor="middle" fill="#4b545a">COMMAND</text>\n  <text x="86" y="49" font-family="monospace" font-size="5" font-weight="700" text-anchor="middle" fill="#4b545a">CENTER</text>
   <path d="M88 52h28" stroke="#8d969b" stroke-width="2"/>
   <path d="M88 56h18" stroke="#8d969b" stroke-width="1"/>
   <rect x="91" y="68" width="22" height="13" rx="1" fill="#747f85" stroke="#3f4a50" stroke-width="2"/>
