@@ -32,8 +32,14 @@ func _capture() -> void:
     if scene.get_node_or_null("BootFallback") != null:
         _fail("loading fallback is still covering the game")
         return
+    if int(scene.get_meta("hashrace_v126_grass_terrain_revision", 0)) != 1:
+        _fail("v0.126 grass-terrain layer is not live")
+        return
+    if not bool(scene.get_meta("hashrace_grass_terrain_asset_live", false)):
+        _fail("uploaded grass-terrain texture did not load into the live scene")
+        return
     if int(scene.get_meta("hashrace_v125_dirt_road_revision", 0)) != 1:
-        _fail("v0.125 dirt-road layer is not live")
+        _fail("v0.125 dirt-road layer is not live beneath v0.126")
         return
     if not bool(scene.get_meta("hashrace_dirt_road_asset_live", false)):
         _fail("uploaded dirt-road texture did not load into the live scene")
