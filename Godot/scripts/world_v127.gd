@@ -4,7 +4,6 @@ const IndustrialRoadCatalog = preload("res://scripts/industrial_road_catalog.gd"
 const UtilityPropsCatalog = preload("res://scripts/utility_props_catalog.gd")
 const WindTurbineCatalog = preload("res://scripts/wind_turbine_catalog.gd")
 const AsicAirCatalog = preload("res://scripts/asic_air_s19j_catalog.gd")
-const DefaultPlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
 
 const V127_ASSET_BUNDLE_REVISION := 1
 
