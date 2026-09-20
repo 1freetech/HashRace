@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v114.gd -> world_v113.gd -> world_v112.gd -> world_v111.gd -> world_v110.gd -> world_v109.gd -> world_v108.gd -> world_v107.gd -> world_v106.gd -> world_v105.gd -> world_v104.gd -> world_v103.gd -> world_v102.gd -> world_v101.gd -> world_v100.gd -> world_v099.gd -> world_v098.gd -> world_v097.gd -> world_v096.gd -> world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior gameplay stack. v0.114 renders the authored 13-system energy atlas in the live overworld and applies the 1 MW=2x2, 10 MW=4x4, 100 MW=8x8 site-footprint contract; v0.113 industrial buildings, v0.112 imported art, and v0.111 growth tiers remain underneath.
-[ext_resource path="res://scripts/world_v114.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v115.gd -> world_v114.gd -> world_v113.gd -> world_v112.gd -> world_v111.gd -> world_v110.gd -> world_v109.gd -> world_v108.gd -> world_v107.gd -> world_v106.gd -> world_v105.gd -> world_v104.gd -> world_v103.gd -> world_v102.gd -> world_v101.gd -> world_v100.gd -> world_v099.gd -> world_v098.gd -> world_v097.gd -> world_v096.gd -> world_v095.gd -> world_v094.gd -> world_v093.gd -> world_v092.gd -> world_v091.gd -> world_v090.gd -> world_v089.gd -> world_v088.gd -> world_v087.gd -> prior gameplay stack. v0.115 directly mounts the scaled mining-site cluster into the live world-prop stack and adds a dedicated rendered proof capture; v0.114 energy atlas + 2x2/4x4/8x8 scaling remain underneath.
+[ext_resource path="res://scripts/world_v115.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
