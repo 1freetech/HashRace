@@ -86,11 +86,24 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-proof.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-negotiation-proof.log; then exit 1; fi
           test -s visual-proof/hashrace-negotiation-scene.png
+      - name: Render and validate live energy-site proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-energy-site.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ENERGY SITE PROOF FAIL" /tmp/hashrace-energy-site.log; then exit 1; fi
+          test -s visual-proof/hashrace-energy-site.png
       - name: Upload gameplay screenshot
         uses: actions/upload-artifact@v4
         with:
           name: hashrace-gameplay-screenshot
           path: visual-proof/hashrace-screenshot.png
+          if-no-files-found: error
+      - name: Upload live energy-site proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-energy-site-proof
+          path: visual-proof/hashrace-energy-site.png
           if-no-files-found: error
       - name: Upload close-up 2D detail proof
         uses: actions/upload-artifact@v4
@@ -150,6 +163,8 @@ jobs:
         run: python tools/test_v113_industrial_site_contract.py
       - name: Test v0.114 live energy-site scaling contract
         run: python tools/test_v114_energy_site_contract.py
+      - name: Test v0.115 direct live mining-site contract
+        run: python tools/test_v115_direct_site_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract
