@@ -3,7 +3,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.125"
+    version = (ROOT / "VERSION").read_text().strip()
+    assert version.startswith("v0.") and int(version.split(".")[-1]) >= 125
 
     asset = ROOT / "Godot/art/terrain/dirt_road_tilesheet.png"
     catalog = (ROOT / "Godot/scripts/dirt_road_catalog.gd").read_text()
@@ -28,7 +29,7 @@ def main():
     ]:
         assert token in world, token
 
-    assert "world_v125.gd" in scene
+    assert "world_v125.gd" in scene or "world_v126.gd" in scene
     assert "dirt_road_catalog.gd" in validator
     assert "world_v125.gd" in validator
     assert "hashrace_v125_dirt_road_revision" in capture
