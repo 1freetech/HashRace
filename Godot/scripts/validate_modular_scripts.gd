@@ -44,6 +44,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v118.gd",
     "res://scripts/world_v119.gd",
     "res://scripts/world_v120.gd",
+    "res://scripts/world_v121.gd",
 ]
 
 func _initialize() -> void:
