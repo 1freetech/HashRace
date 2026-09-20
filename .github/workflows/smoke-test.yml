@@ -148,6 +148,8 @@ jobs:
         run: python tools/test_v112_imported_art_contract.py
       - name: Test v0.113 industrial-site replacement contract
         run: python tools/test_v113_industrial_site_contract.py
+      - name: Test v0.114 live energy-site scaling contract
+        run: python tools/test_v114_energy_site_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract
