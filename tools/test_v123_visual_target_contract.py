@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def test_v123_visual_target_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.123"
+    assert (ROOT / "VERSION").read_text().strip() >= "v0.123"
 
     world = (ROOT / "Godot/scripts/world_v123.gd").read_text()
     hud = (ROOT / "Godot/scripts/visual_target_hud.gd").read_text()

@@ -41,8 +41,8 @@ func _v124_draw_transmission_grid(tower_pos: Vector2, transformer_top: Vector2) 
     draw_line(top, left_foot, V124_TOWER, 5.0, true)
     draw_line(top, right_foot, V124_TOWER, 5.0, true)
     for yoff in [-82.0, -48.0, -12.0, 24.0, 58.0]:
-        var half := 10.0 + (yoff + 122.0) * 0.18
-        var y := tower_pos.y + yoff
+        var half: float = 10.0 + (float(yoff) + 122.0) * 0.18
+        var y: float = tower_pos.y + float(yoff)
         draw_line(Vector2(tower_pos.x - half, y), Vector2(tower_pos.x + half, y), V124_TOWER, 3.0, true)
         draw_line(Vector2(tower_pos.x - half, y), Vector2(tower_pos.x + half * 0.55, y + 26.0), V124_TOWER.darkened(0.14), 2.0, true)
         draw_line(Vector2(tower_pos.x + half, y), Vector2(tower_pos.x - half * 0.55, y + 26.0), V124_TOWER.darkened(0.14), 2.0, true)
