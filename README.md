@@ -1,3 +1,9 @@
+## v0.125 — authored dirt-road atlas
+
+v0.125 integrates the supplied dirt-road artwork into the **live Godot world** instead of approximating it with flat brown rectangles. The transparent game atlas lives at `Godot/art/terrain/dirt_road_tilesheet.png`; `dirt_road_catalog.gd` maps authored straight, junction, end, shoulder, and worn-surface regions; and `world_v125.gd` uses neighbor-aware tile selection to build mining-campus service roads beneath the structures. The public town road stays paved, while mining access, transformer frontage, storage access, and expansion lanes use dirt.
+
+The real gameplay screenshot gate now verifies that the v0.125 dirt-road layer and uploaded texture are actually loaded before a capture can count as proof.
+
 ## v0.124 — screenshot-match environment pass
 
 v0.124 continues the locked visual-target work in the **actual live Godot world**. It adds the missing large composition cues from the approved screenshot: a lattice transmission tower with sagging power conductors, a rocky shoreline/water corner, sparse tree and rock clusters, and stronger campus framing around the existing v0.123 mining building, transformer, power module, storage yard, signs, road, HUD, and green player. The HUD now reads the repository version dynamically instead of hard-coding a stale build number.

@@ -186,6 +186,8 @@ jobs:
         run: python tools/test_v123_visual_target_contract.py
       - name: Test v0.124 screenshot-match environment contract
         run: python tools/test_v124_visual_target_contract.py
+      - name: Test v0.125 authored dirt-road atlas contract
+        run: python tools/test_v125_dirt_road_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract

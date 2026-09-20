@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.124"
+    assert (ROOT / "VERSION").read_text().strip() >= "v0.124"
 
     world = (ROOT / "Godot/scripts/world_v124.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
