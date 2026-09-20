@@ -8,6 +8,7 @@ const SCRIPTS: Array[String] = [
     "res://components/building/rack_container.gd",
     "res://components/state_machine/machine_state_controller.gd",
     "res://systems/infrastructure_visual_catalog.gd",
+    "res://systems/energy_visual_catalog.gd",
     "res://systems/physical_placement_grid.gd",
     "res://systems/simulation_manager.gd",
     "res://scripts/mining_ops_widget.gd",
@@ -36,6 +37,10 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v092.gd",
     "res://scripts/world_v093.gd",
     "res://scripts/world_v111.gd",
+    "res://scripts/world_v114.gd",
+    "res://scripts/world_v115.gd",
+    "res://scripts/world_v116.gd",
+    "res://scripts/world_v117.gd",
 ]
 
 func _initialize() -> void:
