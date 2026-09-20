@@ -1,42 +1,41 @@
 extends RefCounted
 class_name HashRaceDirtRoadCatalog
 
-# Exact user-supplied dirt-road artwork, cleaned only for transparent background
-# and reduced to a game-ready 400 px atlas. Regions are explicit because the
-# source sheet intentionally uses different-sized pieces rather than a uniform
-# editor grid.
+# Exact user-supplied dirt-road artwork, cleaned only to remove the light sheet
+# background and reduced to a compact 128 px runtime atlas. The source artwork
+# uses intentionally different-sized pieces, so each region is mapped explicitly.
 const SHEET_PATH := "res://art/terrain/dirt_road_tilesheet.png"
 
 const REGIONS := {
-    "straight_v": Rect2i(15, 10, 61, 65),
-    "straight_v_alt": Rect2i(89, 10, 62, 65),
-    "straight_h": Rect2i(164, 10, 70, 65),
-    "corner_ne": Rect2i(245, 10, 64, 65),
-    "corner_nw": Rect2i(322, 10, 64, 65),
+    "straight_v": Rect2i(4, 3, 21, 21),
+    "straight_v_alt": Rect2i(28, 3, 21, 21),
+    "straight_h": Rect2i(52, 3, 23, 21),
+    "corner_ne": Rect2i(78, 3, 21, 21),
+    "corner_nw": Rect2i(103, 3, 21, 21),
 
-    "t_down": Rect2i(11, 86, 70, 72),
-    "t_right": Rect2i(94, 86, 61, 72),
-    "cross": Rect2i(164, 86, 72, 72),
-    "t_left": Rect2i(245, 86, 60, 72),
-    "t_up": Rect2i(319, 86, 71, 72),
+    "t_down": Rect2i(3, 27, 23, 24),
+    "t_right": Rect2i(30, 27, 20, 24),
+    "cross": Rect2i(52, 27, 24, 24),
+    "t_left": Rect2i(78, 27, 20, 24),
+    "t_up": Rect2i(102, 27, 23, 24),
 
-    "end_down": Rect2i(21, 169, 50, 68),
-    "end_up": Rect2i(93, 169, 49, 68),
-    "end_right": Rect2i(159, 169, 75, 68),
-    "end_left": Rect2i(316, 169, 72, 68),
+    "end_down": Rect2i(6, 54, 17, 22),
+    "end_up": Rect2i(29, 54, 17, 22),
+    "end_right": Rect2i(51, 54, 24, 22),
+    "end_left": Rect2i(101, 54, 24, 22),
 
-    "shoulder_left": Rect2i(14, 250, 49, 59),
-    "shoulder_left_heavy": Rect2i(76, 250, 50, 59),
-    "shoulder_right": Rect2i(142, 250, 50, 59),
-    "shoulder_right_light": Rect2i(209, 250, 49, 59),
-    "shoulder_right_heavy": Rect2i(273, 250, 50, 59),
+    "shoulder_left": Rect2i(4, 79, 16, 20),
+    "shoulder_left_heavy": Rect2i(24, 79, 17, 20),
+    "shoulder_right": Rect2i(45, 79, 17, 20),
+    "shoulder_right_light": Rect2i(66, 79, 17, 20),
+    "shoulder_right_heavy": Rect2i(87, 79, 17, 20),
 
-    "filler_clean": Rect2i(13, 319, 52, 62),
-    "filler_dark": Rect2i(78, 319, 52, 62),
-    "filler_ruts": Rect2i(142, 319, 51, 62),
-    "filler_rocks": Rect2i(206, 319, 52, 62),
-    "filler_tracks": Rect2i(270, 319, 52, 62),
-    "filler_worn": Rect2i(335, 319, 52, 62),
+    "filler_clean": Rect2i(4, 102, 17, 20),
+    "filler_dark": Rect2i(25, 102, 17, 20),
+    "filler_ruts": Rect2i(45, 102, 17, 20),
+    "filler_rocks": Rect2i(65, 102, 18, 20),
+    "filler_tracks": Rect2i(86, 102, 18, 20),
+    "filler_worn": Rect2i(107, 102, 17, 20),
 }
 
 static func load_texture() -> Texture2D:
@@ -68,9 +67,6 @@ static func choose_tile(north: bool, east: bool, south: bool, west: bool) -> Str
             return "straight_v"
         if east and west:
             return "straight_h"
-        # The supplied first-row corner pair covers the two authored turn
-        # silhouettes. Mirroring is deliberately avoided so the rock shoulders
-        # remain hand-authored rather than mechanically flipped.
         if north and east:
             return "corner_ne"
         if north and west:

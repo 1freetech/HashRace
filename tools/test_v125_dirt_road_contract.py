@@ -12,7 +12,8 @@ def main():
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_screenshot.gd").read_text()
 
-    assert asset.exists() and asset.stat().st_size > 100_000
+    assert asset.exists() and asset.stat().st_size > 20_000
+    assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
     assert "res://art/terrain/dirt_road_tilesheet.png" in catalog
     for token in ["straight_v", "straight_h", "cross", "t_down", "t_up", "end_left", "filler_tracks"]:
         assert token in catalog, token
