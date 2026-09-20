@@ -12,7 +12,11 @@ def main():
     capture = (ROOT / "Godot/scripts/capture_screenshot.gd").read_text()
 
     assert asset.exists() and asset.stat().st_size > 5_000
-    assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    # The live C-01 container is intentionally an SVG so its authored details
+    # stay sharp when Godot scales mining sites to different MW footprints.
+    asset_text = asset.read_text()
+    assert asset_text.lstrip().startswith("<svg")
+    assert 'width="128"' in asset_text and 'height="102"' in asset_text
 
     assert 'extends "res://scripts/world_v127.gd"' in world
     assert 'V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.svg"' in world
