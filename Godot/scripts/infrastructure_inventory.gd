@@ -11,7 +11,7 @@ signal deployment_changed
 signal item_purchased(item_id: String, quantity: int)
 
 const ItemLibrary = preload("res://data/item_library.gd")
-const EXPECTED_CATALOG_SIZE: int = 39
+const EXPECTED_CATALOG_SIZE: int = 40
 
 var owned: Dictionary = {}
 var deployed: Dictionary = {}
