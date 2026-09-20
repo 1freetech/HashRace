@@ -6,11 +6,21 @@ extends "res://scripts/world_v126.gd"
 
 const V127_CAPACITY_FEEDBACK_REVISION := 1
 const V127_PANEL_SIZE := Vector2(286.0, 74.0)
+const V127_REFRESH_SECONDS := 0.25
+
+var v127_refresh_elapsed := 0.0
 
 func _ready() -> void:
     super._ready()
     set_meta("hashrace_v127_capacity_feedback_revision", V127_CAPACITY_FEEDBACK_REVISION)
     queue_redraw()
+
+func _process(delta: float) -> void:
+    super._process(delta)
+    v127_refresh_elapsed += delta
+    if v127_refresh_elapsed >= V127_REFRESH_SECONDS:
+        v127_refresh_elapsed = 0.0
+        queue_redraw()
 
 func _draw() -> void:
     super._draw()
