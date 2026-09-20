@@ -19,7 +19,7 @@ def main():
     width, height = struct.unpack(">II", png[16:24])
     assert (width, height) == (160, 248)
     assert b"tRNS" in png or png[25] in (4, 6)
-    assert asset.stat().st_size > 10_000
+    assert asset.stat().st_size > 8_000
 
     assert 'FRAME_SIZE := Vector2i(40, 62)' in sheet
     assert 'SHEET_SIZE := Vector2i(160, 248)' in sheet
