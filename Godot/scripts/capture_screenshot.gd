@@ -32,6 +32,19 @@ func _capture() -> void:
     if scene.get_node_or_null("BootFallback") != null:
         _fail("loading fallback is still covering the game")
         return
+    if int(scene.get_meta("hashrace_v127_asset_bundle_revision", 0)) != 1:
+        _fail("v0.127 asset-bundle layer is not live")
+        return
+    for key in [
+        "hashrace_industrial_road_live",
+        "hashrace_utility_props_live",
+        "hashrace_wind_turbine_live",
+        "hashrace_asic_air_live",
+        "hashrace_player_16frame_asset_live",
+    ]:
+        if not bool(scene.get_meta(key, false)):
+            _fail("%s did not load into the live scene" % key)
+            return
     if int(scene.get_meta("hashrace_v126_grass_terrain_revision", 0)) != 1:
         _fail("v0.126 grass-terrain layer is not live")
         return
