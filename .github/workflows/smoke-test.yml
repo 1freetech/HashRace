@@ -192,6 +192,8 @@ jobs:
         run: python tools/test_v126_grass_terrain_contract.py
       - name: Test v0.127 live uploaded-asset bundle contract
         run: python tools/test_v127_asset_bundle_contract.py
+      - name: Test v0.128 road de-clutter and C-01 container contract
+        run: python tools/test_v128_road_container_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract

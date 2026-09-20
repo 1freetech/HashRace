@@ -33,7 +33,16 @@ func _capture() -> void:
         _fail("loading fallback is still covering the game")
         return
     if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
-        _fail("v0.124 visual-target layer is not live beneath v0.127")
+        _fail("v0.124 visual-target layer is not live beneath v0.128")
+        return
+    if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
+        _fail("v0.128 road/container cleanup layer is not live")
+        return
+    if not bool(scene.get_meta("hashrace_v128_container_asset_live", false)):
+        _fail("v0.128 C-01 container asset did not load into the live scene")
+        return
+    if not bool(scene.get_meta("hashrace_v128_single_road_stack", false)):
+        _fail("v0.128 single-road-stack contract is not active")
         return
     if int(scene.get_meta("hashrace_v127_asset_bundle_revision", 0)) != 1:
         _fail("v0.127 asset-bundle layer is not live")

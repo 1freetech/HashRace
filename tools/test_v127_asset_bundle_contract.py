@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.127"
+    assert (ROOT / "VERSION").read_text().strip() >= "v0.127"
     assets = [
         ROOT / "Godot/art/terrain/industrial_road_tilesheet.png",
         ROOT / "Godot/art/props/utility_props_sheet.png",

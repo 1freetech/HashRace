@@ -1,3 +1,9 @@
+## v0.128 — one-road city layouts + C-01 mining containers
+
+v0.128 removes the road pile-up that could occur when the inherited asphalt, dirt-road, and industrial-road layers all rendered inside the same mining campus. The live v0.128 layer owns the campus ground draw, keeps the authored grass underneath, and draws **one straight local road stretch only**. Each of the ten cities now has a selected local road language (industrial, dirt, gravel, or asphalt variants) without stacking multiple road systems on the same tiles.
+
+The supplied **C-01 mining-container artwork** is now a real game-source asset at `Godot/art/buildings/c01_mining_container.png`. Mining HQs and the player's live mining site render that container instead of the older house-like/procedural HQ facade. Capacity still scales through the existing 2x2 / 4x4 / 6x6 / 8x8 contract, while the live site is reduced to a container, one energy source, one transformer, and one command hut with deliberate negative space.
+
 ## v0.127 — uploaded game-asset bundle
 
 v0.127 treats the latest uploads as **game assets, not references**. The live Godot world now loads and draws the industrial-road atlas, utility-prop atlas, directional wind turbine, directional air-cooled ASIC, and the existing 16-frame directional player sheet. The industrial road is used as a service-road spur, utility poles/fence/gate/cabinet/cones/pallets are placed as sparse campus props, and wind/ASIC orientation frames are rendered directly from the uploaded atlases. Runtime screenshot validation refuses to pass unless all five asset families report loaded.
@@ -32,8 +38,8 @@ v0.123 makes the approved Hash Race screenshot a **design specification rather t
 
 - **[Latest release page](https://github.com/1freetech/HashRace/releases/latest)**
 
-- **[Windows x64 — v0.102](https://github.com/1freetech/HashRace/releases/download/v0.102/HashRace-v0.102-windows-x64.zip)**
-- **[Linux x64 — v0.102](https://github.com/1freetech/HashRace/releases/download/v0.102/HashRace-v0.102-linux-x64.tar.gz)**
+- **[Windows x64 — v0.128](https://github.com/1freetech/HashRace/releases/download/v0.128/HashRace-v0.128-windows-x64.zip)**
+- **[Linux x64 — v0.128](https://github.com/1freetech/HashRace/releases/download/v0.128/HashRace-v0.128-linux-x64.tar.gz)**
 
 v0.117 completes the **13-system energy-library wiring**. Battery storage, solar, wind, natural-gas turbine, hydro, oil-field generation, coal, nuclear SMR, methane/CH4, diesel, geothermal, LPG/propane, and hydrogen fuel-cell modules are all native inventory/deployment items and all render from the authored four-direction atlas. The live world chooses **UP/DOWN/LEFT/RIGHT** frames from each module's position relative to the electrical bus/transformer. Facility growth now follows **2x2 -> 4x4 -> 6x6 -> 8x8** footprints through 100 MW, then compresses into bounded 8x8 campus/district blocks for 100 MW, GW, 10-100 GW, and TW-scale companies so exact simulation capacity can keep growing without filling the town with literal container counts. CI deploys and renders all 13 systems together as the live energy-site proof.
 
