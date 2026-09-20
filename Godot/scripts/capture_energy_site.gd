@@ -1,6 +1,21 @@
 extends SceneTree
 
 const OUTPUT_PATH := "res://../visual-proof/hashrace-energy-site.png"
+const V117_CAPTURE_ENERGY_IDS: Array[String] = [
+    "battery",
+    "solar_array",
+    "wind_farm",
+    "gas_turbine",
+    "hydro_turbine",
+    "oil_field",
+    "coal_plant",
+    "nuclear_smr",
+    "methane_generator",
+    "diesel_generator",
+    "geothermal_generator",
+    "lpg_generator",
+    "hydrogen_fuel_cell",
+]
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -25,17 +40,46 @@ func _capture() -> void:
         await process_frame
     await create_timer(0.25).timeout
 
+    # Verification deliberately deploys one of every authored energy system.
+    # This is a capture-only setup step; normal gameplay still requires the
+    # player to acquire/deploy modules through the infrastructure inventory.
+    var inventory = scene.get("infrastructure_inventory")
+    var company: Dictionary = scene.get("player")
+    if inventory == null:
+        _fail("infrastructure inventory unavailable")
+        return
+
+    for asset_id in V117_CAPTURE_ENERGY_IDS:
+        if inventory.item_resource(asset_id) == null:
+            _fail("missing energy ItemResource: " + asset_id)
+            return
+        if inventory.quantity(asset_id) <= 0:
+            if not inventory.add(asset_id, 1):
+                _fail("could not add energy module: " + asset_id)
+                return
+        if inventory.deployed_quantity(asset_id) <= 0:
+            if not inventory.deploy(asset_id, company, 1):
+                _fail("could not deploy energy module: " + asset_id)
+                return
+
+    scene.set("player", company)
+    scene.queue_redraw()
+
     var origin: Vector2 = scene.call("_energy_campus_origin")
     scene.set("rep_pos", origin)
     var camera = scene.get("camera")
     if camera != null and is_instance_valid(camera):
         camera.position = origin
-        camera.zoom = Vector2(1.0, 1.0)
+        camera.zoom = Vector2(0.78, 0.78)
     scene.queue_redraw()
 
-    for _frame in range(8):
+    for _frame in range(10):
         await process_frame
-    await create_timer(0.18).timeout
+    await create_timer(0.20).timeout
+
+    if not bool(scene.call("debug_v117_ready")):
+        _fail("v0.117 energy renderer contract failed at runtime")
+        return
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
