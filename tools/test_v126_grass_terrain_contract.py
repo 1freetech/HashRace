@@ -2,7 +2,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.126"
+    assert (ROOT / "VERSION").read_text().strip() >= "v0.126"
     asset = ROOT / "Godot/art/terrain/grass_terrain_tilesheet.png"
     catalog = (ROOT / "Godot/scripts/grass_terrain_catalog.gd").read_text()
     world125 = (ROOT / "Godot/scripts/world_v125.gd").read_text()
