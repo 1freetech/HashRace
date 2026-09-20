@@ -116,6 +116,18 @@ jobs:
           fi
           test -s visual-proof/hashrace-negotiation-scene.png
 
+      - name: Render and validate live energy-site proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-release-energy-site.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ENERGY SITE PROOF FAIL" /tmp/hashrace-release-energy-site.log; then
+            echo "Rendered energy-site proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-energy-site.png
+
       - name: Export current Godot game
         shell: bash
         run: |
@@ -168,6 +180,7 @@ jobs:
             visual-proof/hashrace-2d-detail.png
             visual-proof/hashrace-mining-ops-widget.png
             visual-proof/hashrace-negotiation-scene.png
+            visual-proof/hashrace-energy-site.png
           if-no-files-found: error
 
   release:
