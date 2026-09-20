@@ -136,7 +136,7 @@ func _v123_draw_mining_rigs(pos: Vector2, accent: Color) -> void:
     draw_rect(Rect2(r.position + Vector2(0, 0), Vector2(r.size.x, 34)), Color("252c31"), true)
     draw_rect(Rect2(r.position + Vector2(9, 42), Vector2(150, 74)), Color("171e23"), true)
     draw_rect(Rect2(r.position + Vector2(14, 47), Vector2(140, 9)), V123_GREEN.darkened(0.18), true)
-    _label(r.position + Vector2(55, 25), "MINING RIGS", 16, Color("d9e0e2"))
+    _v123_label(r.position + Vector2(55, 25), "MINING RIGS", 16, Color("d9e0e2"))
     for i in range(3):
         var c := r.position + Vector2(40.0 + i * 46.0, 84.0)
         draw_rect(Rect2(c - Vector2(18, 18), Vector2(36, 36)), Color("202931"), true)
@@ -160,7 +160,7 @@ func _v123_draw_transformer_target(pos: Vector2) -> void:
     draw_rect(r, Color("4c555d"), true)
     draw_rect(r.grow(-7.0), Color("707a82"), true)
     draw_rect(Rect2(r.position + Vector2(0, 45), Vector2(r.size.x, 30)), Color("2b3339"), true)
-    _label(r.position + Vector2(27, 66), "TRANSFORMER", 14, Color("eef2f3"))
+    _v123_label(r.position + Vector2(27, 66), "TRANSFORMER", 14, Color("eef2f3"))
     for ox in [38.0, 90.0, 142.0]:
         draw_rect(Rect2(r.position + Vector2(ox - 7.0, -26.0), Vector2(14.0, 44.0)), Color("171b1f"), true)
         for yy in range(-20, 17, 8):
@@ -172,7 +172,7 @@ func _v123_draw_transformer_target(pos: Vector2) -> void:
     ])
     draw_colored_polygon(tri, Color("f2c94c"))
     draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]), Color("171717"), 3.0)
-    _label(r.position + Vector2(84, 116), "⚡", 18, Color("171717"))
+    _v123_label(r.position + Vector2(84, 116), "⚡", 18, Color("171717"))
 
 func _v123_draw_power_module(pos: Vector2, available_mw: float) -> void:
     var s := Vector2(160.0, 138.0)
@@ -181,13 +181,13 @@ func _v123_draw_power_module(pos: Vector2, available_mw: float) -> void:
     draw_rect(r, Color("323b42"), true)
     draw_rect(r.grow(-7.0), Color("4c565c"), true)
     draw_rect(Rect2(r.position + Vector2(13, 35), Vector2(r.size.x - 26, 34)), Color("1f282d"), true)
-    _label(r.position + Vector2(30, 58), "POWER MODULE", 12, Color("e8eeee"))
+    _v123_label(r.position + Vector2(30, 58), "POWER MODULE", 12, Color("e8eeee"))
     var battery := Rect2(r.position + Vector2(46, 83), Vector2(66, 30))
     draw_rect(battery, Color("0b1710"), true)
     draw_rect(battery.grow(-5.0), V123_GREEN.darkened(0.25), true)
     draw_rect(Rect2(battery.position + Vector2(6, 6), Vector2(40, 18)), V123_GREEN, true)
     draw_rect(Rect2(battery.end + Vector2(0, -20), Vector2(6, 10)), V123_GREEN, true)
-    _label(r.position + Vector2(49, 131), "%.1f MW" % available_mw, 10, Color("b6c5c9"))
+    _v123_label(r.position + Vector2(49, 131), "%.1f MW" % available_mw, 10, Color("b6c5c9"))
 
 func _v123_draw_storage_yard(pos: Vector2) -> void:
     var yard := Rect2(pos - Vector2(160, 72), Vector2(320, 144))
@@ -196,7 +196,7 @@ func _v123_draw_storage_yard(pos: Vector2) -> void:
     var building := Rect2(yard.position + Vector2(182, 18), Vector2(116, 102))
     draw_rect(building, Color("2b3338"), true)
     draw_rect(Rect2(building.position + Vector2(13, 47), Vector2(90, 56)), Color("151b1e"), true)
-    _label(building.position + Vector2(22, 30), "STORAGE", 13, Color("d8e0e2"))
+    _v123_label(building.position + Vector2(22, 30), "STORAGE", 13, Color("d8e0e2"))
     draw_rect(Rect2(yard.position + Vector2(22, 48), Vector2(78, 63)), Color("26343a"), true)
     draw_rect(Rect2(yard.position + Vector2(104, 76), Vector2(48, 34)), Color("a6793e"), true)
     draw_rect(Rect2(yard.position + Vector2(122, 52), Vector2(42, 28)), Color("b38548"), true)
@@ -221,7 +221,7 @@ func _v123_draw_site_sign(pos: Vector2, text_value: String, accent: Color) -> vo
     draw_rect(Rect2(r.position + Vector2(4, 5), r.size), Color(0, 0, 0, 0.24), true)
     draw_rect(r, Color("182026"), true)
     draw_rect(r, Color("59676b"), false, 2.0)
-    _label(r.position + Vector2(10, 24), text_value, 10, Color("e4e8e6"))
+    _v123_label(r.position + Vector2(10, 24), text_value, 10, Color("e4e8e6"))
     draw_circle(r.position + Vector2(r.size.x - 18, 19), 8.0, accent)
 
 func _v123_draw_lamps(origin: Vector2) -> void:
@@ -240,9 +240,9 @@ func _v123_draw_capacity_meter(pos: Vector2, load_mw: float, available_mw: float
     var bar := Rect2(r.position + Vector2(12, 25), Vector2(r.size.x - 24, 8))
     draw_rect(bar, Color("172126"), true)
     draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), V123_GREEN, true)
-    _label(r.position + Vector2(12, 17), "MINING LOAD %.1f / %.1f MW" % [load_mw, max_mw], 10, Color("d7e1e3"))
+    _v123_label(r.position + Vector2(12, 17), "MINING LOAD %.1f / %.1f MW" % [load_mw, max_mw], 10, Color("d7e1e3"))
 
-func _label(pos: Vector2, value: String, font_size: int, color: Color) -> void:
+func _v123_label(pos: Vector2, value: String, font_size: int, color: Color) -> void:
     draw_string(ThemeDB.fallback_font, pos, value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 func debug_v123_ready() -> bool:
