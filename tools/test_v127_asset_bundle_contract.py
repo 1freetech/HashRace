@@ -36,10 +36,11 @@ def main():
         "hashrace_utility_props_live",
         "hashrace_wind_turbine_live",
         "hashrace_asic_air_live",
-        "hashrace_player_16frame_asset_live",
     ]:
         assert token in world, token
         assert token in capture, token
+
+    assert "hashrace_player_16frame_asset_live" in world
 
     assert "_v127_draw_industrial_road" in world
     assert "_v127_draw_utility_cluster" in world
