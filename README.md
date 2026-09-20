@@ -1,3 +1,7 @@
+## v0.127 — uploaded game-asset bundle
+
+v0.127 treats the latest uploads as **game assets, not references**. The live Godot world now loads and draws the industrial-road atlas, utility-prop atlas, directional wind turbine, directional air-cooled ASIC, and the existing 16-frame directional player sheet. The industrial road is used as a service-road spur, utility poles/fence/gate/cabinet/cones/pallets are placed as sparse campus props, and wind/ASIC orientation frames are rendered directly from the uploaded atlases. Runtime screenshot validation refuses to pass unless all five asset families report loaded.
+
 ## Priority campus asset policy
 
 The approved Hash Race campus composition is now stored under `Godot/art/priority/` and registered by `priority_asset_catalog.gd`. It is a **game-source asset**, not reference-only artwork. It may be sampled, sliced, or decomposed into live HUD, building, terrain, power, storage, signage, road, shoreline, and player components as the runtime implementation advances. Runtime screenshots remain proof of what is actually live.
