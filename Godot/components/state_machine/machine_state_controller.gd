@@ -8,6 +8,7 @@ signal state_changed(old_state: StringName, new_state: StringName)
 const IDLE := &"idle"
 const RUNNING := &"running"
 const HOT := &"hot"
+const CRITICAL := &"critical"
 const BROWNOUT := &"brownout"
 const OFFLINE := &"offline"
 
@@ -18,16 +19,22 @@ var state: StringName = IDLE
 var previous_state: StringName = IDLE
 
 func update_from_operating_values(load_mw: float, available_mw: float, temperature_c: float, uptime: float) -> StringName:
+    var safe_load := maxf(load_mw, 0.0)
+    var safe_available := maxf(available_mw, 0.0)
+    var safe_uptime := clampf(uptime, 0.0, 1.0)
+    var warning_threshold := minf(heat_warning_c, heat_critical_c)
+    var critical_threshold := maxf(heat_warning_c, heat_critical_c)
+
     var next := RUNNING
-    if uptime <= 0.01:
+    if safe_uptime <= 0.01:
         next = OFFLINE
-    elif load_mw <= 0.001:
+    elif safe_load <= 0.001:
         next = IDLE
-    elif available_mw + 0.0001 < load_mw:
+    elif safe_available + 0.0001 < safe_load:
         next = BROWNOUT
-    elif temperature_c >= heat_critical_c:
-        next = HOT
-    elif temperature_c >= heat_warning_c:
+    elif temperature_c >= critical_threshold:
+        next = CRITICAL
+    elif temperature_c >= warning_threshold:
         next = HOT
     _set_state(next)
     return state
@@ -45,6 +52,8 @@ func status_color() -> Color:
             return Color("37f6a0")
         HOT:
             return Color("ffc45e")
+        CRITICAL:
+            return Color("ff3b30")
         BROWNOUT, OFFLINE:
             return Color("ff6b6b")
         _:
