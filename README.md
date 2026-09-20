@@ -1,3 +1,7 @@
+## Priority campus asset policy
+
+The approved Hash Race campus composition is now stored under `Godot/art/priority/` and registered by `priority_asset_catalog.gd`. It is a **game-source asset**, not reference-only artwork. It may be sampled, sliced, or decomposed into live HUD, building, terrain, power, storage, signage, road, shoreline, and player components as the runtime implementation advances. Runtime screenshots remain proof of what is actually live.
+
 ## v0.125 — authored dirt-road atlas
 
 v0.125 integrates the supplied dirt-road artwork into the **live Godot world** instead of approximating it with flat brown rectangles. The transparent game atlas lives at `Godot/art/terrain/dirt_road_tilesheet.png`; `dirt_road_catalog.gd` maps authored straight, junction, end, shoulder, and worn-surface regions; and `world_v125.gd` uses neighbor-aware tile selection to build mining-campus service roads beneath the structures. The public town road stays paved, while mining access, transformer frontage, storage access, and expansion lanes use dirt.

@@ -27,6 +27,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/default_player_sprite_sheet.gd",
     "res://scripts/default_player_visual.gd",
     "res://scripts/visual_target_hud.gd",
+    "res://scripts/priority_asset_catalog.gd",
     "res://scripts/dirt_road_catalog.gd",
     "res://scripts/grass_terrain_catalog.gd",
     "res://scripts/world_v087.gd",
