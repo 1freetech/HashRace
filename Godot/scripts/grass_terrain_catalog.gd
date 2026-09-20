@@ -38,9 +38,17 @@ const VARIANTS := [
 ]
 
 static func load_texture() -> Texture2D:
-    if not ResourceLoader.exists(SHEET_PATH):
+    if ResourceLoader.exists(SHEET_PATH):
+        var imported := load(SHEET_PATH) as Texture2D
+        if imported != null:
+            return imported
+    var absolute_path := ProjectSettings.globalize_path(SHEET_PATH)
+    if not FileAccess.file_exists(absolute_path):
         return null
-    return load(SHEET_PATH) as Texture2D
+    var image := Image.new()
+    if image.load(absolute_path) != OK or image.is_empty():
+        return null
+    return ImageTexture.create_from_image(image)
 
 static func region(tile_name: String) -> Rect2i:
     if not REGIONS.has(tile_name):
