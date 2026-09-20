@@ -2,7 +2,16 @@ class_name HashRaceInfrastructureVisualCatalog
 extends RefCounted
 
 ## Brand-neutral visual infrastructure definitions used by mining-site maps.
-## The art layer can swap sprites later without changing the placement contract.
+## v0.117 locks the visual scale contract used by the live energy/mining renderer:
+##   0-2 MW   -> 2x2 facility module
+##   >2-10 MW -> 4x4 container yard
+##   >10-25 MW -> 6x6 mining/power block
+##   >25-100 MW -> 8x8 campus block
+##   >100 MW -> compressed 8x8 district blocks through GW/TW scale
+##
+## The simulation keeps exact MW. The world renderer compresses that exact value
+## into a readable number of district blocks rather than drawing literal physical
+## container counts.
 
 const ORIENTATIONS := ["up", "right", "down", "left"]
 
@@ -22,22 +31,74 @@ const INFRASTRUCTURE := {
     "compute_rack": {"label": "Compute Rack", "category": "strategic_supply", "base_tiles": [2, 2], "connection": "power"},
 }
 
-## 1 MW, 10 MW, and 100 MW grow the actual footprint. Above 100 MW,
-## Hash Race compresses scale into a small number of 8x8 campus/district blocks
-## so a town can still represent GW, 100 GW, and 1 TW operations cleanly.
 const CAPACITY_VISUAL_TIERS := [
-    {"max_mw": 1.0, "tiles": 2, "block_capacity_mw": 1.0, "scale_name": "MODULE"},
-    {"max_mw": 10.0, "tiles": 4, "block_capacity_mw": 10.0, "scale_name": "YARD"},
-    {"max_mw": 100.0, "tiles": 8, "block_capacity_mw": 100.0, "scale_name": "CAMPUS"},
-    {"max_mw": 1000.0, "tiles": 8, "block_capacity_mw": 100.0, "scale_name": "GIGAWATT DISTRICT"},
-    {"max_mw": 10000.0, "tiles": 8, "block_capacity_mw": 1000.0, "scale_name": "MULTI-GW REGION"},
-    {"max_mw": 100000.0, "tiles": 8, "block_capacity_mw": 10000.0, "scale_name": "100-GW NETWORK"},
-    {"max_mw": 1000000.0, "tiles": 8, "block_capacity_mw": 100000.0, "scale_name": "TERAWATT NETWORK"},
+    {
+        "max_mw": 2.0,
+        "tiles": 2,
+        "block_capacity_mw": 2.0,
+        "scale_name": "MICRO SITE",
+        "compression_level": "FACILITY",
+    },
+    {
+        "max_mw": 10.0,
+        "tiles": 4,
+        "block_capacity_mw": 10.0,
+        "scale_name": "CONTAINER YARD",
+        "compression_level": "FACILITY",
+    },
+    {
+        "max_mw": 25.0,
+        "tiles": 6,
+        "block_capacity_mw": 25.0,
+        "scale_name": "MINING BLOCK",
+        "compression_level": "FACILITY",
+    },
+    {
+        "max_mw": 100.0,
+        "tiles": 8,
+        "block_capacity_mw": 100.0,
+        "scale_name": "POWER CAMPUS",
+        "compression_level": "CAMPUS",
+    },
+    {
+        "max_mw": 1000.0,
+        "tiles": 8,
+        "block_capacity_mw": 100.0,
+        "scale_name": "GIGAWATT DISTRICT",
+        "compression_level": "DISTRICT",
+    },
+    {
+        "max_mw": 10000.0,
+        "tiles": 8,
+        "block_capacity_mw": 1000.0,
+        "scale_name": "MULTI-GW REGION",
+        "compression_level": "DISTRICT",
+    },
+    {
+        "max_mw": 100000.0,
+        "tiles": 8,
+        "block_capacity_mw": 10000.0,
+        "scale_name": "100-GW NETWORK",
+        "compression_level": "REGION",
+    },
+    {
+        "max_mw": 1000000.0,
+        "tiles": 8,
+        "block_capacity_mw": 100000.0,
+        "scale_name": "TERAWATT NETWORK",
+        "compression_level": "REGION",
+    },
 ]
 
 static func normalize_orientation(value: String) -> String:
     var orientation := value.to_lower()
     return orientation if orientation in ORIENTATIONS else "up"
+
+static func electrical_orientation(from_position: Vector2, bus_position: Vector2) -> String:
+    var delta := bus_position - from_position
+    if absf(delta.x) >= absf(delta.y):
+        return "right" if delta.x >= 0.0 else "left"
+    return "down" if delta.y >= 0.0 else "up"
 
 static func asset_definition(asset_id: String) -> Dictionary:
     if not INFRASTRUCTURE.has(asset_id):
@@ -51,16 +112,29 @@ static func capacity_profile(capacity_mw: float) -> Dictionary:
         if safe_mw <= float(tier["max_mw"]):
             selected = tier
             break
+
     var block_capacity_mw := maxf(1.0, float(selected["block_capacity_mw"]))
     var block_count := 1
     if safe_mw > 0.0:
         block_count = maxi(1, int(ceil(safe_mw / block_capacity_mw)))
+
+    # A town never draws hundreds or thousands of repeated blocks. Ten visible
+    # blocks is the upper visual budget; each can represent more MW as the exact
+    # simulation grows past the named compression tier.
+    var visible_block_count := mini(10, block_count)
+    var represented_mw_per_visible_block := safe_mw
+    if visible_block_count > 0:
+        represented_mw_per_visible_block = safe_mw / float(visible_block_count)
+
     return {
         "capacity_mw": safe_mw,
         "footprint": Vector2i(int(selected["tiles"]), int(selected["tiles"])),
         "block_capacity_mw": block_capacity_mw,
         "block_count": block_count,
+        "visible_block_count": visible_block_count,
+        "represented_mw_per_visible_block": represented_mw_per_visible_block,
         "scale_name": String(selected["scale_name"]),
+        "compression_level": String(selected["compression_level"]),
     }
 
 static func layout_plan(asset_id: String, capacity_mw: float, orientation: String = "up") -> Dictionary:
@@ -77,10 +151,19 @@ static func layout_plan(asset_id: String, capacity_mw: float, orientation: Strin
     return profile
 
 static func debug_ready() -> bool:
+    var one_mw := capacity_profile(1.0)
+    var ten_mw := capacity_profile(10.0)
+    var twenty_five_mw := capacity_profile(25.0)
+    var hundred_mw := capacity_profile(100.0)
     var transformer := layout_plan("kva_transformer", 10.0, "right")
     var terawatt := capacity_profile(1000000.0)
     return INFRASTRUCTURE.size() == 13 \
+        and Vector2i(one_mw.get("footprint", Vector2i.ZERO)) == Vector2i(2, 2) \
+        and Vector2i(ten_mw.get("footprint", Vector2i.ZERO)) == Vector2i(4, 4) \
+        and Vector2i(twenty_five_mw.get("footprint", Vector2i.ZERO)) == Vector2i(6, 6) \
+        and Vector2i(hundred_mw.get("footprint", Vector2i.ZERO)) == Vector2i(8, 8) \
         and String(transformer.get("orientation", "")) == "right" \
-        and Vector2i(transformer.get("footprint", Vector2i.ZERO)) == Vector2i(4, 4) \
         and int(terawatt.get("block_count", 0)) == 10 \
-        and Vector2i(terawatt.get("footprint", Vector2i.ZERO)) == Vector2i(8, 8)
+        and int(terawatt.get("visible_block_count", 0)) == 10 \
+        and Vector2i(terawatt.get("footprint", Vector2i.ZERO)) == Vector2i(8, 8) \
+        and electrical_orientation(Vector2.ZERO, Vector2(10.0, 0.0)) == "right"
