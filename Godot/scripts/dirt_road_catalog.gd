@@ -39,9 +39,15 @@ const REGIONS := {
 }
 
 static func load_texture() -> Texture2D:
-    if not ResourceLoader.exists(SHEET_PATH):
+    # CI and fresh clones do not have Godot's generated .godot import cache yet.
+    # Decode the committed PNG directly so authored terrain is available on the
+    # very first boot as well as in imported/editor builds.
+    if not FileAccess.file_exists(SHEET_PATH):
         return null
-    return load(SHEET_PATH) as Texture2D
+    var image := Image.new()
+    if image.load(SHEET_PATH) != OK or image.is_empty():
+        return null
+    return ImageTexture.create_from_image(image)
 
 static func region(tile_name: String) -> Rect2i:
     if not REGIONS.has(tile_name):
