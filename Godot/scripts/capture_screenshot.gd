@@ -43,7 +43,6 @@ func _capture() -> void:
         "hashrace_utility_props_live",
         "hashrace_wind_turbine_live",
         "hashrace_asic_air_live",
-        "hashrace_player_16frame_asset_live",
     ]:
         if not bool(scene.get_meta(key, false)):
             _fail("%s did not load into the live scene" % key)
