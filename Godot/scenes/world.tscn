@@ -10,5 +10,5 @@ script = ExtResource("1_world")
 [node name="LiveTreasuryControls" type="Node" parent="."]
 script = ExtResource("2_treasury")
 
-[node name="BootFallback" type="CanvasLayer"]
+[node name="BootFallback" type="CanvasLayer" parent="."]
 layer = 100
