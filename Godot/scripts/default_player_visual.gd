@@ -1,6 +1,11 @@
 extends AnimatedSprite2D
 class_name HashRaceDefaultPlayerVisual
 
+# Preload the builder explicitly. The modular parse validator loads scripts in
+# isolation, so relying on global class-name registration can fail before this
+# script is parsed even though the class exists elsewhere in the project.
+const DefaultPlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
+
 var facing: String = "down"
 var sheet_ready: bool = false
 
@@ -8,7 +13,7 @@ func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     centered = true
 
-    var built := HashRaceDefaultPlayerSpriteSheet.build_frames()
+    var built: SpriteFrames = DefaultPlayerSheet.build_frames()
     if built == null:
         visible = false
         return
