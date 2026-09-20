@@ -30,6 +30,10 @@ const SCRIPTS: Array[String] = [
     "res://scripts/priority_asset_catalog.gd",
     "res://scripts/dirt_road_catalog.gd",
     "res://scripts/grass_terrain_catalog.gd",
+    "res://scripts/industrial_road_catalog.gd",
+    "res://scripts/utility_props_catalog.gd",
+    "res://scripts/wind_turbine_catalog.gd",
+    "res://scripts/asic_air_s19j_catalog.gd",
     "res://scripts/world_v087.gd",
     "res://scripts/world_scale_rules.gd",
     "res://scripts/camera_proportion_controller.gd",
@@ -56,6 +60,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v124.gd",
     "res://scripts/world_v125.gd",
     "res://scripts/world_v126.gd",
+    "res://scripts/world_v127.gd",
 ]
 
 func _initialize() -> void:
