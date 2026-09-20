@@ -1,3 +1,9 @@
+## v0.124 — screenshot-match environment pass
+
+v0.124 continues the locked visual-target work in the **actual live Godot world**. It adds the missing large composition cues from the approved screenshot: a lattice transmission tower with sagging power conductors, a rocky shoreline/water corner, sparse tree and rock clusters, and stronger campus framing around the existing v0.123 mining building, transformer, power module, storage yard, signs, road, HUD, and green player. The HUD now reads the repository version dynamically instead of hard-coding a stale build number.
+
+The Godot screenshot validator now refuses to count a capture as proof unless the live scene reports the **v0.124 visual-target revision**. Reference art remains a target only; runtime capture remains the proof.
+
 ## v0.123 — locked runtime visual target
 
 v0.123 makes the approved Hash Race screenshot a **design specification rather than fake proof**. The live Godot world now owns a compact neon-green top HUD, a larger player mining-rig building, transformer, power module, fenced storage yard, roadside signs, lamps, lane striping, and a compact live load meter. The player renderer also remaps the warm suit accents to the target green/black visual language at runtime while preserving skin and dark armor. The reference specification is documented in `docs/visual_target_v121.md`.

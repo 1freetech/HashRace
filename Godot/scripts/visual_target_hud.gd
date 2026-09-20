@@ -58,7 +58,7 @@ func _draw_top_bar() -> void:
     _panel(Rect2(10, 6, 220, 62))
     _text(Vector2(22, 31), "HASH", 26, WHITE)
     _text(Vector2(111, 31), "RACE", 26, GREEN)
-    _text(Vector2(22, 55), "v0.123", 11, MUTED)
+    _text(Vector2(22, 55), _version_text(), 11, MUTED)
 
     var available := maxf(0.0, _metric(&"_effective_available_mw", 0.0))
     var load := maxf(0.0, _metric(&"_machine_load_kw", 0.0) / 1000.0)
@@ -142,6 +142,16 @@ func _key(pos: Vector2, label: String) -> void:
 
 func _text(pos: Vector2, value: String, font_size: int, color: Color) -> void:
     draw_string(ThemeDB.fallback_font, pos, value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+func _version_text() -> String:
+    var path := "res://../VERSION"
+    if FileAccess.file_exists(path):
+        var file := FileAccess.open(path, FileAccess.READ)
+        if file != null:
+            var value := file.get_as_text().strip_edges()
+            if not value.is_empty():
+                return value
+    return "dev"
 
 func _money(value: float) -> String:
     var whole := maxi(0, int(round(value)))

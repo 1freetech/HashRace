@@ -32,6 +32,9 @@ func _capture() -> void:
     if scene.get_node_or_null("BootFallback") != null:
         _fail("loading fallback is still covering the game")
         return
+    if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
+        _fail("v0.124 visual-target layer is not live")
+        return
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
