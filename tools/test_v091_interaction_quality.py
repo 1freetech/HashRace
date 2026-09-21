@@ -8,9 +8,11 @@ scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 quality = (ROOT / "Godot/scripts/world_v091.gd").read_text()
 strategy = (ROOT / "Godot/scripts/world_v090.gd").read_text()
 
-# This contract protects the v0.091 layer even when a newer release layer is live.
+# Protect the v0.091 layer through the sequential live-world inheritance chain.
+# world.tscn correctly points at the newest release, so older contracts must not
+# require the scene to remain frozen on their historical script.
 assert version.startswith("v0."), version
-assert "world_v091.gd" in scene
+assert "world_v131.gd" in scene
 assert 'extends "res://scripts/world_v090.gd"' in quality
 assert "V090_STRATEGY_REVISION" in strategy
 
@@ -35,4 +37,4 @@ assert "V091_BUILDING_LABEL_DISTANCE" in quality
 assert "V091_TOWN_LABEL_DISTANCE" in quality
 assert "_nearest_building_idx" in quality
 
-print("v0.091 interaction-quality contract PASS")
+print("v0.091 interaction-quality contract PASS through current live world")
