@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v133.gd -> world_v132.gd -> world_v131.gd -> world_v130.gd -> world_v129.gd -> world_v128.gd -> prior gameplay stack. v0.133 makes the site-capacity advisor actionable by recommending a conservative ASIC purchase batch while keeping a 10% electrical reserve. v0.132 turns the site-capacity readout into an action advisor. v0.131 adds the live MW capacity planner. v0.130 imports the Command Center overview monitor. v0.129 adds the electrical distribution image sheet and power path. v0.128 removes the overlapping multi-road campus stack and uses the C-01 container artwork.
-[ext_resource path="res://scripts/world_v133.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v134.gd -> world_v133.gd -> world_v132.gd -> world_v131.gd -> world_v130.gd -> world_v129.gd -> world_v128.gd -> prior gameplay stack. v0.134 makes ASIC expansion budget-aware while preserving cash and electrical reserves. v0.133 recommends a conservative ASIC purchase batch. v0.132 turns site capacity into an action advisor. v0.131 adds the live MW capacity planner. v0.130 imports the Command Center overview monitor. v0.129 adds the electrical distribution image sheet and power path. v0.128 removes the overlapping multi-road campus stack and uses the C-01 container artwork.
+[ext_resource path="res://scripts/world_v134.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
