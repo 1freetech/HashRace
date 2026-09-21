@@ -4,7 +4,7 @@ extends "res://scripts/world_v130.gd"
 # Converts the existing power/load simulation into a readable expansion decision
 # before the player buys another batch of ASICs.
 
-const V131_CAPACITY_PLANNER_REVISION := 1
+const V131_CAPACITY_PLANNER_REVISION := 2
 const V131_REFERENCE_ASIC_KW := 3.5
 
 func _ready() -> void:
@@ -19,7 +19,7 @@ func _v115_draw_live_site(origin: Vector2) -> void:
 
 func _v131_capacity_snapshot() -> Dictionary:
     var load_mw := maxf(0.0, _machine_load_kw() / 1000.0)
-    var capacity_mw := maxf(0.0, _available_power_mw())
+    var capacity_mw := maxf(0.0, _effective_available_mw())
     var headroom_mw := maxf(0.0, capacity_mw - load_mw)
     var overload_mw := maxf(0.0, load_mw - capacity_mw)
     var reference_asic_count := int(floor(headroom_mw * 1000.0 / V131_REFERENCE_ASIC_KW))
@@ -48,7 +48,7 @@ func _v131_draw_capacity_planner(center: Vector2) -> void:
 
 func debug_v131_ready() -> bool:
     var snapshot := _v131_capacity_snapshot()
-    return V131_CAPACITY_PLANNER_REVISION == 1 \
+    return V131_CAPACITY_PLANNER_REVISION == 2 \
         and V131_REFERENCE_ASIC_KW > 0.0 \
         and snapshot.has("headroom_mw") \
         and snapshot.has("reference_asic_count") \
