@@ -33,9 +33,9 @@ func _capture() -> void:
         _fail("loading fallback is still covering the game")
         return
     if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
-        _fail("v0.124 visual-target layer is not live beneath v0.128")
+        _fail("v0.124 visual-target layer is not live beneath v0.130")
         return
-    if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
+    if int(scene.get_meta("hashrace_v130_library_overview_revision", 0)) != 1:\n        _fail("v0.130 Library-overview layer is not live")\n        return\n    if not bool(scene.get_meta("hashrace_v130_library_overview_live", false)):\n        _fail("v0.130 Library overview image did not load into the live scene")\n        return\n    if not scene.has_method("debug_v130_ready") or not bool(scene.call("debug_v130_ready")):\n        _fail("v0.130 Library-overview runtime contract failed")\n        return\n    if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
         _fail("v0.128 road/container cleanup layer is not live")
         return
     if not bool(scene.get_meta("hashrace_v128_container_asset_live", false)):
