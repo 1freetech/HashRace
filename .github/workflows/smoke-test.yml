@@ -42,7 +42,6 @@ jobs:
             tools/test_league_contract.py \
             tools/test_life_ops_contract.py \
             tools/test_energy_visual_contract.py \
-            tools/test_v128_road_container_contract.py \
             tools/test_v129_capacity_decision_contract.py
           do
             echo "::group::CONTRACT $contract"
@@ -66,6 +65,11 @@ jobs:
           g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
           native/cpp/hashrace_catalog.cpp native/cpp/hashrace_simulation.cpp native/cpp/hashrace_core.cpp
           -o /tmp/hashrace_cpp && /tmp/hashrace_cpp
+      - name: Compile and run v0.128 road/container contract
+        run: >-
+          g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
+          native/cpp/v128_road_container_contract.cpp
+          -o /tmp/hashrace_v128_contract && /tmp/hashrace_v128_contract
 
   rust-balance:
     runs-on: ubuntu-latest
