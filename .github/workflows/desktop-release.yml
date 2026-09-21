@@ -16,6 +16,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # Never cancel the Linux render lane because another matrix lane fails.
+      fail-fast: false
       matrix:
         include:
           - preset: Windows Desktop
@@ -79,6 +81,16 @@ jobs:
             exit 1
           fi
           test -s visual-proof/hashrace-screenshot.png
+
+      # Upload the gameplay proof immediately. Later render/export/package failures must never discard it.
+      - name: Preserve gameplay screenshot immediately
+        if: matrix.platform == 'linux-x64' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-${{ steps.version.outputs.value }}-gameplay-proof-${{ github.run_attempt }}
+          path: visual-proof/hashrace-screenshot.png
+          if-no-files-found: warn
+          retention-days: 90
 
       - name: Render and validate close-up 2D detail proof
         if: matrix.platform == 'linux-x64'
@@ -183,7 +195,8 @@ jobs:
           if-no-files-found: error
 
       - name: Upload release screenshots and visual checks
-        if: matrix.platform == 'linux-x64'
+        # Preserve every proof that was successfully rendered even when a later proof/export step fails.
+        if: matrix.platform == 'linux-x64' && always()
         uses: actions/upload-artifact@v4
         with:
           name: HashRace-${{ steps.version.outputs.value }}-screenshots
@@ -194,7 +207,7 @@ jobs:
             visual-proof/hashrace-negotiation-scene.png
             visual-proof/hashrace-energy-site.png
             visual-proof/hashrace-semiconductor-fab.png
-          if-no-files-found: error
+          if-no-files-found: warn
 
   release:
     needs: build
