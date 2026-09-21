@@ -6,11 +6,14 @@ ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
+parser = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text(encoding="utf-8")
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert 'world_v102.gd' in scene
+# The live scene advances with releases; historical v0.102 behavior is retained
+# by its source contract rather than forcing world.tscn to point backwards.
+assert 'world_v134.gd' in scene
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
@@ -27,5 +30,9 @@ for required in [
 assert 'id = "ai_rack_system"' in rack
 assert 'visual = "ai_rack"' in rack
 assert 'effect = "uptime"' in rack
+# The modular parser must cover the current live tail so inherited historical
+# behavior is exercised by Godot 4.7.2 rather than only by text assertions.
+for live_layer in range(130, 135):
+    assert f'world_v{live_layer}.gd' in parser, live_layer
 
 print("Hash Race v0.102 visual cleanup contract passed.")
