@@ -43,10 +43,16 @@ func debug_v134_ready() -> bool:
     var budget_limited := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 100000.0, "asic_price_usd": 3500.0}
     var broke := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 1000.0, "asic_price_usd": 3500.0}
     var no_treasury := {"overload_mw": 0.0, "headroom_mw": 1.0}
+    var exact_batch := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 28236.0, "asic_price_usd": 3000.0}
+    var zero_cash := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 0.0, "asic_price_usd": 3000.0}
+    var zero_price := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 100000.0, "asic_price_usd": 0.0}
     return V134_BUDGET_ADVISOR_REVISION == 1 \
         and _v134_safe_affordable_batch(power_limited) == 257 \
         and _v134_safe_affordable_batch(budget_limited) == 24 \
         and _v134_safe_affordable_batch(no_treasury) == _v133_safe_asic_batch(no_treasury) \
+        and _v134_safe_affordable_batch(exact_batch) == 8 \
+        and _v134_safe_affordable_batch(zero_cash) == 0 \
+        and _v134_safe_affordable_batch(zero_price) >= 0 \
         and _v132_capacity_advice(budget_limited) == "ACTION: BUY 24 ASICs (BUDGET CAP)" \
         and _v132_capacity_advice(broke) == "ACTION: BUILD CASH RESERVE" \
         and debug_v133_ready()
