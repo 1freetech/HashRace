@@ -42,7 +42,7 @@ jobs:
       - name: Read version
         id: version
         shell: bash
-        run: echo "value=$(tr -d '\\r\\n' < VERSION)" >> "$GITHUB_OUTPUT"
+        run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
 
       - name: Strictly verify source game and town network
         shell: bash
