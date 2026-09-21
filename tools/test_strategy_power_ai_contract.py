@@ -8,11 +8,15 @@ world=(ROOT/"Godot/scripts/world_v090.gd").read_text()
 nav=(ROOT/"Godot/scripts/grid_navigation.gd").read_text()
 battery=(ROOT/"Godot/data/items/battery.tres").read_text()
 scene=(ROOT/"Godot/scenes/world.tscn").read_text()
+modular=(ROOT/"Godot/scripts/validate_modular_scripts.gd").read_text()
 version=(ROOT/"VERSION").read_text().strip()
 
 assert version.startswith("v0."),version
 assert int(version.split(".")[1]) >= 90,version
-assert "world_v090.gd" in scene
+# world.tscn should point only at the current live layer. Historical v0.090
+# retention belongs to the modular parser contract, not a scene comment.
+assert "world_v131.gd" in scene
+assert '"res://scripts/world_v090.gd"' in modular
 assert 'extends "res://scripts/world_v089.gd"' in world
 
 for marker in ["BATTERY_CAPACITY_MWH_PER_UNIT","BATTERY_POWER_MW_PER_UNIT","ROUND_TRIP_EFFICIENCY","simulate_period","source_energy_mwh","battery_charge_source_mwh","curtailed_mining_mwh","debug_contract_ready"]:
