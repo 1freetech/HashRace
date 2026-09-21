@@ -3,7 +3,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    assert (ROOT / "VERSION").read_text().strip() >= "v0.125"
+    version = (ROOT / "VERSION").read_text().strip()
+    assert version >= "v0.125"
 
     asset = ROOT / "Godot/art/terrain/dirt_road_tilesheet.png"
     catalog = (ROOT / "Godot/scripts/dirt_road_catalog.gd").read_text()
@@ -28,12 +29,16 @@ def main():
     ]:
         assert token in world, token
 
-    assert "world_v125.gd" in scene
+    # v0.125 remains in the inheritance chain, while the live scene advances
+    # with each release. Validate the current live world instead of pinning CI
+    # forever to the historical v0.125 scene entry point.
+    live_world = "world_v%s.gd" % version.removeprefix("v0.")
+    assert live_world in scene, live_world
     assert "dirt_road_catalog.gd" in validator
     assert "world_v125.gd" in validator
     assert "hashrace_v125_dirt_road_revision" in capture
 
-    print("Hash Race v0.125 dirt-road atlas contract: PASS")
+    print("Hash Race v0.125 dirt-road atlas contract: PASS through %s" % live_world)
 
 if __name__ == "__main__":
     main()
