@@ -11,7 +11,12 @@ const REGIONS := {
 }
 
 static func texture() -> Texture2D:
-    return load(SHEET_PATH) as Texture2D
+    # ResourceLoader.exists() avoids emitting a hard loader error when a
+    # mislabeled/corrupt imported sheet is present. world_v129 already has a
+    # procedural electrical fallback, so returning null is the safe contract.
+    if not ResourceLoader.exists(SHEET_PATH, "Texture2D"):
+        return null
+    return ResourceLoader.load(SHEET_PATH, "Texture2D") as Texture2D
 
 static func region(id: String) -> Rect2i:
     return REGIONS.get(id, REGIONS["switchgear"])
