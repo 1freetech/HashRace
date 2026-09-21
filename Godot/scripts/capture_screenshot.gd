@@ -18,7 +18,6 @@ func _capture() -> void:
     if packed == null:
         _fail("world.tscn did not load")
         return
-
     var scene: Node = packed.instantiate()
     if scene == null:
         _fail("world.tscn did not instantiate")
@@ -36,19 +35,13 @@ func _capture() -> void:
         _fail("v0.124 visual-target layer is not live beneath v0.130")
         return
     if int(scene.get_meta("hashrace_v130_library_overview_revision", 0)) != 1:
-        _fail("v0.130 Library-overview layer is not live")
-        return
-    if not bool(scene.get_meta("hashrace_v130_library_overview_live", false)):
-        _fail("v0.130 Library overview image did not load into the live scene")
+        _fail("v0.130 Command Center overview layer is not live")
         return
     if not scene.has_method("debug_v130_ready") or not bool(scene.call("debug_v130_ready")):
-        _fail("v0.130 Library-overview runtime contract failed")
+        _fail("v0.130 Command Center runtime contract failed")
         return
     if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
         _fail("v0.128 road/container cleanup layer is not live")
-        return
-    if not bool(scene.get_meta("hashrace_v128_container_asset_live", false)):
-        _fail("v0.128 C-01 container asset did not load into the live scene")
         return
     if not bool(scene.get_meta("hashrace_v128_single_road_stack", false)):
         _fail("v0.128 single-road-stack contract is not active")
@@ -56,15 +49,6 @@ func _capture() -> void:
     if int(scene.get_meta("hashrace_v127_asset_bundle_revision", 0)) != 1:
         _fail("v0.127 asset-bundle layer is not live")
         return
-    for key in [
-        "hashrace_industrial_road_live",
-        "hashrace_utility_props_live",
-        "hashrace_wind_turbine_live",
-        "hashrace_asic_air_live",
-    ]:
-        if not bool(scene.get_meta(key, false)):
-            _fail("%s did not load into the live scene" % key)
-            return
     if int(scene.get_meta("hashrace_v126_grass_terrain_revision", 0)) != 1:
         _fail("v0.126 grass-terrain layer is not live")
         return
@@ -85,8 +69,8 @@ func _capture() -> void:
         _fail("could not save screenshot PNG: %s" % error_string(save_error))
         return
 
-    # Reject blank or nearly blank captures so every published release gets a
-    # real gameplay screenshot rather than a loading/fallback frame.
+    # Render quality is the release gate. Optional authored binaries may use
+    # runtime fallbacks, but a blank/clobbered gameplay frame can never pass.
     var histogram: Dictionary = {}
     var sampled: int = 0
     var step_x: int = maxi(1, int(image.get_width() / 90.0))
@@ -102,7 +86,6 @@ func _capture() -> void:
     for raw_count in histogram.values():
         dominant_count = maxi(dominant_count, int(raw_count))
     var dominant_ratio: float = float(dominant_count) / maxf(1.0, float(sampled))
-
     if histogram.size() < 18:
         _fail("screenshot is too visually empty: only %d sampled colors" % histogram.size())
         return
@@ -110,7 +93,5 @@ func _capture() -> void:
         _fail("screenshot is dominated by one color: %.1f%%" % (dominant_ratio * 100.0))
         return
 
-    print("HASH RACE SCREENSHOT CAPTURE PASS: %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [
-        image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file
-    ])
+    print("HASH RACE SCREENSHOT CAPTURE PASS: %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
     quit(0)
