@@ -21,8 +21,11 @@ def main() -> None:
     assert '"command_center"' in world
     assert 'SITE_ENERGY_KEYS' in registry
     assert registry.count('ROOT + "') >= 20
-    assert 'world_v112.gd' in scene
-    print("v0.112 imported art integration contract PASS")
+    # v0.112 is a retained historical layer. The live scene must point at the
+    # current release, not directly at the old layer, or every later release
+    # would falsely break this contract.
+    assert 'world_v134.gd' in scene
+    print("v0.112 imported art integration contract PASS through current live world")
 
 
 if __name__ == "__main__":
