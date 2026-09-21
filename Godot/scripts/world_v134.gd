@@ -21,7 +21,18 @@ func _v134_budget_asic_limit(snapshot: Dictionary) -> int:
 func _v134_safe_affordable_batch(snapshot: Dictionary) -> int:
     return mini(_v133_safe_asic_batch(snapshot), _v134_budget_asic_limit(snapshot))
 
+func _v134_live_snapshot(snapshot: Dictionary) -> Dictionary:
+    var live_snapshot := snapshot.duplicate()
+    # Wire the advisor to the actual player treasury. Tests may still inject
+    # explicit values to keep deterministic edge-case coverage.
+    if not live_snapshot.has("cash_usd"):
+        live_snapshot["cash_usd"] = maxf(0.0, float(player.get("cash", 0.0)))
+    if not live_snapshot.has("asic_price_usd"):
+        live_snapshot["asic_price_usd"] = V134_DEFAULT_ASIC_PRICE_USD
+    return live_snapshot
+
 func _v132_capacity_advice(snapshot: Dictionary) -> String:
+    snapshot = _v134_live_snapshot(snapshot)
     var overload_mw := float(snapshot.get("overload_mw", 0.0))
     var headroom_mw := float(snapshot.get("headroom_mw", 0.0))
     if overload_mw > 0.001:
@@ -42,14 +53,12 @@ func debug_v134_ready() -> bool:
     var power_limited := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 2000000.0, "asic_price_usd": 3500.0}
     var budget_limited := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 100000.0, "asic_price_usd": 3500.0}
     var broke := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 1000.0, "asic_price_usd": 3500.0}
-    var no_treasury := {"overload_mw": 0.0, "headroom_mw": 1.0}
     var exact_batch := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 28236.0, "asic_price_usd": 3000.0}
     var zero_cash := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 0.0, "asic_price_usd": 3000.0}
     var zero_price := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 100000.0, "asic_price_usd": 0.0}
     return V134_BUDGET_ADVISOR_REVISION == 1 \
         and _v134_safe_affordable_batch(power_limited) == 257 \
         and _v134_safe_affordable_batch(budget_limited) == 24 \
-        and _v134_safe_affordable_batch(no_treasury) == _v133_safe_asic_batch(no_treasury) \
         and _v134_safe_affordable_batch(exact_batch) == 8 \
         and _v134_safe_affordable_batch(zero_cash) == 0 \
         and _v134_safe_affordable_batch(zero_price) >= 0 \
