@@ -13,9 +13,9 @@ def main():
     for token in [
         "capacity_decision_preview",
         "capacity_decision_summary",
-        'decision = "DEPLOY"',
+        'decision := "DEPLOY"',
         'decision = "CURTAIL"',
-        'decision = "HOLD"',
+        'decision := "HOLD"',
         "site_capacity_action(active_load, active_capacity)",
         "Up to %.1f MW of additional mining load fits current power.",
         "Remove %.1f MW of mining load before advancing.",
