@@ -46,18 +46,18 @@ func _v130_build_fallback_texture() -> Texture2D:
     image.fill(Color("101a20"))
     for y in range(8, V130_FALLBACK_SIZE.y - 8):
         for x in range(8, V130_FALLBACK_SIZE.x - 8):
-            if (x / 12 + y / 10) as int % 2 == 0:
+            if (int(x / 12) + int(y / 10)) % 2 == 0:
                 image.set_pixel(x, y, Color("14272b"))
     for x in range(14, 130):
         image.set_pixel(x, 66, Color("39ff75"))
         image.set_pixel(x, 67, Color("39ff75"))
-    for x in range(18, 126, 22):
-        for y in range(22, 58):
-            image.set_pixel(x, y, Color("4c6872"))
-            image.set_pixel(x + 1, y, Color("4c6872"))
-        for px in range(x + 3, mini(x + 17, 143)):
+    for rack_x in range(18, 126, 22):
+        for rack_y in range(22, 58):
+            image.set_pixel(rack_x, rack_y, Color("4c6872"))
+            image.set_pixel(rack_x + 1, rack_y, Color("4c6872"))
+        for px in range(rack_x + 3, mini(rack_x + 17, 143)):
             for py in range(30, 54):
-                if py == 30 or py == 53 or px == x + 3 or px == x + 16:
+                if py == 30 or py == 53 or px == rack_x + 3 or px == rack_x + 16:
                     image.set_pixel(px, py, Color("7f9aa3"))
     return ImageTexture.create_from_image(image)
 
