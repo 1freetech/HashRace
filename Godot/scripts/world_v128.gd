@@ -4,7 +4,7 @@ extends "res://scripts/world_v127.gd"
 # The authored C-01 asset is preferred, but the Command Center/mining-container
 # runtime remains valid when a repository binary is missing or corrupt.
 
-const V128_ROAD_CLEANUP_REVISION := 1
+const V128_ROAD_CLEANUP_REVISION := 2
 const V128_CONTAINER_PATH := "res://art/buildings/c01_mining_container.svg"
 const V128_CONTAINER_ASPECT := 102.0 / 128.0
 const CITY_ROAD_STYLES: Array[String] = ["industrial_marked", "dirt_clean", "asphalt_center", "gravel_ruts", "industrial_plain", "dirt_clean", "asphalt_double", "gravel_dark", "industrial_marked", "asphalt_plain"]
@@ -18,6 +18,8 @@ func _ready() -> void:
     set_meta("hashrace_v128_container_runtime_live", true)
     set_meta("hashrace_v128_single_road_stack", true)
     set_meta("hashrace_v128_city_road_styles", CITY_ROAD_STYLES.size())
+    set_meta("hashrace_v128_single_container_door", true)
+    set_meta("hashrace_v128_command_hut_removed", true)
     queue_redraw()
 
 func _v128_load_texture(path: String) -> Texture2D:
@@ -92,17 +94,29 @@ func _v128_draw_container_sprite(center: Vector2, capacity_mw: float, accent: Co
     draw_rect(Rect2(Vector2(dest.position.x + 8.0, dest.end.y - 8.0), Vector2(maxf(12.0, dest.size.x - 16.0), 5.0)), accent, true)
     return size_value
 
+func _v128_draw_container_entry_marker(kind: String, pos: Vector2, size_value: Vector2, accent: Color) -> void:
+    # The authored container already contains its physical door. Keep interaction
+    # feedback on the ground so a second procedural doorway is never painted over it.
+    var bottom_y := pos.y + size_value.y * 0.38
+    var door_target := WorldScale.front_door_world_pos(kind, pos)
+    if rep_pos.distance_to(door_target) <= INTERACT_DISTANCE + 36.0:
+        var pulse := 0.55 + 0.45 * absf(sin(float(Time.get_ticks_msec()) / 220.0))
+        var glow := Color(accent.r, accent.g, accent.b, pulse)
+        draw_circle(Vector2(pos.x, bottom_y + 25.0), 12.0, glow, false, 3.0)
+        draw_line(Vector2(pos.x - 6.0, bottom_y + 25.0), Vector2(pos.x + 6.0, bottom_y + 25.0), Color("f1f6f5"), 2.0)
+
 func _draw_mining_hq(entity: Dictionary, idx: int) -> void:
     var pos: Vector2 = entity["pos"]
+    var kind := String(entity.get("kind", "hq"))
     var profile_idx: int = int(entity.get("profile_idx", company_idx))
     var accent: Color = COMPANY_ACCENTS[profile_idx]
-    if String(entity.get("kind", "")) == "rival" and bool(rivals[int(entity["rival_idx"])]["merged"]): accent = Color("657078")
+    if kind == "rival" and bool(rivals[int(entity["rival_idx"])]["merged"]): accent = Color("657078")
     var base_size := _v103_visual_size(pos, WorldScale.HQ_SIZE, "hq")
     var width := clampf(base_size.x * 1.08, 190.0, 320.0)
     var display_size := Vector2(width, width * V128_CONTAINER_ASPECT)
     _selection_ring(pos, idx, WorldScale.selection_radius("hq"))
     _v128_draw_container_sprite(pos + Vector2(0.0, -8.0), _v114_capacity_mw_for_site(pos), accent, display_size)
-    _draw_v088_entry_cue(String(entity.get("kind", "hq")), pos, display_size, accent)
+    _v128_draw_container_entry_marker(kind, pos, display_size, accent)
     _draw_building_name(entity, idx, accent, display_size.y * 0.48 + 38.0, display_size.x + 36.0)
 
 func _v115_draw_live_site(origin: Vector2) -> void:
@@ -113,15 +127,7 @@ func _v115_draw_live_site(origin: Vector2) -> void:
     _v128_draw_container_sprite(origin + Vector2(-170.0, -112.0), capacity_mw, accent)
     _v114_draw_energy_source(_v114_primary_energy_id(_player_hq_center()), origin + Vector2(225.0, -112.0), capacity_mw, "up")
     _v114_draw_transformer(origin + Vector2(205.0, 170.0), capacity_mw)
-    _v128_draw_command_hut(origin + Vector2(-215.0, 170.0), accent)
     draw_string(ThemeDB.fallback_font, origin + Vector2(-365.0, -228.0), "%s • %.1f MW • CONTAINER %dx%d" % [String(InfrastructureVisualCatalog.capacity_profile(capacity_mw).get("scale_name", "SITE")), capacity_mw, tiles, tiles], HORIZONTAL_ALIGNMENT_LEFT, 730.0, 12, accent.lightened(0.15))
 
-func _v128_draw_command_hut(pos: Vector2, accent: Color) -> void:
-    var rect := Rect2(pos - Vector2(56.0, 39.6), Vector2(112.0, 72.0))
-    draw_ellipse_shadow(pos + Vector2(0.0, 30.0), 44.0, 8.0); draw_rect(rect, Color("17242b"), true)
-    draw_rect(Rect2(rect.position + Vector2(12.0, 13.0), Vector2(88.0, 34.0)), Color("071016"), true)
-    draw_string(ThemeDB.fallback_font, rect.position + Vector2(17.0, 34.0), "COMMAND CENTER", HORIZONTAL_ALIGNMENT_LEFT, 78.0, 8, accent)
-    draw_circle(rect.position + Vector2(93.0, 58.0), 3.0, Color("39ff75"))
-
 func debug_v128_ready() -> bool:
-    return V128_ROAD_CLEANUP_REVISION == 1 and bool(get_meta("hashrace_v128_container_runtime_live", false)) and CITY_ROAD_STYLES.size() == 10 and bool(get_meta("hashrace_v128_single_road_stack", false)) and debug_v127_ready()
+    return V128_ROAD_CLEANUP_REVISION == 2 and bool(get_meta("hashrace_v128_container_runtime_live", false)) and CITY_ROAD_STYLES.size() == 10 and bool(get_meta("hashrace_v128_single_road_stack", false)) and bool(get_meta("hashrace_v128_single_container_door", false)) and bool(get_meta("hashrace_v128_command_hut_removed", false)) and debug_v127_ready()
