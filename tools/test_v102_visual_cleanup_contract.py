@@ -10,7 +10,14 @@ rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert 'world_v102.gd' in scene
+# The live scene advances through sequential world_vNNN scripts. Protect the
+# historical v0.102 implementation itself without pinning world.tscn forever.
+scene_script_line = next(
+    line for line in scene.splitlines()
+    if line.startswith("[ext_resource") and "scripts/world_v" in line
+)
+current_world_path = scene_script_line.split('path="', 1)[1].split('"', 1)[0]
+assert current_world_path.endswith(f"world_v{int(version.split('.')[1]):03d}.gd"), current_world_path
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
@@ -28,4 +35,4 @@ assert 'id = "ai_rack_system"' in rack
 assert 'visual = "ai_rack"' in rack
 assert 'effect = "uptime"' in rack
 
-print("Hash Race v0.102 visual cleanup contract passed.")
+print(f"Hash Race v0.102 visual cleanup contract passed through {current_world_path}.")
