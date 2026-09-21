@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v137.gd -> world_v136.gd -> world_v135.gd -> world_v134.gd -> prior gameplay stack. v0.137 guards ASIC buying at >=90% site utilization. v0.136 adds utilization/risk feedback. v0.135 locks the league to ten Bitcoin mining companies. v0.134 keeps the semiconductor fab larger and unobstructed.
-[ext_resource path="res://scripts/world_v137.gd" type="Script" id="1_world"]
+; v0.138 recovery baseline: one live post-v0.129 layer replaces the broken v0.130-v0.137 version-per-file inheritance chain.
+[ext_resource path="res://scripts/world_v138.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
