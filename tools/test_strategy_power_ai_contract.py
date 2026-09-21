@@ -12,7 +12,14 @@ version=(ROOT/"VERSION").read_text().strip()
 
 assert version.startswith("v0."),version
 assert int(version.split(".")[1]) >= 90,version
-assert "world_v090.gd" in scene
+# The live scene advances through later world_vNNN scripts. Verify that the
+# current script still inherits the v0.090 strategy layer instead of pinning
+# the scene itself to an obsolete historical filename.
+scene_script_line=next(line for line in scene.splitlines() if line.startswith('[ext_resource') and 'scripts/world_v' in line)
+current_world_path=scene_script_line.split('path="',1)[1].split('"',1)[0]
+current_world=(ROOT/"Godot"/current_world_path.removeprefix("res://")).read_text()
+assert current_world_path.endswith("world_v131.gd"),current_world_path
+assert 'extends "res://scripts/world_v130.gd"' in current_world
 assert 'extends "res://scripts/world_v089.gd"' in world
 
 for marker in ["BATTERY_CAPACITY_MWH_PER_UNIT","BATTERY_POWER_MW_PER_UNIT","ROUND_TRIP_EFFICIENCY","simulate_period","source_energy_mwh","battery_charge_source_mwh","curtailed_mining_mwh","debug_contract_ready"]:
@@ -54,4 +61,4 @@ assert dispatch(0,2,1,4,0,24*30)[0]<0.01
 _,soc,source=dispatch(3,1,1,0,0,1)
 assert soc>0.0 and source>1.0
 
-print("Hash Race v0.090 strategy/power/AI contract passed.")
+print("Hash Race v0.090 strategy/power/AI contract passed through the current live world inheritance chain.")
