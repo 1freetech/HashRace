@@ -6,11 +6,15 @@ ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
+current_world = (ROOT / "Godot/scripts/world_v134.gd").read_text(encoding="utf-8")
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert 'world_v102.gd' in scene
+# v0.102 is a retained historical layer. The live scene must point at the
+# current release layer; inheritance is the contract that keeps v0.102 live.
+assert 'world_v134.gd' in scene
+assert 'extends "res://scripts/world_v133.gd"' in current_world
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
