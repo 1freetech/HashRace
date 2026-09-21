@@ -25,41 +25,15 @@ jobs:
           ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log
           godot --headless --path Godot --script res://scripts/validate_overworld.gd
 
-  python-contract:
+  cpp-contracts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Core and v0.129 gameplay contracts
-        shell: bash
-        run: |
-          set -uo pipefail
-          failed=0
-          for contract in \
-            tools/smoke_test.py \
-            tools/test_league_contract.py \
-            tools/test_life_ops_contract.py \
-            tools/test_energy_visual_contract.py \
-            tools/test_v129_capacity_decision_contract.py
-          do
-            echo "::group::CONTRACT $contract"
-            if python "$contract"; then
-              echo "PASS: $contract"
-            else
-              status=$?
-              echo "::error title=Hash Race contract failed::$contract exited with status $status"
-              failed=1
-            fi
-            echo "::endgroup::"
-          done
-          exit "$failed"
-
-  cpp-core:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Compile and run complete native contract suite
+        run: >-
+          g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
+          native/cpp/hashrace_contract_suite.cpp
+          -o /tmp/hashrace_contracts && /tmp/hashrace_contracts
       - name: Compile and run C++ simulation checks
         run: >-
           g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
