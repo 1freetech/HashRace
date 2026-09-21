@@ -33,13 +33,29 @@ jobs:
         with:
           python-version: '3.x'
       - name: Core and v0.129 gameplay contracts
+        shell: bash
         run: |
-          python tools/smoke_test.py
-          python tools/test_league_contract.py
-          python tools/test_life_ops_contract.py
-          python tools/test_energy_visual_contract.py
-          python tools/test_v128_road_container_contract.py
-          python tools/test_v129_capacity_decision_contract.py
+          set -uo pipefail
+          failed=0
+          for contract in \
+            tools/smoke_test.py \
+            tools/test_league_contract.py \
+            tools/test_life_ops_contract.py \
+            tools/test_energy_visual_contract.py \
+            tools/test_v128_road_container_contract.py \
+            tools/test_v129_capacity_decision_contract.py
+          do
+            echo "::group::CONTRACT $contract"
+            if python "$contract"; then
+              echo "PASS: $contract"
+            else
+              status=$?
+              echo "::error title=Hash Race contract failed::$contract exited with status $status"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          exit "$failed"
 
   cpp-core:
     runs-on: ubuntu-latest
