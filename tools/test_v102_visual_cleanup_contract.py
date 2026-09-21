@@ -9,8 +9,12 @@ world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
 assert version.startswith("v0."), version
-assert int(version.split(".")[1]) >= 102, version
-assert 'world_v102.gd' in scene
+minor = int(version.split(".")[1])
+assert minor >= 102, version
+# The live scene must follow the current sequential release rather than remain
+# pinned to v0.102 forever. The historical implementation below is still
+# validated directly so later inheritance cannot silently remove its behavior.
+assert f'world_v{minor:03d}.gd' in scene, (version, scene[:400])
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
@@ -28,4 +32,4 @@ assert 'id = "ai_rack_system"' in rack
 assert 'visual = "ai_rack"' in rack
 assert 'effect = "uptime"' in rack
 
-print("Hash Race v0.102 visual cleanup contract passed.")
+print(f"Hash Race v0.102 visual cleanup contract passed through live {version} world.")
