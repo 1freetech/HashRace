@@ -35,11 +35,11 @@ func _capture() -> void:
     if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
         _fail("v0.124 visual-target layer is not live beneath v0.130")
         return
-    if int(scene.get_meta("hashrace_v130_library_overview_revision", 0)) != 1:
+    if int(scene.get_meta("hashrace_v130_library_overview_revision", 0)) < 1:
         _fail("v0.130 Library-overview layer is not live")
         return
     if not bool(scene.get_meta("hashrace_v130_library_overview_live", false)):
-        _fail("v0.130 Library overview image did not load into the live scene")
+        _fail("v0.130 Library overview has no drawable runtime texture")
         return
     if not scene.has_method("debug_v130_ready") or not bool(scene.call("debug_v130_ready")):
         _fail("v0.130 Library-overview runtime contract failed")
