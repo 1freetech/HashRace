@@ -1,3 +1,7 @@
+# Hash Race
+
+**Hash Race** is a 2D Bitcoin mining strategy simulation built around competition between fictional Bitcoin mining companies. The game combines hardware deployment, power and land expansion, BTC treasury management, financing, research, partnerships, mergers, company culture, market cycles, and an explorable top-down company world.
+
 ## v0.130 — hourly Library 2D overview integration
 
 v0.130 starts the **one-new-Library-image-per-visual-run** pipeline. The ChatGPT Library image `/Hashrace/Bitcoin Command Center Base.png` is now represented by the real in-project JPEG asset `Godot/assets/library/v130/command_center_overview.jpg` and rendered inside the live mining campus as a framed **SITE OVERVIEW** command-center monitor. This is not reference-only storage: the live world loads the texture and the gameplay screenshot gate fails if the v0.130 image is missing. The monitor is positioned away from the one-road player path so the new art improves visual texture without restoring the old overlap/clutter problem.
@@ -33,10 +37,6 @@ The Godot screenshot validator now refuses to count a capture as proof unless th
 v0.123 makes the approved Hash Race screenshot a **design specification rather than fake proof**. The live Godot world now owns a compact neon-green top HUD, a larger player mining-rig building, transformer, power module, fenced storage yard, roadside signs, lamps, lane striping, and a compact live load meter. The player renderer also remaps the warm suit accents to the target green/black visual language at runtime while preserving skin and dark armor. The reference specification is documented in `docs/visual_target_v121.md`.
 
 **Proof rule:** only `visual-proof/hashrace-screenshot.png` produced by the Godot 4.7.2 workflow counts as proof that the runtime matches the source. Reference/concept images are never runtime proof.
-
-# Hash Race
-
-**Hash Race** is a 2D Bitcoin mining strategy simulation built around competition between fictional Bitcoin mining companies. The game combines hardware deployment, power and land expansion, BTC treasury management, financing, research, partnerships, mergers, company culture, market cycles, and an explorable top-down company world.
 
 ## Play Hash Race
 
