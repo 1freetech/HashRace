@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; Release inheritance compatibility: world_v135.gd -> world_v134.gd -> prior gameplay stack. v0.135 locks the live league to ten Bitcoin mining companies; external industries remain NPC partners. v0.134 enlarges the semiconductor fab in its existing position and keeps it unobstructed.
-[ext_resource path="res://scripts/world_v135.gd" type="Script" id="1_world"]
+; Release inheritance compatibility: world_v136.gd -> world_v135.gd -> world_v134.gd -> prior gameplay stack. v0.136 adds live site-utilization percentage and risk bands. v0.135 locks the league to ten Bitcoin mining companies. v0.134 keeps the semiconductor fab larger and unobstructed.
+[ext_resource path="res://scripts/world_v136.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
