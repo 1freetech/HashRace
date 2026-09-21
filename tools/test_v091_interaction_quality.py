@@ -7,10 +7,14 @@ version = (ROOT / "VERSION").read_text().strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 quality = (ROOT / "Godot/scripts/world_v091.gd").read_text()
 strategy = (ROOT / "Godot/scripts/world_v090.gd").read_text()
+modular_parser = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
 
-# This contract protects the v0.091 layer even when a newer release layer is live.
+# This contract protects the historical v0.091 layer while newer release layers are live.
+# The live scene must point at the current world; retained historical layers belong in the
+# modular parse gate so they continue to compile without hijacking the scene entry point.
 assert version.startswith("v0."), version
-assert "world_v091.gd" in scene
+assert "world_v131.gd" in scene
+assert '"res://scripts/world_v091.gd"' in modular_parser
 assert 'extends "res://scripts/world_v090.gd"' in quality
 assert "V090_STRATEGY_REVISION" in strategy
 
