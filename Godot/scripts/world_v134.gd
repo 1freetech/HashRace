@@ -9,9 +9,11 @@ const V134_DEFAULT_ASIC_PRICE_USD := 3500.0
 const V134_CASH_RESERVE_RATIO := 0.15
 
 func _v134_budget_asic_limit(snapshot: Dictionary) -> int:
-    var cash_usd := maxf(0.0, float(snapshot.get("cash_usd", -1.0)))
-    if cash_usd < 0.0:
+    # Preserve the pre-v0.134 electrical-only behavior when treasury data is
+    # unavailable. Check presence before clamping so the sentinel is not lost.
+    if not snapshot.has("cash_usd"):
         return _v133_safe_asic_batch(snapshot)
+    var cash_usd := maxf(0.0, float(snapshot.get("cash_usd", 0.0)))
     var asic_price_usd := maxf(1.0, float(snapshot.get("asic_price_usd", V134_DEFAULT_ASIC_PRICE_USD)))
     var spendable_cash := cash_usd * (1.0 - V134_CASH_RESERVE_RATIO)
     return maxi(0, int(floor(spendable_cash / asic_price_usd)))
@@ -40,9 +42,11 @@ func debug_v134_ready() -> bool:
     var power_limited := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 2000000.0, "asic_price_usd": 3500.0}
     var budget_limited := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 100000.0, "asic_price_usd": 3500.0}
     var broke := {"overload_mw": 0.0, "headroom_mw": 1.0, "cash_usd": 1000.0, "asic_price_usd": 3500.0}
+    var no_treasury := {"overload_mw": 0.0, "headroom_mw": 1.0}
     return V134_BUDGET_ADVISOR_REVISION == 1 \
         and _v134_safe_affordable_batch(power_limited) == 257 \
         and _v134_safe_affordable_batch(budget_limited) == 24 \
+        and _v134_safe_affordable_batch(no_treasury) == _v133_safe_asic_batch(no_treasury) \
         and _v132_capacity_advice(budget_limited) == "ACTION: BUY 24 ASICs (BUDGET CAP)" \
         and _v132_capacity_advice(broke) == "ACTION: BUILD CASH RESERVE" \
         and debug_v133_ready()
