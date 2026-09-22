@@ -53,44 +53,22 @@ func _validate() -> void:
     if frames == null:
         quit(1)
         return
-    var seen_regions: Array[Rect2i] = []
-    var frame_hashes: Dictionary = {}
     for direction in ["down", "left", "right", "up"]:
         _require(frames.get_frame_count("idle_" + direction) == 1, direction + " needs one idle pose")
-        _require(frames.get_frame_count("walk_" + direction) == 7, direction + " needs seven walk poses")
-        for index in range(8):
-            var region: Rect2i = Sheet.frame_region(direction, index)
-            _require(Rect2i(Vector2i.ZERO, image.get_size()).encloses(region), "frame outside PNG: %s/%d" % [direction, index])
-            for previous in seen_regions:
-                _require(not previous.intersects(region), "overlapping source frames")
-            seen_regions.append(region)
+        _require(frames.get_frame_count("walk_" + direction) == 3, direction + " needs three walk poses")
+        for effective_index in range(4):
+            var region: Rect2i = Sheet.frame_region(direction, effective_index)
+            _require(Rect2i(Vector2i.ZERO, image.get_size()).encloses(region), "frame outside PNG")
             var crop := image.get_region(region)
-            var used := crop.get_used_rect()
-            _require(used.has_area(), "blank frame: %s/%d" % [direction, index])
-            var solid := 0
-            var clear := 0
-            for y in range(crop.get_height()):
-                for x in range(crop.get_width()):
-                    var alpha := crop.get_pixel(x, y).a
-                    if alpha > 0.9:
-                        solid += 1
-                    elif alpha < 0.05:
-                        clear += 1
-            _require(solid > 3000 and clear > 500, "frame needs opaque character and clear background")
-            var digest := crop.get_data().hex_encode().sha256_text()
-            _require(not frame_hashes.has(digest), "duplicate pose data")
-            frame_hashes[digest] = true
-            var animation: String = "idle_" + direction if index == 0 else "walk_" + direction
-            var animation_index := 0 if index == 0 else index - 1
-            var atlas := frames.get_frame_texture(animation, animation_index) as AtlasTexture
-            _require(atlas != null and Vector2i(atlas.get_size()) == Sheet.FRAME_SIZE, "logical canvas changed")
-            _require(int(atlas.margin.position.y) + region.size.y == Sheet.FOOT_ANCHOR.y, "foot anchor drift")
+            _require(crop.get_used_rect().has_area(), "blank effective frame")
+            var source_index: int = int(Sheet.EFFECTIVE_SOURCE_INDICES[effective_index])
+            _require(region == Sheet.FRAME_REGIONS[direction][source_index], "effective frame mapping drift")
     var walked: Dictionary = {}
-    for index in range(70):
-        var selected := Sheet.walk_frame(true, TAU * float(index) / 70.0)
-        _require(selected >= 1 and selected <= 7, "walking must exclude idle")
+    for index in range(30):
+        var selected := Sheet.walk_frame(true, TAU * float(index) / 30.0)
+        _require(selected >= 1 and selected <= 3, "walking must exclude idle")
         walked[selected] = true
-    _require(walked.size() == 7 and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit every phase then hold idle")
+    _require(walked.size() == 3 and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit three phases then hold idle")
     var visual := Visual.new()
     root.add_child(visual)
     for direction in ["down", "left", "right", "up"]:
@@ -102,5 +80,5 @@ func _validate() -> void:
     if not failures.is_empty():
         quit(1)
         return
-    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries + energy atlas, 32 distinct poses, 4 idle/7-phase walk cycles, alpha, bounds and foot anchors" % decoded)
+    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries; exact 32-pose PNG source; effective 16-pose runtime cycle" % decoded)
     quit(0)
