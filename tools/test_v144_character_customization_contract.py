@@ -18,5 +18,14 @@ assert "DefaultPlayerSheet.build_customized_texture" in preview
 assert "ACTUAL PLAYER PREVIEW" in preview
 assert "approved_32frame_runtime_palette" in world
 assert "debug_v144_palette_key" in world
-assert 'path="res://scripts/world_v144.gd"' in scene
+# v0.144 is a retained regression layer; the playable scene may legitimately
+# advance to a later world_v### layer as long as that layer inherits v0.144.
+live_scene_match = __import__("re").search(r'path="res://scripts/(world_v\d+\.gd)" type="Script" id="1_world"', scene)
+assert live_scene_match, "world.tscn must point at a versioned live world script"
+live_world_path = ROOT / "Godot/scripts" / live_scene_match.group(1)
+live_world = live_world_path.read_text(encoding="utf-8")
+if live_world_path.name != "world_v144.gd":
+    assert 'extends "res://scripts/world_v144.gd"' in live_world, (
+        f"{live_world_path.name} must retain the v0.144 customization layer"
+    )
 print("Hash Race v0.144 exact approved-sheet skin/suit customization contract: PASS")
