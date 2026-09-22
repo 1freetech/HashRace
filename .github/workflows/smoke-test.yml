@@ -24,6 +24,8 @@ jobs:
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-import.log; then exit 1; fi
           godot --headless --path Godot --script res://scripts/validate_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-binary.log
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER VALIDATION FAIL" /tmp/hashrace-player-binary.log; then exit 1; fi
+          godot --headless --path Godot --script res://scripts/validate_npc_miner_sprite.gd 2>&1 | tee /tmp/hashrace-npc-miner-binary.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|NPC MINER VALIDATION FAIL" /tmp/hashrace-npc-miner-binary.log; then exit 1; fi
       - name: Boot opening campaign setup with strict script-error gate
         shell: bash
         run: |
@@ -85,6 +87,22 @@ jobs:
         with:
           name: hashrace-player-32frame-proof
           path: visual-proof/player/*.png
+          if-no-files-found: warn
+      - name: Render the Library-derived NPC miner in the actual world
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_npc_miner_sprite.gd 2>&1 | tee /tmp/hashrace-npc-miner-render.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|NPC MINER RENDER FAIL" /tmp/hashrace-npc-miner-render.log; then exit 1; fi
+          test -s visual-proof/npc-miner-runtime.png
+      - name: Upload actual NPC miner gameplay proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-npc-miner-runtime-proof
+          path: |
+            visual-proof/npc-miner-runtime.png
+            visual-proof/npc-miner/*.png
           if-no-files-found: warn
       - name: Render and validate close-up 2D detail frame
         shell: bash
@@ -217,6 +235,8 @@ jobs:
         run: python tools/test_v128_road_container_contract.py
       - name: Test v0.144 exact-sheet character customization contract
         run: python tools/test_v144_character_customization_contract.py
+      - name: Test v0.145 Library-derived NPC miner contract
+        run: python tools/test_v145_npc_miner_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract

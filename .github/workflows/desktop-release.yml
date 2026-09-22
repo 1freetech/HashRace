@@ -47,6 +47,8 @@ jobs:
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-release-import.log; then exit 1; fi
           godot --headless --path Godot --script res://scripts/validate_player_sprite.gd 2>&1 | tee /tmp/hashrace-release-player.log
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER VALIDATION FAIL" /tmp/hashrace-release-player.log; then exit 1; fi
+          godot --headless --path Godot --script res://scripts/validate_npc_miner_sprite.gd 2>&1 | tee /tmp/hashrace-release-npc-miner.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|NPC MINER VALIDATION FAIL" /tmp/hashrace-release-npc-miner.log; then exit 1; fi
 
       - name: Read version
         id: version
@@ -169,6 +171,15 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-release-player-render.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-release-player-render.log; then exit 1; fi
 
+      - name: Render the Library-derived NPC miner in the actual world
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_npc_miner_sprite.gd 2>&1 | tee /tmp/hashrace-release-npc-miner-render.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|NPC MINER RENDER FAIL" /tmp/hashrace-release-npc-miner-render.log; then exit 1; fi
+          test -s visual-proof/npc-miner-runtime.png
+
       - name: Export current Godot game
         shell: bash
         run: |
@@ -224,6 +235,7 @@ jobs:
             visual-proof/hashrace-negotiation-scene.png
             visual-proof/hashrace-energy-site.png
             visual-proof/hashrace-semiconductor-fab.png
+            visual-proof/npc-miner-runtime.png
           if-no-files-found: warn
 
   release:
@@ -259,10 +271,12 @@ jobs:
           WINDOWS_FILE="release/HashRace-$VERSION-windows-x64.zip"
           LINUX_FILE="release/HashRace-$VERSION-linux-x64.tar.gz"
           SCREENSHOT_FILE="release/hashrace-screenshot.png"
+          NPC_SCREENSHOT_FILE="release/npc-miner-runtime.png"
           WINDOWS_LINE="- Windows x64: pending validation"
           LINUX_LINE="- Linux x64: pending validation"
           STATUS_LINE="Validated desktop packages are listed below."
           SCREENSHOT_SECTION=""
+          NPC_SCREENSHOT_SECTION=""
           if [ -s "$WINDOWS_FILE" ]; then
             WINDOWS_LINE="- [Windows x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-windows-x64.zip)"
           fi
@@ -282,6 +296,10 @@ jobs:
             SCREENSHOT_URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/hashrace-screenshot.png"
             SCREENSHOT_SECTION=$(printf '\n## Screenshot\n\n![Hash Race gameplay screenshot](%s)\n' "$SCREENSHOT_URL")
           fi
+          if [ -s "$NPC_SCREENSHOT_FILE" ]; then
+            NPC_SCREENSHOT_URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/npc-miner-runtime.png"
+            NPC_SCREENSHOT_SECTION=$(printf '\n## Library-derived NPC miner\n\nThe transparent 16-pose miner atlas is decoded, imported, and visible in the actual Godot world.\n\n![Hash Race NPC miner runtime screenshot](%s)\n' "$NPC_SCREENSHOT_URL")
+          fi
           NOTES=$(cat <<EOF
           Hash Race $VERSION
 
@@ -292,6 +310,7 @@ jobs:
           $WINDOWS_LINE
           $LINUX_LINE
           $SCREENSHOT_SECTION
+          $NPC_SCREENSHOT_SECTION
           EOF
           )
           if [ ! -s "$WINDOWS_FILE" ] && [ ! -s "$LINUX_FILE" ]; then

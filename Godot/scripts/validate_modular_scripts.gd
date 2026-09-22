@@ -25,6 +25,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/character_sprite_rig.gd",
     "res://scripts/character_preview.gd",
     "res://scripts/default_player_sprite_sheet.gd",
+    "res://scripts/npc_miner_sprite_sheet.gd",
     "res://scripts/default_player_visual.gd",
     "res://scripts/visual_target_hud.gd",
     "res://scripts/priority_asset_catalog.gd",
@@ -71,6 +72,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v142.gd",
     "res://scripts/world_v143.gd",
     "res://scripts/world_v144.gd",
+    "res://scripts/world_v145.gd",
 ]
 
 func _initialize() -> void:

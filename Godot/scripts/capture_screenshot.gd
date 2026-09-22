@@ -56,7 +56,7 @@ func _capture() -> void:
         _fail("v0.125 dirt-road layer is not live beneath v0.126")
         return
 
-    for asset_key in ["hashrace_player_32frame_asset_live", "hashrace_dirt_road_asset_live", "hashrace_grass_terrain_asset_live", "hashrace_v128_container_asset_live", "hashrace_industrial_road_live", "hashrace_utility_props_live", "hashrace_wind_turbine_live", "hashrace_asic_air_live"]:
+    for asset_key in ["hashrace_player_32frame_asset_live", "hashrace_npc_miner_asset_live", "hashrace_dirt_road_asset_live", "hashrace_grass_terrain_asset_live", "hashrace_v128_container_asset_live", "hashrace_industrial_road_live", "hashrace_utility_props_live", "hashrace_wind_turbine_live", "hashrace_asic_air_live"]:
         if not bool(scene.get_meta(asset_key, false)):
             _fail("required authored image is missing: " + asset_key)
             return
