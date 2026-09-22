@@ -6,6 +6,7 @@ const DEFAULT_GENDER: int = 0
 const DEFAULT_OUTFIT: int = 0
 const DEFAULT_SCOUTER_COLOR: int = 0
 const DEFAULT_SCOUTER_EYE: int = 1
+const DEFAULT_SUIT_COLOR: int = 0
 
 const SKIN_TONES: Array = [
     {"id":"deep", "name":"Deep", "skin":Color("5d3526"), "highlight":Color("875239")},
@@ -41,6 +42,18 @@ const SCOUTER_EYES: Array = [
     {"id":"right", "name":"Right Eye", "scanner":"right"}
 ]
 
+# Free suit-color choices recolor only the orange armor panels in the approved
+# player sheet. White armor, black outlines, shading and animation geometry are
+# preserved from the exact validated PNG.
+const SUIT_COLORS: Array = [
+    {"id":"orange", "name":"Original Orange", "color":Color("ff6a00")},
+    {"id":"neon_green", "name":"Neon Green", "color":Color("39ff75")},
+    {"id":"electric_blue", "name":"Electric Blue", "color":Color("4b7cff")},
+    {"id":"cyan", "name":"Cyan", "color":Color("52e7ff")},
+    {"id":"violet", "name":"Violet", "color":Color("bd8cff")},
+    {"id":"red", "name":"Red", "color":Color("ff5c68")}
+]
+
 # Skin tone, gender/presentation and scouter settings are free identity choices.
 # Outfit skins are gameplay cosmetics purchased with company cash after the
 # campaign begins.
@@ -67,6 +80,9 @@ static func scouter_color(index: int) -> Dictionary:
 
 static func scouter_eye(index: int) -> Dictionary:
     return SCOUTER_EYES[clampi(index, 0, SCOUTER_EYES.size() - 1)]
+
+static func suit_color(index: int) -> Dictionary:
+    return SUIT_COLORS[clampi(index, 0, SUIT_COLORS.size() - 1)]
 
 static func scouter_lens_color(index: int) -> Color:
     return Color(scouter_color(index)["color"])

@@ -16,6 +16,7 @@ func _run() -> void:
     set_meta("hashrace_character_outfit", 0)
     set_meta("hashrace_character_scouter_color", 3)
     set_meta("hashrace_character_scouter_eye", 0)
+    set_meta("hashrace_character_suit_color", 4)
 
     var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
     if packed == null:
@@ -43,7 +44,7 @@ func _run() -> void:
         "debug_personality_ratings_in_range", "debug_culture_effects_ready", "debug_culture_effects_are_material",
         "debug_culture_effects_summary", "debug_texture_spacing_ready", "debug_clean_layout_min_spacing",
         "debug_character_customization_ready", "debug_character_skin_tone", "debug_character_gender",
-        "debug_character_outfit", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready",
+        "debug_character_outfit", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_character_suit_color", "debug_paid_outfits_use_game_cash", "debug_infrastructure_detail_ready", "debug_v144_ready", "debug_v144_palette_key",
         "debug_modular_architecture_ready", "debug_simulation_snapshot", "debug_physical_rack_count", "debug_hud_consolidated", "debug_v070_ready",
         "debug_negotiation_ready", "debug_negotiation_snapshot", "debug_v072_ready", "debug_v073_ready", "debug_v080_ready", "debug_v082_ready", "debug_v090_ready", "debug_v091_ready", "debug_v092_ready", "debug_v093_ready", "debug_v094_navigation_ready", "debug_v095_ready", "debug_v107_ready", "debug_building_road_overlap_count", "debug_building_water_overlap_count", "debug_live_scouter_color", "debug_live_scouter_side", "debug_computer_offer_ready", "debug_computer_offer_snapshot", "debug_pixel_integration_ready", "debug_character_pose_library", "debug_character_body_variant_count", "play_character_action", "start_negotiation",
         "_choose_outfit", "_open_entity", "_end_quarter"
@@ -263,6 +264,12 @@ func _run() -> void:
         return
     if int(scene.call("debug_character_scouter_eye")) != 0:
         _fail("campaign scouter eye choice did not reach the playable sprite")
+        return
+    if int(scene.call("debug_character_suit_color")) != 4:
+        _fail("campaign suit color choice did not reach the playable sprite")
+        return
+    if not bool(scene.call("debug_v144_ready")) or scene.call("debug_v144_palette_key") != Vector3i(4, 4, 3):
+        _fail("approved-sheet runtime palette did not initialize with selected skin/suit/scouter colors")
         return
     if String(scene.call("debug_live_scouter_side")) != "left":
         _fail("active renderer ignored the selected scouter eye")

@@ -33,6 +33,55 @@ static func load_texture() -> Texture2D:
         return null
     return ImageTexture.create_from_image(image)
 
+static func build_customized_texture(skin: Color, suit: Color, scouter: Color) -> Texture2D:
+    var source_texture := load_texture()
+    if source_texture == null:
+        return null
+    var image := source_texture.get_image()
+    if image == null or image.is_empty() or image.get_size() != SHEET_SIZE:
+        return null
+
+    # Work only inside the 32 exact source regions. This keeps transparent
+    # spacing and every pixel outside a character crop visually untouched. The
+    # runtime uses four exact poses per direction, so only those 16 regions need
+    # a derived palette texture.
+    for facing in ["down", "left", "right", "up"]:
+        var regions: Array = FRAME_REGIONS[facing]
+        for source_index in EFFECTIVE_SOURCE_INDICES:
+            var region: Rect2i = regions[int(source_index)]
+            for y in range(region.position.y, region.end.y):
+                for x in range(region.position.x, region.end.x):
+                    var pixel := image.get_pixel(x, y)
+                    if pixel.a < 0.55:
+                        continue
+                    var local_y := y - region.position.y
+                    if _is_scouter_pixel(pixel, local_y, region.size.y):
+                        image.set_pixel(x, y, _retint(pixel, scouter, 0.82))
+                    elif _is_suit_pixel(pixel):
+                        image.set_pixel(x, y, _retint(pixel, suit, 0.88))
+                    elif _is_skin_pixel(pixel, local_y, region.size.y):
+                        image.set_pixel(x, y, _retint(pixel, skin, 0.48))
+    return ImageTexture.create_from_image(image)
+
+static func _is_suit_pixel(pixel: Color) -> bool:
+    return pixel.h >= 0.025 and pixel.h <= 0.115 and pixel.s >= 0.78 and pixel.v >= 0.48
+
+static func _is_skin_pixel(pixel: Color, local_y: int, frame_height: int) -> bool:
+    return local_y < int(float(frame_height) * 0.48) \
+        and pixel.h >= 0.025 and pixel.h <= 0.115 \
+        and pixel.s >= 0.34 and pixel.s < 0.78 \
+        and pixel.v >= 0.20 and pixel.v <= 0.78
+
+static func _is_scouter_pixel(pixel: Color, local_y: int, frame_height: int) -> bool:
+    return local_y < int(float(frame_height) * 0.48) \
+        and pixel.h >= 0.22 and pixel.h <= 0.48 \
+        and pixel.s >= 0.45 and pixel.v >= 0.28
+
+static func _retint(source: Color, target: Color, reference_value: float) -> Color:
+    var shade := clampf(source.v / reference_value, 0.28, 1.22)
+    var value := clampf(target.v * shade, 0.0, 1.0)
+    return Color.from_hsv(target.h, target.s, value, source.a)
+
 static func build_frames() -> SpriteFrames:
     var texture := load_texture()
     if texture == null:
