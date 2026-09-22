@@ -1,4 +1,5 @@
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = ROOT / "Godot" / "scripts" / "world_v112.gd"
@@ -21,7 +22,7 @@ def main() -> None:
     assert '"command_center"' in world
     assert 'SITE_ENERGY_KEYS' in registry
     assert registry.count('ROOT + "') >= 20
-    assert 'world_v112.gd' in scene
+    assert_world_inherits("world_v112.gd")
     print("v0.112 imported art integration contract PASS")
 
 

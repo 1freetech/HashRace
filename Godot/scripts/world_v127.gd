@@ -26,7 +26,7 @@ func _ready() -> void:
     set_meta("hashrace_utility_props_live", v127_utility_props_texture != null)
     set_meta("hashrace_wind_turbine_live", v127_wind_texture != null)
     set_meta("hashrace_asic_air_live", v127_asic_texture != null)
-    set_meta("hashrace_player_16frame_asset_live", v127_player_texture != null)
+    set_meta("hashrace_player_32frame_asset_live", v127_player_texture != null)
     queue_redraw()
 
 func _v115_draw_live_site(origin: Vector2) -> void:

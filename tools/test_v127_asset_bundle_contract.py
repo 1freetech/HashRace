@@ -1,4 +1,5 @@
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,11 +41,11 @@ def main():
         assert token in world, token
         assert token in capture, token
 
-    assert "hashrace_player_16frame_asset_live" in world
+    assert "hashrace_player_32frame_asset_live" in world
 
     assert "_v127_draw_industrial_road" in world
     assert "_v127_draw_utility_cluster" in world
-    assert "world_v127.gd" in scene
+    assert_world_inherits("world_v127.gd")
     assert "FRAME_REGIONS" in player
     assert '"walk_down"' in player and '"walk_up"' in player
     assert '"walk_left"' in player and '"walk_right"' in player

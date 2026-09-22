@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.138 recovery baseline: one live post-v0.129 layer replaces the broken v0.130-v0.137 version-per-file inheritance chain.
-[ext_resource path="res://scripts/world_v138.gd" type="Script" id="1_world"]
+; v0.139 character release: the approved 32-pose atlas builds directly on the consolidated v0.138 recovery baseline.
+[ext_resource path="res://scripts/world_v139.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
