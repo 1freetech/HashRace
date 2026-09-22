@@ -7,10 +7,14 @@ extends RefCounted
 
 const MAX_COLLISION_STEP: float = 16.0
 const WALK_CYCLE_DISTANCE: float = 84.0
+const INPUT_DEADZONE: float = 0.12
 
 static func normalized_input(raw: Vector2) -> Vector2:
-    # Prevent diagonal keyboard movement from being ~41% faster than cardinal movement.
-    # Analog inputs below full magnitude keep their strength for controller precision.
+    # Ignore tiny analog/controller drift so the representative stays visually
+    # idle when the player is not intentionally moving. Full diagonal inputs are
+    # normalized so they cannot move ~41% faster than cardinal movement.
+    if raw.length() < INPUT_DEADZONE:
+        return Vector2.ZERO
     if raw.length_squared() > 1.0:
         return raw.normalized()
     return raw
@@ -68,10 +72,23 @@ static func advance_step_phase(current_phase: float, actual_motion: Vector2) -> 
     var radians_per_pixel := TAU / WALK_CYCLE_DISTANCE
     return fposmod(current_phase + actual_motion.length() * radians_per_pixel, TAU)
 
+static func settled_step_phase(actual_motion: Vector2, current_phase: float) -> float:
+    # Returning to idle also returns the next walk to the first authored pose.
+    # This prevents a new movement burst from resuming mid-stride after standing.
+    return advance_step_phase(current_phase, actual_motion) if is_moving(actual_motion) else 0.0
+
 static func debug_distance_synced_walk() -> bool:
     var still := advance_step_phase(1.25, Vector2.ZERO)
     var half_cycle := advance_step_phase(0.0, Vector2(WALK_CYCLE_DISTANCE * 0.5, 0.0))
     return is_equal_approx(still, 1.25) and absf(half_cycle - PI) < 0.001
+
+static func debug_idle_reset() -> bool:
+    return is_zero_approx(settled_step_phase(Vector2.ZERO, 4.2)) \
+        and settled_step_phase(Vector2(8.0, 0.0), 0.0) > 0.0
+
+static func debug_input_deadzone() -> bool:
+    return normalized_input(Vector2(INPUT_DEADZONE * 0.5, 0.0)) == Vector2.ZERO \
+        and normalized_input(Vector2(1.0, 1.0)).is_normalized()
 
 static func debug_equal_speed() -> bool:
     var cardinal: Vector2 = normalized_input(Vector2(1.0, 0.0))

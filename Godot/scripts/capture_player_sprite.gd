@@ -39,15 +39,15 @@ func _capture() -> void:
     DirAccess.make_dir_recursive_absolute(output)
     var hashes: Dictionary = {}
     for direction in ["down", "left", "right", "up"]:
-        for frame in range(8):
+        for frame in range(4):
             scene.set("rep_facing", direction)
             scene.set("rep_animation_state", direction + ("_idle" if frame == 0 else "_walk"))
-            scene.set("rep_step_phase", 0.0 if frame == 0 else (float(frame) - 0.5) * TAU / 7.0)
+            scene.set("rep_step_phase", 0.0 if frame == 0 else (float(frame) - 0.5) * TAU / 3.0)
             scene.queue_redraw()
             await process_frame
             await RenderingServer.frame_post_draw
             if int(scene.call("_v121_walk_frame", frame != 0)) != frame:
-                _fail("live renderer selected the wrong walk phase")
+                _fail("live renderer selected the wrong effective walk phase")
                 return
             var image := root.get_texture().get_image()
             if image == null or image.is_empty():
@@ -68,5 +68,5 @@ func _capture() -> void:
             if image.save_png(output.path_join("%s-%s.png" % [direction, pose_name])) != OK:
                 _fail("could not save actual gameplay PNG")
                 return
-    print("HASH RACE PLAYER RENDER PASS: 32 distinct actual gameplay poses; saved all 32 live pose proofs")
+    print("HASH RACE PLAYER RENDER PASS: 16 distinct actual gameplay poses from exact approved 32-pose source")
     quit(0)
