@@ -64,9 +64,9 @@ func _capture() -> void:
                 _fail("two live poses produced identical pixels")
                 return
             hashes[digest] = true
-            if frame in [0, 3]:
-                if image.save_png(output.path_join("%s-%s.png" % [direction, "idle" if frame == 0 else "walk"])) != OK:
-                    _fail("could not save actual gameplay PNG")
-                    return
-    print("HASH RACE PLAYER RENDER PASS: 32 distinct actual gameplay poses; saved idle/walk proof for all four directions")
+            var pose_name := "idle" if frame == 0 else "walk-%02d" % frame
+            if image.save_png(output.path_join("%s-%s.png" % [direction, pose_name])) != OK:
+                _fail("could not save actual gameplay PNG")
+                return
+    print("HASH RACE PLAYER RENDER PASS: 32 distinct actual gameplay poses; saved all 32 live pose proofs")
     quit(0)
