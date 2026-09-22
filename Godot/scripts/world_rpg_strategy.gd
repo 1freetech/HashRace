@@ -66,7 +66,7 @@ func _process(delta: float) -> void:
         if RPGMovement.is_moving(actual_motion):
             rep_facing = RPGMovement.facing_from_motion(actual_motion, rep_facing)
             rep_animation_state = RPGMovement.animation_state(rep_facing, true)
-            rep_step_phase = fmod(rep_step_phase + delta * 8.0, TAU)
+            rep_step_phase = RPGMovement.advance_step_phase(rep_step_phase, actual_motion)
         else:
             rep_animation_state = RPGMovement.animation_state(rep_facing, false)
     else:
