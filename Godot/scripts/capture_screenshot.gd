@@ -32,13 +32,13 @@ func _capture() -> void:
         _fail("loading fallback is still covering the game")
         return
     if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
-        _fail("v0.124 visual-target layer is not live beneath v0.130")
+        _fail("v0.124 visual-target layer is not live beneath the recovery world")
         return
-    if int(scene.get_meta("hashrace_v130_library_overview_revision", 0)) != 1:
-        _fail("v0.130 Command Center overview layer is not live")
+    if not bool(scene.get_meta("hashrace_v138_recovery_live", false)):
+        _fail("v0.138 recovery world is not live")
         return
-    if not scene.has_method("debug_v130_ready") or not bool(scene.call("debug_v130_ready")):
-        _fail("v0.130 Command Center runtime contract failed")
+    if not scene.has_method("debug_v138_ready") or not bool(scene.call("debug_v138_ready")):
+        _fail("current recovery world runtime contract failed")
         return
     if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
         _fail("v0.128 road/container cleanup layer is not live")
@@ -56,6 +56,11 @@ func _capture() -> void:
         _fail("v0.125 dirt-road layer is not live beneath v0.126")
         return
 
+    for asset_key in ["hashrace_player_32frame_asset_live", "hashrace_dirt_road_asset_live", "hashrace_grass_terrain_asset_live", "hashrace_v128_container_asset_live", "hashrace_industrial_road_live", "hashrace_utility_props_live", "hashrace_wind_turbine_live", "hashrace_asic_air_live"]:
+        if not bool(scene.get_meta(asset_key, false)):
+            _fail("required authored image is missing: " + asset_key)
+            return
+
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
@@ -69,8 +74,7 @@ func _capture() -> void:
         _fail("could not save screenshot PNG: %s" % error_string(save_error))
         return
 
-    # Render quality is the release gate. Optional authored binaries may use
-    # runtime fallbacks, but a blank/clobbered gameplay frame can never pass.
+    # Both required authored textures and a nonblank live frame must pass.
     var histogram: Dictionary = {}
     var sampled: int = 0
     var step_x: int = maxi(1, int(image.get_width() / 90.0))

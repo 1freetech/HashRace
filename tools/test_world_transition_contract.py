@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,7 +19,7 @@ version = (ROOT / "VERSION").read_text().strip()
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 90, version
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
-assert "world_v090.gd" in scene
+assert_world_inherits("world_v090.gd")
 
 for marker in [
     "WORLD_TILE",

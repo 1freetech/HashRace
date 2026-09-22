@@ -6,6 +6,7 @@ extends RefCounted
 # https://github.com/clear-code-projects/Python-Monsters
 
 const MAX_COLLISION_STEP: float = 16.0
+const WALK_CYCLE_DISTANCE: float = 84.0
 
 static func normalized_input(raw: Vector2) -> Vector2:
     # Prevent diagonal keyboard movement from being ~41% faster than cardinal movement.
@@ -57,6 +58,20 @@ static func resolve_axis_motion(nav, origin: Vector2, requested_delta: Vector2) 
 
 static func is_moving(motion: Vector2) -> bool:
     return motion.length_squared() > 0.0001
+
+static func advance_step_phase(current_phase: float, actual_motion: Vector2) -> float:
+    # Tie the seven-frame walk cycle to real distance travelled. Collision
+    # clipping and variable path speeds no longer make the character's feet
+    # animate while the representative barely moves.
+    if not is_moving(actual_motion):
+        return current_phase
+    var radians_per_pixel := TAU / WALK_CYCLE_DISTANCE
+    return fposmod(current_phase + actual_motion.length() * radians_per_pixel, TAU)
+
+static func debug_distance_synced_walk() -> bool:
+    var still := advance_step_phase(1.25, Vector2.ZERO)
+    var half_cycle := advance_step_phase(0.0, Vector2(WALK_CYCLE_DISTANCE * 0.5, 0.0))
+    return is_equal_approx(still, 1.25) and absf(half_cycle - PI) < 0.001
 
 static func debug_equal_speed() -> bool:
     var cardinal: Vector2 = normalized_input(Vector2(1.0, 0.0))

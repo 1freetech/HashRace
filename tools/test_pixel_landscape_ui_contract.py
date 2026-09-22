@@ -18,8 +18,10 @@ texture_spacing = (ROOT / "Godot/scripts/world_texture_spacing.gd").read_text(en
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
-live_world_path = f'res://scripts/world_v{version.split(".")[1]}.gd'
-assert live_world_path in world_scene, f"Live scene must boot through {live_world_path}"
+live_world_match = re.search(r'path="(res://scripts/world_v\d{3}\.gd)"', world_scene)
+assert live_world_match, "Live scene does not reference a versioned world script"
+live_world_path = live_world_match.group(1)
+assert (ROOT / "Godot" / live_world_path.removeprefix("res://")).is_file(), f"Live world is missing: {live_world_path}"
 assert 'extends "res://scripts/world_v072.gd"' in world_v073
 assert 'extends "res://scripts/world_v070.gd"' in world_v072
 assert 'extends "res://scripts/world_v068.gd"' in world_v070

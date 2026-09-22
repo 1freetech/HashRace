@@ -3,6 +3,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <regex>
+#include <set>
 
 static std::string read_text(const std::string& path) {
     std::ifstream in(path);
@@ -14,6 +16,27 @@ static std::string read_text(const std::string& path) {
 
 static void require_contains(const std::string& text, const std::string& token) {
     if (text.find(token) == std::string::npos) throw std::runtime_error("missing contract token: " + token);
+}
+
+static void require_world_inherits(const std::string& scene, const std::string& wanted) {
+    std::smatch match;
+    if (!std::regex_search(scene, match, std::regex("script = ExtResource\\(\\\"([^\\\"]+)\\\"\\)")))
+        throw std::runtime_error("live world root has no script");
+    const auto id = match[1].str();
+    const std::regex resource("path=\\\"(res://[^\\\"]+)\\\" type=\\\"Script\\\" id=\\\"" + id + "\\\"");
+    if (!std::regex_search(scene, match, resource)) throw std::runtime_error("world script resource missing");
+    auto path = match[1].str();
+    std::set<std::string> visited;
+    bool found = false;
+    const std::regex parent("^extends \\\"(res://[^\\\"]+)\\\"");
+    while (path.rfind("res://", 0) == 0) {
+        if (!visited.insert(path).second) throw std::runtime_error("cyclic world inheritance");
+        if (path == "res://scripts/" + wanted) found = true;
+        const auto source = read_text("Godot/" + path.substr(6));
+        if (!std::regex_search(source, match, parent)) break;
+        path = match[1].str();
+    }
+    if (!found) throw std::runtime_error("live world does not inherit " + wanted);
 }
 
 int main() {
@@ -32,7 +55,7 @@ int main() {
         require_contains(world, "hashrace_v128_single_road_stack");
         require_contains(capture, "hashrace_v128_road_cleanup_revision");
         require_contains(capture, "hashrace_v128_single_road_stack");
-        require_contains(scene, "world_v130.gd");
+        require_world_inherits(scene, "world_v128.gd");
         require_contains(validator, "world_v128.gd");
         std::cout << "Hash Race v0.128 C++ road/container behavior contract: PASS\n";
         return 0;

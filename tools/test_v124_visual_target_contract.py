@@ -1,4 +1,5 @@
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,7 +23,7 @@ def main():
     ]:
         assert token in world, token
 
-    assert "world_v124.gd" in scene
+    assert_world_inherits("world_v124.gd")
     assert "world_v124.gd" in validator
     assert "hashrace_v124_visual_target_revision" in capture
     assert "Reference image = **target**." in spec

@@ -12,8 +12,7 @@ extends "res://scripts/world_v122.gd"
 const VisualTargetHUD = preload("res://scripts/visual_target_hud.gd")
 const DefaultPlayerSheetV123 = preload("res://scripts/default_player_sprite_sheet.gd")
 const V123_VISUAL_TARGET_REVISION := 1
-const V123_PLAYER_HEIGHT := 124.0
-const V123_PLAYER_ANCHOR_Y := 0.66
+const V123_PLAYER_SIZE := Vector2(122.0, 122.0)
 const V123_GREEN := Color("64ff71")
 const V123_DARK := Color("11181d")
 const V123_STEEL := Color("59646b")
@@ -23,10 +22,8 @@ const V123_FENCE := Color("69777a")
 
 var v123_hud_layer: CanvasLayer
 var v123_hud: Control
-var v123_green_player_texture: Texture2D
 
 func _ready() -> void:
-    _v123_build_green_player_texture()
     super._ready()
     set_meta("hashrace_v123_visual_target_revision", V123_VISUAL_TARGET_REVISION)
     call_deferred("_v123_install_hud")
@@ -59,45 +56,7 @@ func _v123_install_hud() -> void:
     if is_instance_valid(restore):
         restore.visible = false
 
-func _v123_build_green_player_texture() -> void:
-    if v121_player_texture == null:
-        v121_player_texture = DefaultPlayerSheetV123.load_texture()
-    if v121_player_texture == null:
-        return
-    var image := v121_player_texture.get_image()
-    if image == null or image.is_empty():
-        return
-    for y in range(image.get_height()):
-        for x in range(image.get_width()):
-            var c := image.get_pixel(x, y)
-            if c.a < 0.05:
-                continue
-            # Recolor only the warm armor/scouter accents. Skin and black armor
-            # remain intact, producing the green/black target character at run time.
-            if c.r > c.g * 1.18 and c.r > c.b * 1.25 and c.r > 0.30:
-                var luminance := clampf((c.r + c.g + c.b) / 3.0, 0.0, 1.0)
-                c.r = 0.10 + luminance * 0.18
-                c.g = 0.55 + luminance * 0.42
-                c.b = 0.18 + luminance * 0.20
-                image.set_pixel(x, y, c)
-    v123_green_player_texture = ImageTexture.create_from_image(image)
-
-func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: bool) -> void:
-    if not is_player or v123_green_player_texture == null or not v073_character_action.is_empty():
-        super._draw_tech_rep(pos, accent, scanner, is_player)
-        return
-    var moving := not rep_animation_state.ends_with("_idle")
-    var frame := _v121_walk_frame(moving)
-    var region := DefaultPlayerSheetV123.frame_region(rep_facing, frame)
-    var frame_aspect := float(region.size.x) / float(region.size.y)
-    var size_value := Vector2(V123_PLAYER_HEIGHT * frame_aspect, V123_PLAYER_HEIGHT)
-    var center := VisualStack.snap_to_pixel(pos + Vector2(0.0, -5.0))
-    var dest := Rect2(
-        center + Vector2(-size_value.x * 0.5, -size_value.y * V123_PLAYER_ANCHOR_Y),
-        size_value
-    )
-    draw_ellipse_shadow(VisualStack.snap_to_pixel(pos + Vector2(0.0, 43.0)), 27.0, 8.0)
-    draw_texture_rect_region(v123_green_player_texture, dest, Rect2(region))
+# Player rendering is inherited from world_v121: preserve the approved colors.
 
 func _v115_draw_live_site(origin: Vector2) -> void:
     # Replace the old gray pad with a sparse, authored-looking facility block.
@@ -251,5 +210,5 @@ func _v123_label(pos: Vector2, value: String, font_size: int, color: Color) -> v
 func debug_v123_ready() -> bool:
     return V123_VISUAL_TARGET_REVISION == 1 \
         and VisualTargetHUD != null \
-        and V123_PLAYER_HEIGHT > 88.0 \
+        and V123_PLAYER_SIZE.x > 88.0 \
         and debug_v122_ready()

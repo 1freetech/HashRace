@@ -12,7 +12,7 @@ strategy = (ROOT / "Godot/scripts/world_v090.gd").read_text()
 # world.tscn correctly points at the newest release, so older contracts must not
 # require the scene to remain frozen on their historical script.
 assert version.startswith("v0."), version
-assert "world_v138.gd" in scene
+assert f'world_v{version.split(".")[1]}.gd' in scene
 assert 'extends "res://scripts/world_v090.gd"' in quality
 assert "V090_STRATEGY_REVISION" in strategy
 

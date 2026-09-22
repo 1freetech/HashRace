@@ -1,4 +1,5 @@
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = (ROOT / "Godot/scripts/world_v113.gd").read_text(encoding="utf-8")
@@ -16,7 +17,7 @@ def main():
     ]:
         assert f"func {fn}" in WORLD
     assert "_v113_draw_industrial_base" in WORLD
-    assert "world_v113.gd" in SCENE
+    assert_world_inherits("world_v113.gd")
     print("v0.113 industrial-site replacement contract PASS")
 
 if __name__ == "__main__":
