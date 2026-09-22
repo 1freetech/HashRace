@@ -8,6 +8,7 @@ def test_v123_visual_target_contract():
 
     world = (ROOT / "Godot/scripts/world_v123.gd").read_text()
     hud = (ROOT / "Godot/scripts/visual_target_hud.gd").read_text()
+    navigation = (ROOT / "Godot/scripts/world_v094.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
     spec = (ROOT / "docs/visual_target_v121.md").read_text()
@@ -34,10 +35,22 @@ def test_v123_visual_target_contract():
         "POWER",
         "HASHRATE",
         "EFFICIENCY",
-        "Current Objective",
         "Interact",
     ]:
         assert token in hud, token
+
+    assert "Current Objective" not in hud
+    assert "_draw_objective()" not in hud
+    for slogan in ["Mine.", "Expand.", "Race Ahead."]:
+        assert slogan not in hud, slogan
+    for token in [
+        '"OBJECTIVE", "objective"',
+        '"CURRENT OBJECTIVE"',
+        '"Upgrade Transformer"',
+        '"Gather $25,000"',
+        "objective_panel.visible = true",
+    ]:
+        assert token in navigation, token
 
     assert_world_inherits("world_v123.gd")
     assert "visual_target_hud.gd" in validator

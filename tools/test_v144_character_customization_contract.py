@@ -1,14 +1,15 @@
 """v0.144 exact-sheet character customization regression contract."""
+import re
 from hashlib import sha256
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "Godot/scripts"
 sheet = ROOT / "Godot/art/characters/default_player_sheet.png"
-sheet_code = (ROOT / "Godot/scripts/default_player_sprite_sheet.gd").read_text(encoding="utf-8")
-customization = (ROOT / "Godot/scripts/character_customization.gd").read_text(encoding="utf-8")
-preview = (ROOT / "Godot/scripts/character_preview.gd").read_text(encoding="utf-8")
-world = (ROOT / "Godot/scripts/world_v144.gd").read_text(encoding="utf-8")
+sheet_code = (SCRIPTS / "default_player_sprite_sheet.gd").read_text(encoding="utf-8")
+customization = (SCRIPTS / "character_customization.gd").read_text(encoding="utf-8")
+preview = (SCRIPTS / "character_preview.gd").read_text(encoding="utf-8")
+world = (SCRIPTS / "world_v144.gd").read_text(encoding="utf-8")
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 
 assert sha256(sheet.read_bytes()).hexdigest() == "2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211"
@@ -20,21 +21,34 @@ assert "ACTUAL PLAYER PREVIEW" in preview
 assert "approved_32frame_runtime_palette" in world
 assert "debug_v144_palette_key" in world
 
-# The v0.144 character contract must survive later live-world revisions. Resolve
-# the scene's current world script, then walk its inheritance chain back to v144
-# instead of pinning world.tscn forever to one historical version.
-match = re.search(r'path="res://scripts/(world_v\d+\.gd)"', scene)
-assert match, "world.tscn must reference a versioned live world script"
-live_world_name = match.group(1)
-visited = set()
-while live_world_name != "world_v144.gd":
-    assert live_world_name not in visited, "world inheritance chain contains a cycle"
-    visited.add(live_world_name)
-    live_world_path = ROOT / "Godot/scripts" / live_world_name
-    assert live_world_path.exists(), f"missing live world script: {live_world_name}"
-    live_world = live_world_path.read_text(encoding="utf-8")
-    parent = re.search(r'extends\s+"res://scripts/(world_v\d+\.gd)"', live_world)
-    assert parent, f"{live_world_name} must inherit a versioned world layer"
-    live_world_name = parent.group(1)
+# Historical regression layers are behavior contracts, not live-version locks.
+# Follow the current world inheritance chain and require v0.144 to remain in it.
+live_scene_match = re.search(
+    r'path="res://scripts/(world_v\d+\.gd)" type="Script" id="1_world"', scene
+)
+assert live_scene_match, "world.tscn must point at a versioned live world script"
+current_name = live_scene_match.group(1)
+visited = []
+while True:
+    assert current_name not in visited, f"world inheritance cycle detected at {current_name}"
+    visited.append(current_name)
+    if current_name == "world_v144.gd":
+        break
+    current_path = SCRIPTS / current_name
+    assert current_path.exists(), f"missing inherited world script: {current_name}"
+    current_source = current_path.read_text(encoding="utf-8")
+    parent_match = re.search(r'^extends\s+"res://scripts/(world_v\d+\.gd)"', current_source, re.MULTILINE)
+    assert parent_match, (
+        f"{current_name} must preserve the versioned inheritance chain back to v0.144; "
+        f"visited: {' -> '.join(visited)}"
+    )
+    current_name = parent_match.group(1)
 
-print("Hash Race v0.144 exact approved-sheet skin/suit customization contract: PASS")
+assert "world_v144.gd" in visited, (
+    "current live world must preserve v0.144 customization behavior through inheritance; "
+    f"visited: {' -> '.join(visited)}"
+)
+print(
+    "Hash Race v0.144 exact approved-sheet skin/suit customization contract: PASS "
+    f"through {' -> '.join(visited)}"
+)

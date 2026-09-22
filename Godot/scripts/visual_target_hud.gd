@@ -34,7 +34,6 @@ func _draw() -> void:
     if not is_instance_valid(world):
         return
     _draw_top_bar()
-    _draw_objective()
     _draw_input_hint()
     _draw_minimap()
 
@@ -81,23 +80,6 @@ func _draw_top_bar() -> void:
     _stat(Rect2(x, 6, widths[3], 62), "HASHRATE", "%s TH/s" % _compact(hashrate), GREEN, "📈")
     x += widths[3] + gap
     _stat(Rect2(x, 6, widths[4], 62), "EFFICIENCY", "%.2f J/TH" % efficiency, GREEN, "📉")
-
-    var right := Rect2(vw - 148.0, 6.0, 138.0, 62.0)
-    _panel(right)
-    _text(right.position + Vector2(15, 20), "Mine.", 11, GREEN)
-    _text(right.position + Vector2(15, 37), "Expand.", 11, GREEN)
-    _text(right.position + Vector2(15, 54), "Race Ahead.", 11, GREEN)
-
-func _draw_objective() -> void:
-    var r := Rect2(12, 88, 250, 118)
-    _panel(r)
-    _text(r.position + Vector2(14, 22), "Current Objective", 13, GREEN)
-    _text(r.position + Vector2(14, 48), "Upgrade Transformer", 13, WHITE)
-    draw_rect(Rect2(r.position + Vector2(16, 66), Vector2(17, 17)), PANEL_2, true)
-    draw_rect(Rect2(r.position + Vector2(16, 66), Vector2(17, 17)), MUTED, false, 1.0)
-    var cash := _player_value("cash", 0.0)
-    _text(r.position + Vector2(44, 80), "Gather $25,000", 11, WHITE)
-    _text(r.position + Vector2(44, 101), "(%s / 25,000)" % _money(cash), 10, MUTED)
 
 func _draw_input_hint() -> void:
     var y := size.y - 72.0
