@@ -19,7 +19,7 @@ func _capture() -> void:
     root.add_child(scene)
     for _index in range(16):
         await process_frame
-    if not bool(scene.get_meta("hashrace_npc_miner_asset_live", false)) or not bool(scene.call("debug_v145_ready")):
+    if not bool(scene.get_meta("hashrace_npc_miner_asset_live", false)) or not bool(scene.call("debug_v147_ready")):
         _fail("committed NPC miner binary is not live")
         return
     var npc_position := Vector2.ZERO
@@ -65,8 +65,8 @@ func _capture() -> void:
     var pose_keys: Array[String] = []
     for facing in ["down", "left", "right", "up"]:
         for frame in range(4):
-            scene.set("v145_debug_npc_facing", facing)
-            scene.set("v145_debug_npc_frame", frame)
+            scene.set("v147_debug_npc_facing", facing)
+            scene.set("v147_debug_npc_frame", frame)
             scene.queue_redraw()
             await process_frame
             await RenderingServer.frame_post_draw
