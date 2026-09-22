@@ -2,23 +2,35 @@ extends RefCounted
 class_name HashRaceDefaultPlayerSpriteSheet
 
 const SHEET_PATH := "res://art/characters/default_player_sheet.png"
-const FRAME_SIZE := Vector2i(40, 62)
-const SHEET_SIZE := Vector2i(160, 248)
+const FRAME_SIZE := Vector2i(32, 40)
+const SHEET_SIZE := Vector2i(256, 160)
+const WALK_FPS := 10.0
 
-# Exact 4x4 game atlas cropped from the user-supplied player sheet.
-# The gray background and editor grid are removed from the PNG itself.
-# Row 0 = down/front, row 1 = up/back, row 2 = left, row 3 = right.
-const FRAME_REGIONS := {
-    "down": [Rect2i(0, 0, 40, 62), Rect2i(40, 0, 40, 62), Rect2i(80, 0, 40, 62), Rect2i(120, 0, 40, 62)],
-    "up": [Rect2i(0, 62, 40, 62), Rect2i(40, 62, 40, 62), Rect2i(80, 62, 40, 62), Rect2i(120, 62, 40, 62)],
-    "left": [Rect2i(0, 124, 40, 62), Rect2i(40, 124, 40, 62), Rect2i(80, 124, 40, 62), Rect2i(120, 124, 40, 62)],
-    "right": [Rect2i(0, 186, 40, 62), Rect2i(40, 186, 40, 62), Rect2i(80, 186, 40, 62), Rect2i(120, 186, 40, 62)],
+# Valid 32-frame player atlas: 8 columns x 4 rows.
+# The uploaded PNG already has a transparent background and clean frame cells.
+# Row 0 = down/front, row 1 = right/east, row 2 = up/back, row 3 = left/west.
+# Column 0 = idle/stand; columns 1-7 = walk frames.
+const ROW_BY_FACING := {
+    "down": 0,
+    "right": 1,
+    "up": 2,
+    "left": 3,
 }
 
 static func load_texture() -> Texture2D:
-    if not ResourceLoader.exists(SHEET_PATH):
+    if ResourceLoader.exists(SHEET_PATH):
+        var imported := load(SHEET_PATH) as Texture2D
+        if imported != null:
+            return imported
+    var absolute_path := ProjectSettings.globalize_path(SHEET_PATH)
+    if not FileAccess.file_exists(absolute_path):
         return null
-    return load(SHEET_PATH) as Texture2D
+    var image := Image.new()
+    if image.load(absolute_path) != OK or image.is_empty():
+        return null
+    if image.get_size() != SHEET_SIZE:
+        return null
+    return ImageTexture.create_from_image(image)
 
 static func build_frames() -> SpriteFrames:
     var texture := load_texture()
@@ -27,20 +39,22 @@ static func build_frames() -> SpriteFrames:
     var frames := SpriteFrames.new()
     if frames.has_animation(&"default"):
         frames.remove_animation(&"default")
-    _add_animation(frames, &"idle_down", texture, [FRAME_REGIONS["down"][0]], 1.0, true)
-    _add_animation(frames, &"idle_up", texture, [FRAME_REGIONS["up"][0]], 1.0, true)
-    _add_animation(frames, &"idle_left", texture, [FRAME_REGIONS["left"][0]], 1.0, true)
-    _add_animation(frames, &"idle_right", texture, [FRAME_REGIONS["right"][0]], 1.0, true)
-    _add_animation(frames, &"walk_down", texture, FRAME_REGIONS["down"], 10.0, true)
-    _add_animation(frames, &"walk_up", texture, FRAME_REGIONS["up"], 10.0, true)
-    _add_animation(frames, &"walk_left", texture, FRAME_REGIONS["left"], 10.0, true)
-    _add_animation(frames, &"walk_right", texture, FRAME_REGIONS["right"], 10.0, true)
+    for facing in ["down", "up", "left", "right"]:
+        var row: int = int(ROW_BY_FACING[facing])
+        _add_animation(frames, StringName("idle_" + facing), texture, [_region(0, row)], 1.0, true)
+        var walk_regions: Array = []
+        for column in range(1, 8):
+            walk_regions.append(_region(column, row))
+        _add_animation(frames, StringName("walk_" + facing), texture, walk_regions, WALK_FPS, true)
     return frames
 
 static func frame_region(facing: String, frame: int) -> Rect2i:
-    var safe_facing := facing if FRAME_REGIONS.has(facing) else "down"
-    var regions: Array = FRAME_REGIONS[safe_facing]
-    return regions[clampi(frame, 0, regions.size() - 1)]
+    var safe_facing := facing if ROW_BY_FACING.has(facing) else "down"
+    var row: int = int(ROW_BY_FACING[safe_facing])
+    return _region(clampi(frame, 0, 7), row)
+
+static func _region(column: int, row: int) -> Rect2i:
+    return Rect2i(column * FRAME_SIZE.x, row * FRAME_SIZE.y, FRAME_SIZE.x, FRAME_SIZE.y)
 
 static func _add_animation(frames: SpriteFrames, name: StringName, texture: Texture2D, regions: Array, fps: float, loop: bool) -> void:
     frames.add_animation(name)
@@ -54,4 +68,7 @@ static func _add_animation(frames: SpriteFrames, name: StringName, texture: Text
         frames.add_frame(name, atlas)
 
 static func debug_ready() -> bool:
-    return FRAME_SIZE == Vector2i(40, 62) and SHEET_SIZE == Vector2i(160, 248) and FRAME_REGIONS.size() == 4 and ResourceLoader.exists(SHEET_PATH)
+    return FRAME_SIZE == Vector2i(32, 40) \
+        and SHEET_SIZE == Vector2i(256, 160) \
+        and ROW_BY_FACING.size() == 4 \
+        and ResourceLoader.exists(SHEET_PATH)
