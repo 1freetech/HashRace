@@ -261,6 +261,7 @@ jobs:
           SCREENSHOT_FILE="release/hashrace-screenshot.png"
           WINDOWS_LINE="- Windows x64: pending validation"
           LINUX_LINE="- Linux x64: pending validation"
+          STATUS_LINE="Validated desktop packages are listed below."
           SCREENSHOT_SECTION=""
           if [ -s "$WINDOWS_FILE" ]; then
             WINDOWS_LINE="- [Windows x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-windows-x64.zip)"
@@ -270,6 +271,13 @@ jobs:
           else
             LINUX_LINE="- Linux x64: validation/fix in progress; it will be attached to this same release once its lane passes."
           fi
+          if [ -s "$WINDOWS_FILE" ] && [ -s "$LINUX_FILE" ]; then
+            STATUS_LINE="Windows x64 and Linux x64 both passed validation for this release."
+          elif [ -s "$WINDOWS_FILE" ]; then
+            STATUS_LINE="Windows x64 passed validation; Linux x64 is still being repaired and will attach to this release after it passes."
+          elif [ -s "$LINUX_FILE" ]; then
+            STATUS_LINE="Linux x64 passed validation; Windows x64 is still being repaired and will attach to this release after it passes."
+          fi
           if [ -s "$SCREENSHOT_FILE" ]; then
             SCREENSHOT_URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/hashrace-screenshot.png"
             SCREENSHOT_SECTION=$(printf '\n## Screenshot\n\n![Hash Race gameplay screenshot](%s)\n' "$SCREENSHOT_URL")
@@ -277,7 +285,7 @@ jobs:
           NOTES=$(cat <<EOF
           Hash Race $VERSION
 
-          This release publishes each validated desktop package independently. Windows can ship while Linux is still being repaired; Linux remains a required target and will be attached to this same release after its validation lane passes.
+          $STATUS_LINE
 
           ## Downloads
 
