@@ -12,6 +12,7 @@ const MAX_CAMPAIGN_YEARS: int = 100
 var company_option: OptionButton
 var years_option: OptionButton
 var skin_tone_option: OptionButton
+var suit_color_option: OptionButton
 var gender_option: OptionButton
 var scouter_color_option: OptionButton
 var scouter_eye_option: OptionButton
@@ -121,15 +122,15 @@ func build_menu() -> void:
 
     var skin_label := Label.new()
     skin_label.position = Vector2(78, 397)
-    skin_label.size = Vector2(210, 22)
+    skin_label.size = Vector2(135, 22)
     skin_label.text = "SKIN TONE"
     skin_label.add_theme_font_size_override("font_size", 11)
     skin_label.add_theme_color_override("font_color", Color("b8dce5"))
     panel.add_child(skin_label)
 
     var gender_label := Label.new()
-    gender_label.position = Vector2(300, 397)
-    gender_label.size = Vector2(210, 22)
+    gender_label.position = Vector2(368, 397)
+    gender_label.size = Vector2(142, 22)
     gender_label.text = "GENDER / PRESENTATION"
     gender_label.add_theme_font_size_override("font_size", 11)
     gender_label.add_theme_color_override("font_color", Color("b8dce5"))
@@ -137,7 +138,7 @@ func build_menu() -> void:
 
     skin_tone_option = OptionButton.new()
     skin_tone_option.position = Vector2(78, 420)
-    skin_tone_option.size = Vector2(210, 40)
+    skin_tone_option.size = Vector2(135, 40)
     skin_tone_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.SKIN_TONES.size()):
         skin_tone_option.add_item(String(CharacterCustomization.SKIN_TONES[i]["name"]), i)
@@ -146,8 +147,26 @@ func build_menu() -> void:
     panel.add_child(skin_tone_option)
 
     gender_option = OptionButton.new()
-    gender_option.position = Vector2(300, 420)
-    gender_option.size = Vector2(210, 40)
+    var suit_label := Label.new()
+    suit_label.position = Vector2(223, 397)
+    suit_label.size = Vector2(135, 22)
+    suit_label.text = "SUIT COLOR"
+    suit_label.add_theme_font_size_override("font_size", 11)
+    suit_label.add_theme_color_override("font_color", Color("b8dce5"))
+    panel.add_child(suit_label)
+
+    suit_color_option = OptionButton.new()
+    suit_color_option.position = Vector2(223, 420)
+    suit_color_option.size = Vector2(135, 40)
+    suit_color_option.add_theme_font_size_override("font_size", 12)
+    for i in range(CharacterCustomization.SUIT_COLORS.size()):
+        suit_color_option.add_item(String(CharacterCustomization.SUIT_COLORS[i]["name"]), i)
+    suit_color_option.select(CharacterCustomization.DEFAULT_SUIT_COLOR)
+    suit_color_option.item_selected.connect(_on_character_changed)
+    panel.add_child(suit_color_option)
+
+    gender_option.position = Vector2(368, 420)
+    gender_option.size = Vector2(142, 40)
     gender_option.add_theme_font_size_override("font_size", 13)
     for i in range(CharacterCustomization.GENDERS.size()):
         gender_option.add_item(String(CharacterCustomization.GENDERS[i]["name"]), i)
@@ -267,8 +286,10 @@ func _on_character_changed(_index: int) -> void:
     var gender_idx: int = gender_option.get_item_id(gender_option.selected)
     var scouter_color_idx: int = scouter_color_option.get_item_id(scouter_color_option.selected)
     var scouter_eye_idx: int = scouter_eye_option.get_item_id(scouter_eye_option.selected)
-    character_summary.text = "%s skin  •  %s  •  %s scouter / %s\nNeon Operator Armor included" % [
+    var suit_color_idx: int = suit_color_option.get_item_id(suit_color_option.selected)
+    character_summary.text = "%s skin  •  %s suit  •  %s\n%s scouter / %s" % [
         String(CharacterCustomization.skin_tone(skin_idx)["name"]),
+        String(CharacterCustomization.suit_color(suit_color_idx)["name"]),
         String(CharacterCustomization.gender(gender_idx)["name"]),
         String(CharacterCustomization.scouter_color(scouter_color_idx)["name"]),
         String(CharacterCustomization.scouter_eye(scouter_eye_idx)["name"])
@@ -279,7 +300,8 @@ func _on_character_changed(_index: int) -> void:
             gender_idx,
             CharacterCustomization.DEFAULT_OUTFIT,
             scouter_color_idx,
-            scouter_eye_idx
+            scouter_eye_idx,
+            suit_color_idx
         )
 
 func _on_clock_changed(index: int) -> void:
@@ -295,6 +317,7 @@ func start_campaign() -> void:
     get_tree().set_meta("hashrace_company_idx", company_option.get_item_id(company_option.selected))
     get_tree().set_meta("hashrace_campaign_years", years)
     get_tree().set_meta("hashrace_character_skin_tone", skin_tone_option.get_item_id(skin_tone_option.selected))
+    get_tree().set_meta("hashrace_character_suit_color", suit_color_option.get_item_id(suit_color_option.selected))
     get_tree().set_meta("hashrace_character_gender", gender_option.get_item_id(gender_option.selected))
     get_tree().set_meta("hashrace_character_outfit", CharacterCustomization.DEFAULT_OUTFIT)
     get_tree().set_meta("hashrace_character_scouter_color", scouter_color_option.get_item_id(scouter_color_option.selected))
@@ -316,3 +339,8 @@ func debug_character_preview_scouter_selection() -> Vector2i:
     if not is_instance_valid(character_preview):
         return Vector2i(-1, -1)
     return Vector2i(int(character_preview.scouter_color_idx), int(character_preview.scouter_eye_idx))
+
+func debug_character_preview_suit_color() -> int:
+    if not is_instance_valid(character_preview):
+        return -1
+    return int(character_preview.suit_color_idx)

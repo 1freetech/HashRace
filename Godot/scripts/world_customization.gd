@@ -26,6 +26,7 @@ func _initialize_player() -> void:
     var outfit_idx: int = CharacterCustomization.DEFAULT_OUTFIT
     var scouter_color_idx: int = CharacterCustomization.DEFAULT_SCOUTER_COLOR
     var scouter_eye_idx: int = CharacterCustomization.DEFAULT_SCOUTER_EYE
+    var suit_color_idx: int = CharacterCustomization.DEFAULT_SUIT_COLOR
     if get_tree().has_meta("hashrace_character_skin_tone"):
         skin_idx = clampi(int(get_tree().get_meta("hashrace_character_skin_tone")), 0, CharacterCustomization.SKIN_TONES.size() - 1)
     if get_tree().has_meta("hashrace_character_gender"):
@@ -36,12 +37,15 @@ func _initialize_player() -> void:
         scouter_color_idx = clampi(int(get_tree().get_meta("hashrace_character_scouter_color")), 0, CharacterCustomization.SCOUTER_COLORS.size() - 1)
     if get_tree().has_meta("hashrace_character_scouter_eye"):
         scouter_eye_idx = clampi(int(get_tree().get_meta("hashrace_character_scouter_eye")), 0, CharacterCustomization.SCOUTER_EYES.size() - 1)
+    if get_tree().has_meta("hashrace_character_suit_color"):
+        suit_color_idx = clampi(int(get_tree().get_meta("hashrace_character_suit_color")), 0, CharacterCustomization.SUIT_COLORS.size() - 1)
 
     player["skin_tone_idx"] = skin_idx
     player["gender_idx"] = gender_idx
     player["outfit_idx"] = outfit_idx
     player["scouter_color_idx"] = scouter_color_idx
     player["scouter_eye_idx"] = scouter_eye_idx
+    player["suit_color_idx"] = suit_color_idx
     var owned: Dictionary = {CharacterCustomization.DEFAULT_OUTFIT: true}
     if outfit_idx == CharacterCustomization.DEFAULT_OUTFIT:
         owned[outfit_idx] = true
@@ -388,6 +392,9 @@ func debug_character_scouter_color() -> int:
 
 func debug_character_scouter_eye() -> int:
     return int(player.get("scouter_eye_idx", -1))
+
+func debug_character_suit_color() -> int:
+    return int(player.get("suit_color_idx", -1))
 
 func debug_paid_outfits_use_game_cash() -> bool:
     for i in range(1, CharacterCustomization.OUTFITS.size()):

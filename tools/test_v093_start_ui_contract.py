@@ -27,10 +27,11 @@ assert 'preload("res://scripts/character_preview.gd")' in setup
 assert 'character_preview.name = "CharacterPreview"' in setup
 assert "character_preview.set_character(" in setup
 assert "scouter_color_idx" in setup and "scouter_eye_idx" in setup, "Live preview must include current scouter customization"
-assert "LIVE PLAYER PREVIEW" in preview
+assert "ACTUAL PLAYER PREVIEW" in preview
 assert "func set_character(" in preview
 assert "CharacterCustomization.skin_tone" in preview
-assert "CharacterCustomization.outfit" in preview
+assert "DefaultPlayerSheet.build_customized_texture" in preview
+assert "suit_color_idx" in preview and "SUIT_COLORS" in setup
 assert "MAX_CAMPAIGN_YEARS: int = 100" in setup
 assert "range(1, MAX_CAMPAIGN_YEARS + 1)" in setup
 
