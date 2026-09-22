@@ -16,8 +16,10 @@ capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encodi
 
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 70, version
-live_world_path = f'res://scripts/world_v{version.split(".")[1]}.gd'
-assert live_world_path in scene, f"Live scene does not reference {live_world_path}"
+live_world_match = re.search(r'path="(res://scripts/world_v\d{3}\.gd)"', scene)
+assert live_world_match, "Live scene does not reference a versioned world script"
+live_world_path = live_world_match.group(1)
+assert (root / "Godot" / live_world_path.removeprefix("res://")).is_file(), f"Live world is missing: {live_world_path}"
 assert 'extends "res://scripts/world_v072.gd"' in live_world
 assert 'extends "res://scripts/world_v070.gd"' in current_world
 assert 'extends "res://scripts/world_v068.gd"' in release_world

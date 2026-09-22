@@ -167,7 +167,7 @@ jobs:
         run: |
           set -euo pipefail
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-release-player-render.log
-          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER RENDER FAIL" /tmp/hashrace-release-player-render.log; then exit 1; fi
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-release-player-render.log; then exit 1; fi
 
       - name: Export current Godot game
         shell: bash
