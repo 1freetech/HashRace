@@ -66,11 +66,13 @@ func _process(delta: float) -> void:
         if RPGMovement.is_moving(actual_motion):
             rep_facing = RPGMovement.facing_from_motion(actual_motion, rep_facing)
             rep_animation_state = RPGMovement.animation_state(rep_facing, true)
-            rep_step_phase = RPGMovement.advance_step_phase(rep_step_phase, actual_motion)
+            rep_step_phase = RPGMovement.settled_step_phase(actual_motion, rep_step_phase)
         else:
             rep_animation_state = RPGMovement.animation_state(rep_facing, false)
+            rep_step_phase = RPGMovement.settled_step_phase(Vector2.ZERO, rep_step_phase)
     else:
         rep_animation_state = RPGMovement.animation_state(rep_facing, false)
+        rep_step_phase = RPGMovement.settled_step_phase(Vector2.ZERO, rep_step_phase)
     _refresh_scanner_cells(false)
     _refresh_interaction_prompt()
 
@@ -101,6 +103,7 @@ func _unhandled_input(event: InputEvent) -> void:
                     var entity: Dictionary = entities[idx]
                     rep_facing = RPGMovement.face_target(rep_pos, entity["pos"], rep_facing)
                     rep_animation_state = RPGMovement.animation_state(rep_facing, false)
+                    rep_step_phase = 0.0
                     _open_entity(idx)
                     get_viewport().set_input_as_handled()
                     return
