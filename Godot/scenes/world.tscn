@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.140 character-motion release: approved 32-pose art with distance-synced walking and complete live-pose proof.
-[ext_resource path="res://scripts/world_v140.gd" type="Script" id="1_world"]
+; v0.141 player-control release: approved 32-pose art with drift suppression, stable idle resets, and distance-synced walking.
+[ext_resource path="res://scripts/world_v141.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
