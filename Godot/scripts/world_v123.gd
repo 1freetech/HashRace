@@ -12,7 +12,8 @@ extends "res://scripts/world_v122.gd"
 const VisualTargetHUD = preload("res://scripts/visual_target_hud.gd")
 const DefaultPlayerSheetV123 = preload("res://scripts/default_player_sprite_sheet.gd")
 const V123_VISUAL_TARGET_REVISION := 1
-const V123_PLAYER_SIZE := Vector2(122.0, 122.0)
+const V123_PLAYER_HEIGHT := 124.0
+const V123_PLAYER_ANCHOR_Y := 0.66
 const V123_GREEN := Color("64ff71")
 const V123_DARK := Color("11181d")
 const V123_STEEL := Color("59646b")
@@ -88,12 +89,14 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
     var moving := not rep_animation_state.ends_with("_idle")
     var frame := _v121_walk_frame(moving)
     var region := DefaultPlayerSheetV123.frame_region(rep_facing, frame)
+    var frame_aspect := float(region.size.x) / float(region.size.y)
+    var size_value := Vector2(V123_PLAYER_HEIGHT * frame_aspect, V123_PLAYER_HEIGHT)
     var center := VisualStack.snap_to_pixel(pos + Vector2(0.0, -5.0))
     var dest := Rect2(
-        center + Vector2(-V123_PLAYER_SIZE.x * 0.5, -V123_PLAYER_SIZE.y * 0.58),
-        V123_PLAYER_SIZE
+        center + Vector2(-size_value.x * 0.5, -size_value.y * V123_PLAYER_ANCHOR_Y),
+        size_value
     )
-    draw_ellipse_shadow(VisualStack.snap_to_pixel(pos + Vector2(0.0, 43.0)), 29.0, 8.0)
+    draw_ellipse_shadow(VisualStack.snap_to_pixel(pos + Vector2(0.0, 43.0)), 27.0, 8.0)
     draw_texture_rect_region(v123_green_player_texture, dest, Rect2(region))
 
 func _v115_draw_live_site(origin: Vector2) -> void:
@@ -248,5 +251,5 @@ func _v123_label(pos: Vector2, value: String, font_size: int, color: Color) -> v
 func debug_v123_ready() -> bool:
     return V123_VISUAL_TARGET_REVISION == 1 \
         and VisualTargetHUD != null \
-        and V123_PLAYER_SIZE.x > 88.0 \
+        and V123_PLAYER_HEIGHT > 88.0 \
         and debug_v122_ready()
