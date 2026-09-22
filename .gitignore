@@ -29,3 +29,11 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Godot import cache and generated verification outputs
+Godot/.godot/
+Godot/**/*.uid
+Godot/**/*.import
+visual-proof/
+.tmp-ts/
+__pycache__/

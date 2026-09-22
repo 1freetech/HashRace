@@ -52,9 +52,9 @@ static func load_texture() -> Texture2D:
     return ImageTexture.create_from_image(image)
 
 static func region(tile_name: String) -> Rect2i:
-    if not REGIONS.has(tile_name):
-        return REGIONS["filler_clean"]
-    return REGIONS[tile_name]
+    var region: Rect2i = REGIONS.get(tile_name, REGIONS["filler_clean"])
+    # Healthy source is 512px; map the catalog's original preview coordinates.
+    return Rect2i(region.position * 4, region.size * 4)
 
 static func choose_tile(north: bool, east: bool, south: bool, west: bool) -> String:
     var count: int = int(north) + int(east) + int(south) + int(west)

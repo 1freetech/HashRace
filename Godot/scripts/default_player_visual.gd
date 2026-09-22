@@ -12,6 +12,7 @@ var sheet_ready: bool = false
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     centered = true
+    offset = Vector2(DefaultPlayerSheet.FRAME_SIZE) * 0.5 - Vector2(DefaultPlayerSheet.FOOT_ANCHOR)
 
     var built: SpriteFrames = DefaultPlayerSheet.build_frames()
     if built == null:

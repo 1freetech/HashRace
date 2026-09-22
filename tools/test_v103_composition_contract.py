@@ -1,5 +1,6 @@
 """Hash Race v0.103 intentional-world composition contract."""
 from pathlib import Path
+from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 world = (ROOT / "Godot/scripts/world_v103.gd").read_text(encoding="utf-8")
@@ -9,7 +10,7 @@ version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 103, version
-assert "world_v103.gd" in scene
+assert_world_inherits("world_v103.gd")
 assert 'extends "res://scripts/world_v102.gd"' in world
 
 for marker in [

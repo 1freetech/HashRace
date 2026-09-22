@@ -2,9 +2,13 @@
 
 **Hash Race** is a 2D Bitcoin mining strategy simulation built around competition between fictional Bitcoin mining companies. The game combines hardware deployment, power and land expansion, BTC treasury management, financing, research, partnerships, mergers, company culture, market cycles, and an explorable top-down company world.
 
-## v0.130 — hourly Library 2D overview integration
+## v0.139 — approved 32-pose default character
 
-v0.130 starts the **one-new-Library-image-per-visual-run** pipeline. The ChatGPT Library image `/Hashrace/Bitcoin Command Center Base.png` is now represented by the real in-project JPEG asset `Godot/assets/library/v130/command_center_overview.jpg` and rendered inside the live mining campus as a framed **SITE OVERVIEW** command-center monitor. This is not reference-only storage: the live world loads the texture and the gameplay screenshot gate fails if the v0.130 image is missing. The monitor is positioned away from the one-road player path so the new art improves visual texture without restoring the old overlap/clutter problem.
+The default player uses the approved spiky-haired character with brown skin, a green eyepiece, white armor and orange accents. Its genuine transparent PNG contains 32 poses: down, left, right and up, each with one idle pose and seven walking phases. Explicit source regions and a common foot anchor keep the character aligned without stretching. The original colors are preserved.
+
+The work continues on the consolidated v0.138 recovery world. The obsolete v0.130 overview JPEG was corrupt and no longer referenced by that world; it has been removed. The live Command Center still uses the C-01 container loader. Healthy terrain and energy artwork replaces the damaged repository copies.
+
+See [character asset and validation details](docs/default-character-32-frame.md). [Latest published game downloads](https://github.com/1freetech/HashRace/releases/latest) remain separate from changes awaiting release validation.
 
 ## v0.128 — one-road city layouts + C-01 mining containers
 
