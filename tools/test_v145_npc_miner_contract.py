@@ -18,6 +18,10 @@ assert sha256(data).hexdigest() == "519fa3a2b9b9d861da1acad119c7ebe991c182bc46e8
 assert '"down": 0' in catalog and '"left": 1' in catalog and '"right": 2' in catalog and '"up": 3' in catalog
 assert "hashrace_npc_miner_asset_live" in world
 assert "draw_texture_rect_region" in world
-assert "16 distinct poses rendered through the actual world path" in capture
+# Authored atlas cells may deliberately repeat. The actual-world proof compares
+# source-pose equality with rendered-pose equality so direction/frame mapping
+# is still strict without inventing uniqueness that is absent from the PNG.
+assert "16 live poses preserve exact source direction/frame mapping" in capture
+assert "source_same != live_same" in capture
 assert 'path="res://scripts/world_v145.gd"' in scene
 print("Hash Race v0.145 NPC miner valid-binary runtime contract: PASS")
