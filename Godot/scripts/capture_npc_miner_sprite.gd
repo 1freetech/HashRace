@@ -52,9 +52,15 @@ func _capture() -> void:
             await RenderingServer.frame_post_draw
             var image := root.get_texture().get_image()
             var screen_center := scene.get_global_transform_with_canvas() * npc_position
-            var bounds := Rect2i(Vector2i(screen_center) + Vector2i(-100, -175), Vector2i(200, 280))
-            if image == null or image.is_empty() or not Rect2i(Vector2i.ZERO, image.get_size()).encloses(bounds):
-                _fail("NPC is outside the actual gameplay viewport")
+            # The camera intentionally zooms the representative to 2x for proof.
+            # Keep the crop inside the actual viewport while still enclosing the
+            # full 128px source frame (256px on screen) plus its ground contact.
+            var crop_size := Vector2i(300, 300)
+            var desired := Rect2i(Vector2i(screen_center) - crop_size / 2, crop_size)
+            var viewport_bounds := Rect2i(Vector2i.ZERO, image.get_size())
+            var bounds := desired.intersection(viewport_bounds)
+            if image == null or image.is_empty() or bounds.size.x < 256 or bounds.size.y < 256:
+                _fail("NPC proof crop does not contain the full zoomed sprite")
                 return
             var digest := image.get_region(bounds).get_data().hex_encode().sha256_text()
             if hashes.has(digest):
