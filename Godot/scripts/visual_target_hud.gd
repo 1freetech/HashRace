@@ -78,9 +78,9 @@ func _draw_top_bar() -> void:
     x += widths[1] + gap
     _stat(Rect2(x, 6, widths[2], 62), "POWER", "%.1f MW / %.1f MW" % [load, available], YELLOW, "⚡")
     x += widths[2] + gap
-    _stat(Rect2(x, 6, widths[3], 62), "HASHRATE", "%s TH/s" % _compact(hashrate), GREEN, "▣")
+    _stat(Rect2(x, 6, widths[3], 62), "HASHRATE", "%s TH/s" % _compact(hashrate), GREEN, "📈")
     x += widths[3] + gap
-    _stat(Rect2(x, 6, widths[4], 62), "EFFICIENCY", "%.2f J/TH" % efficiency, GREEN, "▥")
+    _stat(Rect2(x, 6, widths[4], 62), "EFFICIENCY", "%.2f J/TH" % efficiency, GREEN, "📉")
 
     var right := Rect2(vw - 148.0, 6.0, 138.0, 62.0)
     _panel(right)
