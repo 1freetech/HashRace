@@ -15,7 +15,7 @@ assert sha256(data).hexdigest()=="519fa3a2b9b9d861da1acad119c7ebe991c182bc46e8e1
 assert all(token in catalog for token in ['"down": 0','"left": 1','"right": 2','"up": 3'])
 assert 'extends "res://scripts/world_v146.gd"' in world
 assert "hashrace_npc_miner_asset_live" in world and "draw_texture_rect_region" in world
-assert "16 live poses preserve exact source direction/frame mapping" in capture
-assert "source_same != live_same" in capture
+assert "16 live poses preserve distinct source direction/frame mapping" in capture
+assert "not source_same and live_same" in capture
 assert 'path="res://scripts/world_v147.gd"' in scene
 print("Hash Race v0.147 NPC miner valid-binary runtime contract: PASS")
