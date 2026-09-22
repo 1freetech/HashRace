@@ -47,8 +47,12 @@ def main():
     assert "_v127_draw_utility_cluster" in world
     assert_world_inherits("world_v127.gd")
     assert "FRAME_REGIONS" in player
-    assert '"walk_down"' in player and '"walk_up"' in player
-    assert '"walk_left"' in player and '"walk_right"' in player
+    # Animation names are now assembled from the four facing keys so the
+    # effective 16-pose runtime can reuse the exact approved 32-pose PNG.
+    for facing in ["down", "up", "left", "right"]:
+        assert f'"{facing}"' in player, facing
+    assert 'StringName("walk_" + facing)' in player
+    assert 'StringName("idle_" + facing)' in player
     print("Hash Race v0.127 live asset-bundle contract: PASS")
 
 if __name__ == "__main__":
