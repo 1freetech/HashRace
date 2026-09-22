@@ -39,10 +39,11 @@ func _capture() -> void:
         _fail("live world camera missing")
         return
     camera.position_smoothing_enabled = false
-    # The NPC renderer anchors the 128px atlas frame at pos + (0, 39).
-    # Center the proof camera on that same ground-contact foot point so the
-    # entire 2x sprite stays inside the viewport instead of centering on the
-    # entity origin above it.
+    # The live NPC renderer anchors the 128px atlas frame at pos + (0, 39).
+    # Center the camera on that exact ground-contact point. Godot Camera2D zoom
+    # enlarges world pixels on screen, but get_global_transform_with_canvas()
+    # already includes that zoom. Therefore only the atlas frame and foot anchor
+    # need explicit zoom scaling when we build the screenshot crop.
     var npc_foot := npc_position + Vector2(0.0, 39.0)
     camera.position = npc_foot
     camera.zoom = Vector2(2.0, 2.0)
@@ -62,7 +63,10 @@ func _capture() -> void:
             if image == null or image.is_empty():
                 _fail("empty viewport")
                 return
-            var screen_foot := scene.get_global_transform_with_canvas() * npc_foot
+            # Because the camera is centered on npc_foot, the ground-contact
+            # anchor is exactly the viewport center. This avoids mixing world,
+            # canvas, and viewport coordinate spaces when Camera2D zoom is live.
+            var screen_foot := Vector2(image.get_size()) * 0.5
             var scaled_frame := Vector2i(NpcMinerSheet.FRAME_SIZE) * 2
             var scaled_anchor := Vector2i(NpcMinerSheet.FOOT_ANCHOR) * 2
             var bounds := Rect2i(Vector2i(screen_foot) - scaled_anchor, scaled_frame)
