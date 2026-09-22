@@ -6,7 +6,7 @@ extends "res://scripts/world_v093.gd"
 # temporary toast instead of keeping the large dialogue panel visible.
 
 const V094_NAVIGATION_REVISION: int = 1
-const NAV_PANEL_SIZE := Vector2(288.0, 378.0)
+const NAV_PANEL_SIZE := Vector2(288.0, 416.0)
 const TOAST_SECONDS: float = 4.0
 
 var navigation_layer: CanvasLayer
@@ -14,6 +14,8 @@ var navigation_button: Button
 var navigation_panel: Panel
 var navigation_status: Label
 var navigation_turn_button: Button
+var objective_panel: Panel
+var objective_progress_label: Label
 var navigation_installed: bool = false
 var active_workspace: String = "world"
 var toast_label: Label
@@ -99,11 +101,13 @@ func _install_navigation_shell() -> void:
     _add_navigation_button("LEAGUE", "league", 3, 1)
     _add_navigation_button("WARDROBE", "wardrobe", 4, 0)
     _add_navigation_button("DIALOG", "dialog", 4, 1)
-    _add_navigation_button("TOOLS", "tools", 5, 0)
-    _add_navigation_button("WORLD / HIDE ALL", "world", 5, 1)
+    _add_navigation_button("OBJECTIVE", "objective", 5, 0)
+    _add_navigation_button("TOOLS", "tools", 5, 1)
+    var world_button := _add_navigation_button("WORLD / HIDE ALL", "world", 6, 0)
+    world_button.size.x = 260.0
 
     navigation_turn_button = Button.new()
-    navigation_turn_button.position = Vector2(14.0, 328.0)
+    navigation_turn_button.position = Vector2(14.0, 364.0)
     navigation_turn_button.size = Vector2(260.0, 34.0)
     navigation_turn_button.text = "PREVIEW TURN"
     navigation_turn_button.tooltip_text = "Preview the selected Day, Month, or Year turn. Press again to confirm."
@@ -133,6 +137,8 @@ func _install_navigation_shell() -> void:
     toast_label.visible = false
     navigation_layer.add_child(toast_label)
 
+    _build_objective_panel()
+
     navigation_panel.visible = false
     navigation_installed = true
 
@@ -158,6 +164,83 @@ func _add_navigation_button(label_text: String, workspace: String, row: int, col
     button.pressed.connect(Callable(self, "_activate_workspace").bind(workspace))
     navigation_panel.add_child(button)
     return button
+
+func _build_objective_panel() -> void:
+    objective_panel = Panel.new()
+    objective_panel.name = "ObjectivePanel"
+    objective_panel.position = Vector2(14.0, 58.0)
+    objective_panel.size = Vector2(288.0, 188.0)
+    var style := StyleBoxFlat.new()
+    style.bg_color = Color("06141df4")
+    style.border_width_left = 2
+    style.border_width_top = 2
+    style.border_width_right = 2
+    style.border_width_bottom = 2
+    style.border_color = Color("42f58d")
+    style.corner_radius_top_left = 7
+    style.corner_radius_top_right = 7
+    style.corner_radius_bottom_left = 7
+    style.corner_radius_bottom_right = 7
+    objective_panel.add_theme_stylebox_override("panel", style)
+    navigation_layer.add_child(objective_panel)
+
+    var title := Label.new()
+    title.position = Vector2(16.0, 14.0)
+    title.size = Vector2(256.0, 26.0)
+    title.text = "CURRENT OBJECTIVE"
+    title.add_theme_font_size_override("font_size", 15)
+    title.add_theme_color_override("font_color", Color("64ff8c"))
+    objective_panel.add_child(title)
+
+    var task := Label.new()
+    task.position = Vector2(16.0, 48.0)
+    task.size = Vector2(256.0, 24.0)
+    task.text = "Upgrade Transformer"
+    task.add_theme_font_size_override("font_size", 13)
+    task.add_theme_color_override("font_color", Color("e8f0f2"))
+    objective_panel.add_child(task)
+
+    var goal := Label.new()
+    goal.position = Vector2(16.0, 80.0)
+    goal.size = Vector2(256.0, 22.0)
+    goal.text = "Gather $25,000"
+    goal.add_theme_font_size_override("font_size", 11)
+    goal.add_theme_color_override("font_color", Color("e8f0f2"))
+    objective_panel.add_child(goal)
+
+    objective_progress_label = Label.new()
+    objective_progress_label.position = Vector2(16.0, 106.0)
+    objective_progress_label.size = Vector2(256.0, 22.0)
+    objective_progress_label.add_theme_font_size_override("font_size", 10)
+    objective_progress_label.add_theme_color_override("font_color", Color("9db2bd"))
+    objective_panel.add_child(objective_progress_label)
+
+    var back := Button.new()
+    back.position = Vector2(16.0, 140.0)
+    back.size = Vector2(256.0, 32.0)
+    back.text = "BACK TO WORLD"
+    back.add_theme_font_size_override("font_size", 10)
+    back.pressed.connect(Callable(self, "_activate_workspace").bind("world"))
+    objective_panel.add_child(back)
+
+    objective_panel.visible = false
+    _refresh_objective_panel()
+
+func _refresh_objective_panel() -> void:
+    if not is_instance_valid(objective_progress_label):
+        return
+    var cash := 0
+    if not player.is_empty():
+        cash = maxi(0, int(round(float(player.get("cash", 0.0)))))
+    objective_progress_label.text = "$%s / $25,000" % _objective_money(cash)
+
+func _objective_money(value: int) -> String:
+    var raw := str(maxi(0, value))
+    var out := ""
+    while raw.length() > 3:
+        out = "," + raw.right(3) + out
+        raw = raw.left(raw.length() - 3)
+    return raw + out
 
 func _layout_navigation_shell() -> void:
     if not is_instance_valid(toast_label):
@@ -185,6 +268,8 @@ func _hide_workspace_panels() -> void:
         mining_ops_widget.hide()
     if is_instance_valid(mining_ops_restore_button):
         mining_ops_restore_button.visible = false
+    if is_instance_valid(objective_panel):
+        objective_panel.visible = false
 
     for layer_name in [
         "LifeOpsLayer",
@@ -238,6 +323,10 @@ func _activate_workspace(workspace: String) -> void:
             if has_method("_show_wardrobe"):
                 call("_show_wardrobe")
             _show_layer_only("WardrobeLayer")
+        "objective":
+            _refresh_objective_panel()
+            if is_instance_valid(objective_panel):
+                objective_panel.visible = true
         "dialog":
             if is_instance_valid(dialog_panel):
                 dialog_panel.visible = true
@@ -265,6 +354,8 @@ func _refresh_navigation_status() -> void:
             label = "LIFE + SITE"
         "infrastructure":
             label = "INFRA"
+        "objective":
+            label = "OBJECTIVE"
     if is_instance_valid(navigation_button):
         navigation_button.text = "NAV • %s" % label
     if is_instance_valid(navigation_status):
@@ -319,6 +410,7 @@ func _open_life_overview() -> void:
 func _refresh_ui() -> void:
     super._refresh_ui()
     _refresh_nav_turn_button()
+    _refresh_objective_panel()
 
 func _on_mining_ops_widget_closed() -> void:
     if is_instance_valid(mining_ops_restore_button):
@@ -347,6 +439,8 @@ func debug_v094_navigation_ready() -> bool:
         and is_instance_valid(navigation_button)
         and is_instance_valid(navigation_panel)
         and not navigation_panel.visible
+        and is_instance_valid(objective_panel)
+        and not objective_panel.visible
         and is_instance_valid(dialog_panel)
         and not dialog_panel.visible
         and is_instance_valid(mining_ops_widget)
