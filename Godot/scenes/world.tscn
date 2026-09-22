@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.145 field interaction clarity: nearest-target distance, accurate scanner state and F interact shortcut.
-[ext_resource path="res://scripts/world_v145.gd" type="Script" id="1_world"]
+; v0.146 field HUD truth: scanner state, E/F prompt and nearest-target guidance.
+[ext_resource path="res://scripts/world_v146.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
