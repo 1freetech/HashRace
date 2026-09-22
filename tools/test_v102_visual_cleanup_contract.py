@@ -10,7 +10,7 @@ rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert 'world_v102.gd' in scene
+assert 'world_v138.gd' in scene  # current live scene; v0.102 remains a historical inherited layer
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
