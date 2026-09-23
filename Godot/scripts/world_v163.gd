@@ -48,6 +48,21 @@ func _v163_draw_industrial(kind_index: int, pos: Vector2, size_value: Vector2) -
     draw_ellipse_shadow(pos + Vector2(0.0, size_value.y * 0.24), size_value.x * 0.43, maxf(5.0, size_value.y * 0.08))
     draw_texture_rect_region(v163_industrial_texture, dest, source)
 
+# v0.158 previously routed ALL HQs back into the generic procedural facility.
+# Restore the approved, validated C-01 container art for both player and rival
+# mining HQs; dimensions remain capacity-aware through inherited world rules.
+func _draw_mining_hq(entity: Dictionary, idx: int) -> void:
+    var pos: Vector2 = entity.get("pos", Vector2.ZERO)
+    var profile_idx := int(entity.get("profile_idx", company_idx))
+    var accent: Color = COMPANY_ACCENTS[profile_idx]
+    if String(entity.get("kind", "")) == "rival" and bool(rivals[int(entity["rival_idx"])]["merged"]):
+        accent = Color("657078")
+    var capacity_mw := _v114_capacity_mw_for_site(pos)
+    var size_value := _v128_container_size(capacity_mw)
+    _selection_ring(pos, idx, WorldScale.selection_radius("hq"))
+    _v128_draw_container_sprite(pos + Vector2(0.0, -8.0), capacity_mw, accent, size_value)
+    _draw_building_name(entity, idx, accent, size_value.y * 0.48 + 30.0, size_value.x + 24.0)
+
 func _v163_facility_kind(entity: Dictionary) -> int:
     var kind := String(entity.get("kind", ""))
     if kind == "bank" or kind == "power":
