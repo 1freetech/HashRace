@@ -5,7 +5,7 @@ extends "res://scripts/world_v155.gd"
 # v0.128 loads this PNG directly. The live world never loads the legacy SVG.
 const V156_AUTHORED_CONTAINER_REVISION := 2
 const V156_CONTAINER_PNG := "res://art/buildings/c01_mining_container.png"
-const V156_CONTAINER_SHA256 := "5af801c621fb51739408866fad378ec06225fad6614190beacebbb29d7bf986a"
+const V156_CONTAINER_SHA256 := "376b7e3a795990ba36980f487b6907e029061adc1fe3eb01033ee5ee9bb2a88d"
 
 func _v128_load_texture(path: String) -> Texture2D:
     # v0.128 asks for its historical SVG path during super._ready(). Redirect
