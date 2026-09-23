@@ -24,6 +24,13 @@ jobs:
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-import.log; then exit 1; fi
           godot --headless --path Godot --script res://scripts/validate_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-binary.log
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER VALIDATION FAIL" /tmp/hashrace-player-binary.log; then exit 1; fi
+      - name: Validate live walking distance, animation cadence and four-way idle
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_player_walk_motion.gd 2>&1 | tee /tmp/hashrace-walk-motion.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|WALK MOTION FAIL" /tmp/hashrace-walk-motion.log; then exit 1; fi
+          grep -q "HASH RACE WALK MOTION PASS" /tmp/hashrace-walk-motion.log
       - name: Boot opening campaign setup with strict script-error gate
         shell: bash
         run: |
@@ -73,12 +80,18 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-visual.log; then exit 1; fi
           test -s visual-proof/hashrace-screenshot.png
-      - name: Render all 32 approved player poses in the actual world
+      - name: Render all 20 active player poses plus 16 controlled-motion gameplay frames
         shell: bash
         run: |
           set -euo pipefail
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-render.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-player-render.log; then exit 1; fi
+          for direction in down left right up; do
+            test -s "visual-proof/player/${direction}-idle.png"
+            test -s "visual-proof/player/${direction}-walk-04.png"
+            test -s "visual-proof/player/motion-${direction}-00.png"
+            test -s "visual-proof/player/motion-${direction}-03.png"
+          done
       - name: Upload actual player gameplay proof
         if: always()
         uses: actions/upload-artifact@v4
@@ -219,6 +232,10 @@ jobs:
         run: python tools/test_v160_transformer_sprite.py
       - name: Test v0.144 exact-sheet character customization contract
         run: python tools/test_v144_character_customization_contract.py
+      - name: Enforce approved 32-source / 20-active binary and walk synchronization contracts
+        run: |
+          python tools/test_default_player_32frame_binary.py
+          python tools/test_walk_sync_contract.py
       - name: Test v0.070 modular architecture contract
         run: python tools/test_modular_architecture_contract.py
       - name: Test v0.072 negotiation scene contract
