@@ -24,18 +24,18 @@ func _capture() -> void:
 
     var inventory = scene.get("infrastructure_inventory")
     var company: Dictionary = scene.get("player")
-    if inventory == null or inventory.item_resource("wind_turbine") == null:
-        _fail("wind turbine missing from real infrastructure inventory")
+    if inventory == null or inventory.item_resource("wind_farm") == null:
+        _fail("wind farm missing from real infrastructure inventory")
         return
-    if inventory.quantity("wind_turbine") <= 0 and not inventory.add("wind_turbine", 1):
-        _fail("could not add wind turbine")
+    if inventory.quantity("wind_farm") <= 0 and not inventory.add("wind_farm", 1):
+        _fail("could not add wind farm")
         return
-    if inventory.deployed_quantity("wind_turbine") <= 0 and not inventory.deploy("wind_turbine", company, 1):
-        _fail("could not deploy wind turbine")
+    if inventory.deployed_quantity("wind_farm") <= 0 and not inventory.deploy("wind_farm", company, 1):
+        _fail("could not deploy wind farm")
         return
     scene.set("player", company)
-    if scene.call("_v114_primary_energy_id", scene.call("_player_hq_center")) != "wind_turbine":
-        _fail("wind turbine is not the selected real energy source")
+    if scene.call("_v114_primary_energy_id", scene.call("_player_hq_center")) != "wind_farm":
+        _fail("wind farm is not the selected real energy source")
         return
 
     var origin: Vector2 = scene.call("_energy_campus_origin")
