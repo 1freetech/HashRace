@@ -31,8 +31,8 @@ func _build_art_tilemap() -> void:
     for raw_cell in art_cells.keys():
         var cell: Vector2i = raw_cell
         var value := int(art_cells.get(cell, TILE_GRASS))
-        if value == TILE_ROAD or value == TILE_LOT or value == TILE_PLAZA:
-            art_cells[cell] = TILE_GRASS_DARK if (cell.x * 5 + cell.y * 7) % 19 == 0 else TILE_GRASS
+        if value == TILE_ROAD or value == TILE_LOT or value == TILE_PLAZA or value == TILE_GRASS_DARK:
+            art_cells[cell] = TILE_GRASS
 
     GBPaint.paint_line(art_cells, Vector2i(2, 19), Vector2i(60, 19), V158_ROAD_WIDTH_CELLS, TILE_ROAD, art_columns, art_rows)
     GBPaint.paint_line(art_cells, Vector2i(29, 7), Vector2i(29, 35), V158_ROAD_WIDTH_CELLS, TILE_ROAD, art_columns, art_rows)
@@ -156,8 +156,12 @@ func _v158_draw_facility(entity: Dictionary, idx: int, accent: Color) -> void:
         rect.position + Vector2(-8.0, rect.size.y * 0.42),
         Vector2(rect.size.x + 16.0, rect.size.y * 0.58 + 12.0)
     )
-    draw_rect(foundation, Color(0.28, 0.32, 0.28, 0.62), true)
-    draw_rect(foundation, Color(0.42, 0.48, 0.40, 0.50), false, 2.0)
+    draw_rect(foundation, Color(0.28, 0.32, 0.28, 0.34), true)
+    draw_rect(foundation, Color(0.42, 0.48, 0.40, 0.26), false, 1.0)
+    for edge_px in range(8):
+        var edge_x := foundation.position.x + 12.0 + float(edge_px) * maxf(14.0, (foundation.size.x - 24.0) / 8.0)
+        var edge_y := foundation.end.y + float((edge_px * 5) % 7 - 3)
+        draw_rect(Rect2(Vector2(edge_x, edge_y), Vector2(3.0, 2.0)), Color(0.36, 0.46, 0.31, 0.38), true)
     var front_walk := Rect2(Vector2(pos.x - 20.0, rect.end.y - 4.0), Vector2(40.0, 44.0))
     draw_rect(front_walk, Color(0.38, 0.42, 0.36, 0.78), true)
     for i in range(5):
@@ -221,7 +225,7 @@ func _draw_land_building(entity: Dictionary, idx: int) -> void:
 func _draw_art_tile(cell: Vector2i, tile_id: int) -> void:
     if tile_id == TILE_GRASS or tile_id == TILE_GRASS_DARK:
         var p := VisualStack.snap_to_pixel(Vector2(float(cell.x) * ART_TILE_SIZE, float(cell.y) * ART_TILE_SIZE))
-        var base := Color("5a9a46") if tile_id == TILE_GRASS else Color("508d40")
+        var base := Color("5a9a46")
         var dark := base.darkened(0.12)
         var light := base.lightened(0.10)
         draw_rect(Rect2(p, Vector2(ART_TILE_SIZE + 1.0, ART_TILE_SIZE + 1.0)), base, true)
@@ -248,25 +252,24 @@ func _v158_draw_shoreline(cell: Vector2i) -> void:
         if neighbor == TILE_WATER:
             continue
         var seed := absi(cell.x * 41 + cell.y * 67 + direction.x * 13 + direction.y * 29)
-        var depth := lerpf(V158_SHORE_MIN, V158_SHORE_MAX, float(seed % 7) / 6.0)
         var shore := Color("687354")
         var shore_dark := Color("46513d")
-        if direction == Vector2i.LEFT:
-            draw_rect(Rect2(p, Vector2(depth, ART_TILE_SIZE)), shore, true)
-            for i in range(4):
-                draw_rect(Rect2(p + Vector2(float((seed + i * 9) % int(maxf(4.0, depth))), float(6 + i * 10)), Vector2(5.0, 4.0)), shore_dark, true)
-        elif direction == Vector2i.RIGHT:
-            draw_rect(Rect2(p + Vector2(ART_TILE_SIZE - depth, 0.0), Vector2(depth, ART_TILE_SIZE)), shore, true)
-            for i in range(4):
-                draw_rect(Rect2(p + Vector2(ART_TILE_SIZE - depth + float((seed + i * 7) % int(maxf(4.0, depth))), float(5 + i * 10)), Vector2(5.0, 4.0)), shore_dark, true)
-        elif direction == Vector2i.UP:
-            draw_rect(Rect2(p, Vector2(ART_TILE_SIZE, depth)), shore, true)
-            for i in range(4):
-                draw_rect(Rect2(p + Vector2(float(6 + i * 10), float((seed + i * 7) % int(maxf(4.0, depth)))), Vector2(4.0, 5.0)), shore_dark, true)
-        elif direction == Vector2i.DOWN:
-            draw_rect(Rect2(p + Vector2(0.0, ART_TILE_SIZE - depth), Vector2(ART_TILE_SIZE, depth)), shore, true)
-            for i in range(4):
-                draw_rect(Rect2(p + Vector2(float(5 + i * 10), ART_TILE_SIZE - depth + float((seed + i * 9) % int(maxf(4.0, depth)))), Vector2(4.0, 5.0)), shore_dark, true)
+        for segment in range(4):
+            var segment_seed := seed + segment * 23
+            var depth := lerpf(V158_SHORE_MIN, V158_SHORE_MAX, float(segment_seed % 7) / 6.0)
+            var along := float(segment) * 12.0
+            if direction == Vector2i.LEFT:
+                draw_rect(Rect2(p + Vector2(0.0, along), Vector2(depth, 13.0)), shore, true)
+                draw_rect(Rect2(p + Vector2(maxf(1.0, depth - 5.0), along + 3.0 + float(segment_seed % 4)), Vector2(5.0, 4.0)), shore_dark, true)
+            elif direction == Vector2i.RIGHT:
+                draw_rect(Rect2(p + Vector2(ART_TILE_SIZE - depth, along), Vector2(depth, 13.0)), shore, true)
+                draw_rect(Rect2(p + Vector2(ART_TILE_SIZE - depth, along + 2.0 + float(segment_seed % 5)), Vector2(5.0, 4.0)), shore_dark, true)
+            elif direction == Vector2i.UP:
+                draw_rect(Rect2(p + Vector2(along, 0.0), Vector2(13.0, depth)), shore, true)
+                draw_rect(Rect2(p + Vector2(along + 3.0 + float(segment_seed % 4), maxf(1.0, depth - 5.0)), Vector2(4.0, 5.0)), shore_dark, true)
+            elif direction == Vector2i.DOWN:
+                draw_rect(Rect2(p + Vector2(along, ART_TILE_SIZE - depth), Vector2(13.0, depth)), shore, true)
+                draw_rect(Rect2(p + Vector2(along + 2.0 + float(segment_seed % 5), ART_TILE_SIZE - depth), Vector2(4.0, 5.0)), shore_dark, true)
 
 func debug_v158_ready() -> bool:
     return V158_RUNTIME_CLEANUP_REVISION == 1 \
