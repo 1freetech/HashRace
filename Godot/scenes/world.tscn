@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.152 route controls: named active route, live distance, and Esc/Q cancel.
-[ext_resource path="res://scripts/world_v152.gd" type="Script" id="1_world"]
+; v0.153 route resilience: stale navigation targets clear safely before interaction.
+[ext_resource path="res://scripts/world_v153.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
