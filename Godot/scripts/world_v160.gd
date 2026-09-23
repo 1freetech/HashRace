@@ -28,9 +28,6 @@ func _build_art_tilemap() -> void:
 # The cable tray is decorative. Keep it outside the four critical live-site
 # footprints and farther from the canonical road than the inherited placement.
 func _v115_draw_live_site(origin: Vector2) -> void:
-    # Call v0.158 directly by reproducing its four-object site through the
-    # inherited implementation, then suppress v0.159's tray by temporarily
-    # clearing its texture. This preserves the container/transformer/source/hut.
     var saved := v159_cable_tray_texture
     v159_cable_tray_texture = null
     super._v115_draw_live_site(origin)
@@ -38,8 +35,9 @@ func _v115_draw_live_site(origin: Vector2) -> void:
     _v159_draw_cable_tray(origin + Vector2(0.0, 288.0))
 
 # Only actionable labels remain in the overworld: the current target and the
-# nearest interactive building. Everything else relies on the NAV/menu surface.
-func _draw_building_name(entity: Dictionary, idx: int, accent: Color, y_offset: float, max_width: float) -> void:
+# nearest interactive building. Preserve the parent's default max-width value so
+# this override exactly matches the inherited method signature.
+func _draw_building_name(entity: Dictionary, idx: int, accent: Color, y_offset: float, max_width: float = 176.0) -> void:
     var pos: Vector2 = entity.get("pos", Vector2.ZERO)
     var target_idx := int(get("interaction_target")) if "interaction_target" in self else -1
     var nearest_idx := _v160_nearest_interactive_index()
