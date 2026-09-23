@@ -1,6 +1,8 @@
 extends SceneTree
 
 const Sheet = preload("res://scripts/default_player_sprite_sheet.gd")
+const Movement = preload("res://scripts/rpg_movement.gd")
+const World = preload("res://scripts/world_overworld.gd")
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -68,5 +70,43 @@ func _capture() -> void:
             if image.save_png(output.path_join("%s-%s.png" % [direction, pose_name])) != OK:
                 _fail("could not save actual gameplay PNG")
                 return
-    print("HASH RACE PLAYER RENDER PASS: 20 distinct actual gameplay poses from exact approved 32-pose source")
+    # Render a *moving* character using actual traveled pixels at the live
+    # speed, with a stationary camera so visual motion is visible against the
+    # world. Preserve the existing 20-pose still captures separately.
+    var directions := {
+        "down": Vector2.DOWN,
+        "left": Vector2.LEFT,
+        "right": Vector2.RIGHT,
+        "up": Vector2.UP,
+    }
+    var travel_per_pose: float = World.WALK_SPEED / Sheet.WALK_FPS
+    if not is_equal_approx(travel_per_pose * float(Sheet.WALK_FRAME_COUNT), Movement.WALK_CYCLE_DISTANCE):
+        _fail("live movement speed and authored walk cadence disagree")
+        return
+    for direction in ["down", "left", "right", "up"]:
+        var traveled_position: Vector2 = player_position
+        var phase: float = 0.0
+        for step in range(Sheet.WALK_FRAME_COUNT):
+            var delta: Vector2 = directions[direction] * travel_per_pose * (0.5 if step == 0 else 1.0)
+            traveled_position += delta
+            phase = Movement.advance_step_phase(phase, delta)
+            scene.set("rep_pos", traveled_position)
+            scene.set("rep_facing", direction)
+            scene.set("rep_animation_state", direction + "_walk")
+            scene.set("rep_step_phase", phase)
+            scene.queue_redraw()
+            await process_frame
+            await RenderingServer.frame_post_draw
+            if int(scene.call("_v121_walk_frame", true)) != step + 1:
+                _fail("walk phase did not match real displaced pixels")
+                return
+            var motion_image := root.get_texture().get_image()
+            if motion_image == null or motion_image.is_empty():
+                _fail("empty controlled-motion viewport")
+                return
+            if motion_image.save_png(output.path_join("motion-%s-%02d.png" % [direction, step])) != OK:
+                _fail("could not save actual-world player motion frame")
+                return
+        scene.set("rep_pos", player_position)
+    print("HASH RACE PLAYER RENDER PASS: 20 live poses and 16 controlled-distance moving frames from the approved 32-pose source")
     quit(0)
