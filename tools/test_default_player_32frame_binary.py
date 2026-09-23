@@ -5,6 +5,7 @@ import zlib
 ROOT = Path(__file__).resolve().parents[1]
 PNG = ROOT / "Godot/art/characters/default_player_sheet.png"
 
+
 def main():
     data = PNG.read_bytes()
     assert data.startswith(b"\x89PNG\r\n\x1a\n")
@@ -30,11 +31,16 @@ def main():
     assert seen_iend
     assert len(zlib.decompress(bytes(idat))) > 1024
     code = (ROOT / "Godot/scripts/default_player_sprite_sheet.gd").read_text()
-    assert 'EFFECTIVE_FRAME_COUNT := 20' in code
-    assert 'EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]' in code
-    assert 'WALK_FRAME_COUNT := 4' in code
+    # The approved source contains all 32 authored poses: one idle plus seven
+    # movement frames in each of four directions. Preserve every pose so the
+    # in-between opposite-leg frames are not dropped and lateral motion does
+    # not regress to the old four-frame sliding cadence.
+    assert 'EFFECTIVE_FRAME_COUNT := 32' in code
+    assert 'EFFECTIVE_SOURCE_INDICES := [0, 1, 2, 3, 4, 5, 6, 7]' in code
+    assert 'WALK_FRAME_COUNT := 7' in code
     assert 'WALK_FPS := 8.0' in code
-    print("Hash Race exact player PNG + effective 20-frame runtime contract: PASS")
+    print("Hash Race exact player PNG + full 32-frame runtime contract: PASS")
+
 
 if __name__ == "__main__":
     main()
