@@ -23,6 +23,8 @@ def main():
     assert "extends \"res://scripts/world_v162.gd\"" in WORLD
     assert "func _v158_draw_facility(" in WORLD
     assert "draw_texture_rect_region(v163_industrial_texture" in WORLD
+    assert "func _draw_mining_hq(" in WORLD
+    assert "_v128_draw_container_sprite(pos +" in WORLD
     assert "func _v128_draw_command_hut(" in WORLD
     assert "func _v159_draw_cable_tray(" in WORLD
     assert "GBPaint.paint_line(art_cells, Vector2i(2, 19), Vector2i(60, 19), 1" in WORLD
