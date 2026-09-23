@@ -1,7 +1,7 @@
 extends "res://scripts/world_v162.gd"
 
 # v0.163: promote the already validated directional wind-turbine binary from
-# decorative live-site art to the actual wind_turbine energy-source renderer.
+# decorative live-site art to the actual wind_farm energy-source renderer.
 # One asset only: all other inherited energy renderers remain unchanged.
 const V163Wind = preload("res://scripts/wind_turbine_catalog.gd")
 const V163_WIND_REVISION := 1
@@ -18,7 +18,7 @@ func _ready() -> void:
     queue_redraw()
 
 func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float, orientation: String = "up") -> void:
-    if asset_id != "wind_turbine" or v163_wind_texture == null:
+    if asset_id != "wind_farm" or v163_wind_texture == null:
         super._v114_draw_energy_source(asset_id, pos, capacity_mw, orientation)
         return
 
