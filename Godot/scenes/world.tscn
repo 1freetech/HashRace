@@ -10,4 +10,10 @@ script = ExtResource("1_world")
 [node name="LiveTreasuryControls" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
+offset_right = 1.0
+offset_bottom = 1.0
+mouse_filter = 2
 script = ExtResource("2_treasury")
+
+[node name="BootFallback" type="CanvasLayer" parent="."]
+layer = 100
