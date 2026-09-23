@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.159 authored electrical cable-tray sprite integration.
-[ext_resource path="res://scripts/world_v159.gd" type="Script" id="1_world"]
+; v0.160 live-world visual clutter contract.
+[ext_resource path="res://scripts/world_v160.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
