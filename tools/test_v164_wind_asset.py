@@ -6,12 +6,12 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 PNG = ROOT / "Godot/art/energy/wind_turbine_directional_sheet.png"
-EXPECTED = "5087f4b52e2fe324669efc6ffee0b4bbfd000b80d2280b7f73869ded94330c7d"
+EXPECTED = "0ef08a9d75437bab8fdb80ec8c06009b2d9606faab8c915077b7886286c7aad9"
 
 
 def test_png():
     data = PNG.read_bytes()
-    assert len(data) == 2278
+    assert len(data) == 5329
     assert data.startswith(b"\x89PNG\r\n\x1a\n")
     assert hashlib.sha256(data).hexdigest() == EXPECTED
     offset = 8
@@ -31,7 +31,7 @@ def test_png():
             saw_iend = True
             break
         offset = end
-    assert dimensions[:2] == (128, 128), dimensions
+    assert dimensions == (128, 128, 8, 6, 0, 0, 0), dimensions
     assert saw_iend
 
 
@@ -54,4 +54,4 @@ def test_live_wiring():
 if __name__ == "__main__":
     test_png()
     test_live_wiring()
-    print("v0.164 wind PNG CRC/hash/dimensions/live wiring passed")
+    print("v0.164 transparent wind PNG CRC/hash/dimensions/live wiring passed")
