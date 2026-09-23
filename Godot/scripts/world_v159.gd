@@ -2,7 +2,7 @@ extends "res://scripts/world_v158.gd"
 
 # Hash Race v0.159: promote the previously unused cable-tray cell from the
 # electrical distribution source sheet into a real stationary live-world PNG.
-const V159_CABLE_TRAY_REVISION := 1
+const V159_CABLE_TRAY_REVISION := 2
 const V159_CABLE_TRAY_PATH := "res://art/electrical/cable_tray.png"
 const V159_CABLE_TRAY_SHA256 := "e9cdcb9d3254793f8c299b75526441a90401eb30051ed67d8408048e1d8f9a96"
 var v159_cable_tray_texture: Texture2D
@@ -16,9 +16,10 @@ func _ready() -> void:
 
 func _v115_draw_live_site(origin: Vector2) -> void:
     super._v115_draw_live_site(origin)
-    # One tray bridges the transformer/distribution side without entering the
-    # player approach lane. Draw order stays inside the site's inherited pass.
-    _v159_draw_cable_tray(origin + Vector2(124.0, 164.0))
+    # Runtime proof from the first v0.159 head showed the tray directly beneath
+    # an NPC. Keep the static sprite, but move it onto clear grass below the
+    # distribution side so no character stands on the asset or its footprint.
+    _v159_draw_cable_tray(origin + Vector2(20.0, 220.0))
 
 func _v159_draw_cable_tray(center: Vector2) -> void:
     if v159_cable_tray_texture == null:
@@ -29,7 +30,7 @@ func _v159_draw_cable_tray(center: Vector2) -> void:
     draw_texture_rect(v159_cable_tray_texture, dest, false)
 
 func debug_v159_ready() -> bool:
-    return V159_CABLE_TRAY_REVISION == 1 \
+    return V159_CABLE_TRAY_REVISION == 2 \
         and ResourceLoader.exists(V159_CABLE_TRAY_PATH) \
         and v159_cable_tray_texture != null \
         and v159_cable_tray_texture.get_width() == 128 \
