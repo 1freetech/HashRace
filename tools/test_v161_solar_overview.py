@@ -42,10 +42,12 @@ def test_png():
 
 def test_live():
     script = (ROOT / "Godot/scripts/world_v161.gd").read_text()
+    current = (ROOT / "Godot/scripts/world_v162.gd").read_text()
     catalog = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_v161_solar.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert "world_v161.gd" in scene
+    assert "world_v162.gd" in scene
+    assert 'extends "res://scripts/world_v161.gd"' in current
     assert "solar_array_overview.png" in catalog
     assert "V161Solar.texture()" in script
     assert "func _v114_draw_energy_source(" in script
@@ -58,4 +60,4 @@ def test_live():
 if __name__ == "__main__":
     test_png()
     test_live()
-    print("v0.161 real solar PNG CRC/alpha/hash/live wiring passed")
+    print("v0.161 real solar PNG CRC/alpha/hash/live inheritance passed")

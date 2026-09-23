@@ -90,6 +90,7 @@ const SCRIPTS: Array[String] = [
     "res://scripts/world_v160.gd",
     "res://scripts/v161_solar_overview_sprite.gd",
     "res://scripts/world_v161.gd",
+    "res://scripts/world_v162.gd",
 ]
 
 func _initialize() -> void:
