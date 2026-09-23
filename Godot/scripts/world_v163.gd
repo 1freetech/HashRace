@@ -4,13 +4,16 @@ extends "res://scripts/world_v162.gd"
 # decorative live-site art to the actual wind_farm energy-source renderer.
 # One asset only: all other inherited energy renderers remain unchanged.
 const V163Wind = preload("res://scripts/wind_turbine_catalog.gd")
-const V163_WIND_REVISION := 1
+const V163_WIND_REVISION := 2
 var v163_wind_texture: Texture2D
 var v163_wind_drawn := false
 var v163_wind_rect := Rect2()
 var v163_wind_footprint := Rect2()
+var v163_wind_footprint_registered := false
 
 func _ready() -> void:
+    # Match the proven v0.161 pattern: the inherited live-site renderer can run
+    # during the base ready chain, so load the exact binary first.
     v163_wind_texture = V163Wind.load_texture()
     super._ready()
     set_meta("hashrace_v163_wind_binary_live", v163_wind_texture != null)
@@ -33,19 +36,28 @@ func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float
     v163_wind_rect = dest
     v163_wind_footprint = foot
     v163_wind_drawn = true
-    if grid_nav != null:
+    if not v163_wind_footprint_registered and grid_nav != null:
         grid_nav.block_rect(foot)
+        v163_wind_footprint_registered = true
 
     var source := V163Wind.region(orientation)
     _v127_draw_region(v163_wind_texture, source, dest)
 
 func debug_v163_wind_ready() -> bool:
-    return V163_WIND_REVISION == 1 \
+    # Do not call debug_v162_ready() here. Its inherited v0.161 proof requires
+    # solar_array to have been drawn in the same frame, which is mutually
+    # exclusive with a real wind_farm being the selected primary source. Check
+    # the preserved v0.162 cleanup contract directly, then the older independent
+    # transformer/runtime chain.
+    return V163_WIND_REVISION == 2 \
         and v163_wind_texture != null \
         and V163Wind.debug_ready() \
         and v163_wind_drawn \
         and v163_wind_rect.size.x >= 100.0 \
         and v163_wind_footprint.size.x > 0.0 \
+        and v163_wind_footprint_registered \
         and grid_nav != null \
         and not grid_nav.world_is_walkable(v163_wind_footprint.get_center()) \
-        and debug_v162_ready()
+        and V162_TILEMAP_CLEANUP_REVISION == 1 \
+        and bool(get_meta("hashrace_v162_detached_live_site_foundations_removed", false)) \
+        and debug_v160_transformer_ready()
