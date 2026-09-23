@@ -3,7 +3,7 @@ extends "res://scripts/world_v162.gd"
 # v0.163: replace one generic power-house silhouette with the already proven
 # authored solar infrastructure sprite. Visual identity changes, but the power
 # entity, selection, interaction and simulation state remain the same.
-const V163_INFRA_REPLACEMENT_REVISION := 2
+const V163_INFRA_REPLACEMENT_REVISION := 3
 var v163_solar_texture: Texture2D
 var v163_solar_rect := Rect2()
 var v163_solar_footprint := Rect2()
@@ -19,11 +19,19 @@ func _ready() -> void:
     set_meta("hashrace_v163_one_house_replaced_by_infrastructure", V161Solar.valid_texture(v163_solar_texture))
     set_meta("hashrace_v163_replacement_asset", V161Solar.TEXTURE_PATH)
     set_meta("hashrace_v163_power_footprint", v163_solar_footprint)
+    set_meta("hashrace_v163_isolated_cable_tray_removed", true)
     queue_redraw()
 
 func _draw_world_props_pixel() -> void:
     v163_solar_late = false
     super._draw_world_props_pixel()
+
+# Fresh exact-head runtime proof showed the inherited decorative cable tray as
+# an isolated strip and, in the dedicated solar proof, directly under the
+# player's feet. It has no simulation role, so remove the placement rather than
+# relocating visual clutter again. The validated PNG remains available in art.
+func _v159_draw_cable_tray(_center: Vector2) -> void:
+    pass
 
 # Replace only the dedicated Gridline power-building renderer. The underlying
 # entity is untouched. Draw at the entity's real world position and preserve the
@@ -82,13 +90,14 @@ func _v163_register_power_infrastructure_footprint() -> void:
         break
 
 func debug_v163_ready() -> bool:
-    return V163_INFRA_REPLACEMENT_REVISION == 2 \
+    return V163_INFRA_REPLACEMENT_REVISION == 3 \
         and V161Solar.valid_texture(v163_solar_texture) \
         and V161Solar.debug_ready() \
         and v163_power_center != Vector2.ZERO \
         and v163_solar_footprint.size.x > 0.0 \
         and v163_solar_footprint.size.y > 0.0 \
         and v163_power_footprint_registered \
+        and bool(get_meta("hashrace_v163_isolated_cable_tray_removed", false)) \
         and grid_nav != null \
         and not grid_nav.world_is_walkable(v163_solar_footprint.get_center()) \
         and debug_v162_ready()
