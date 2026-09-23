@@ -61,7 +61,7 @@ def check_runtime() -> None:
     # to v0.160 forever: require its real implementation in the live chain.
     import re
     scene_source = SCENE.read_text(encoding="utf-8")
-    match = re.search(r'res://scripts/(world_v\\d+\\.gd)', scene_source)
+    match = re.search(r'res://scripts/(world_v\d+\.gd)', scene_source)
     assert match, "live scene has no versioned world"
     current = match.group(1)
     seen = set()
@@ -70,7 +70,7 @@ def check_runtime() -> None:
         seen.add(current)
         source_path = ROOT / "Godot/scripts" / current
         assert source_path.is_file(), f"missing live layer {current}"
-        parent = re.search(r'^extends "res://scripts/(world_v\\d+\\.gd)"',
+        parent = re.search(r'^extends "res://scripts/(world_v\d+\.gd)"',
                            source_path.read_text(encoding="utf-8"), re.MULTILINE)
         assert parent, f"v0.160 no longer inherited from live {current}"
         current = parent.group(1)
