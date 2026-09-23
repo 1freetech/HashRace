@@ -41,23 +41,28 @@ def test_png():
     assert len(zlib.decompress(image_stream)) == 136 * (1 + 128)
 
 def test_live():
-    script = (ROOT / "Godot/scripts/world_v161.gd").read_text()
-    current = (ROOT / "Godot/scripts/world_v162.gd").read_text()
+    solar_world = (ROOT / "Godot/scripts/world_v161.gd").read_text()
+    v162 = (ROOT / "Godot/scripts/world_v162.gd").read_text()
+    v163 = (ROOT / "Godot/scripts/world_v163.gd").read_text()
     catalog = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_v161_solar.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert "world_v162.gd" in scene
-    assert 'extends "res://scripts/world_v161.gd"' in current
+    # Preservation follows the current live inheritance chain instead of pinning
+    # the scene forever to v0.162. v0.163 must inherit v0.162, which inherits the
+    # validated v0.161 solar implementation.
+    assert "world_v163.gd" in scene
+    assert 'extends "res://scripts/world_v162.gd"' in v163
+    assert 'extends "res://scripts/world_v161.gd"' in v162
     assert "solar_array_overview.png" in catalog
-    assert "V161Solar.texture()" in script
-    assert "func _v114_draw_energy_source(" in script
-    assert "super._v114_draw_energy_source(" in script
-    assert "grid_nav.block_rect(foot)" in script
-    assert "func _draw_rep()" in script and "draw_texture_rect(v161_solar_texture" in script
+    assert "V161Solar.texture()" in solar_world
+    assert "func _v114_draw_energy_source(" in solar_world
+    assert "super._v114_draw_energy_source(" in solar_world
+    assert "grid_nav.block_rect(foot)" in solar_world
+    assert "func _draw_rep()" in solar_world and "draw_texture_rect(v161_solar_texture" in solar_world
     assert 'inventory.deploy("solar_array"' in capture
     assert "debug_v161_solar_ready" in capture
 
 if __name__ == "__main__":
     test_png()
     test_live()
-    print("v0.161 real solar PNG CRC/alpha/hash/live inheritance passed")
+    print("v0.161 real solar PNG CRC/alpha/hash/current live inheritance passed")
