@@ -2,7 +2,7 @@ extends Node2D
 
 const Profiles = preload("res://scripts/company_profiles.gd")
 const WORLD_SIZE: Vector2 = Vector2(3000.0, 1900.0)
-const WALK_SPEED: float = 330.0
+const WALK_SPEED: float = 144.0
 const INTERACT_DISTANCE: float = 145.0
 const SATS_PER_BTC: float = 100000000.0
 const QUARTER_DAYS: float = 91.25
