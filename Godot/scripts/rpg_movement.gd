@@ -6,7 +6,7 @@ extends RefCounted
 # https://github.com/clear-code-projects/Python-Monsters
 
 const MAX_COLLISION_STEP: float = 16.0
-const WALK_CYCLE_DISTANCE: float = 72.0
+const WALK_CYCLE_DISTANCE: float = 126.0
 const INPUT_DEADZONE: float = 0.12
 
 static func normalized_input(raw: Vector2) -> Vector2:
@@ -64,7 +64,7 @@ static func is_moving(motion: Vector2) -> bool:
     return motion.length_squared() > 0.0001
 
 static func advance_step_phase(current_phase: float, actual_motion: Vector2) -> float:
-    # Tie the four-frame walk cycle to real distance travelled. Collision
+    # Tie the seven-frame walk cycle to real distance travelled. Collision
     # clipping and variable path speeds no longer make the character's feet
     # animate while the representative barely moves.
     if not is_moving(actual_motion):
