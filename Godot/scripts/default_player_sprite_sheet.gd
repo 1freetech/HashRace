@@ -10,14 +10,17 @@ const EFFECTIVE_FRAME_COUNT := 20
 const WALK_FPS := 8.0
 const SHEET_SHA256 := "2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211"
 
-# Keep the exact approved 32-pose source binary from current main. Runtime uses
-# five poses per direction (one idle + four walk poses) at 8 FPS.
+# Exact approved 32-pose source binary. Runtime uses one idle plus four walk
+# poses per direction. WALK_SOURCE_INDICES is intentionally explicit: the
+# cadence advances through four distinct authored poses instead of reusing an
+# idle/bob pose, so successive half-cycles can show opposite-leg contacts.
 const FRAME_REGIONS := {
     "down": [Rect2i(58,41,125,216), Rect2i(250,40,125,219), Rect2i(434,41,125,217), Rect2i(618,40,124,218), Rect2i(803,41,124,217), Rect2i(983,40,125,218), Rect2i(1167,40,124,219), Rect2i(1354,40,124,218)],
     "left": [Rect2i(60,273,131,221), Rect2i(251,273,128,221), Rect2i(436,273,131,221), Rect2i(618,273,135,221), Rect2i(803,274,131,221), Rect2i(988,273,130,221), Rect2i(1170,274,133,220), Rect2i(1354,274,128,220)],
     "right": [Rect2i(54,511,132,225), Rect2i(246,511,133,225), Rect2i(432,511,133,225), Rect2i(614,511,133,225), Rect2i(802,511,134,225), Rect2i(985,511,137,225), Rect2i(1161,511,142,225), Rect2i(1355,511,133,225)],
     "up": [Rect2i(56,745,131,222), Rect2i(245,745,130,225), Rect2i(431,745,128,225), Rect2i(614,745,130,225), Rect2i(798,745,129,225), Rect2i(979,745,131,225), Rect2i(1163,745,133,225), Rect2i(1354,745,130,222)],
 }
+const WALK_SOURCE_INDICES := [1, 3, 5, 7]
 const EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]
 
 static func load_texture() -> Texture2D:
@@ -40,11 +43,6 @@ static func build_customized_texture(skin: Color, suit: Color, scouter: Color) -
     var image := source_texture.get_image()
     if image == null or image.is_empty() or image.get_size() != SHEET_SIZE:
         return null
-
-    # Work only inside the 32 exact source regions. This keeps transparent
-    # spacing and every pixel outside a character crop visually untouched. The
-    # runtime uses five exact poses per direction, so only those 20 regions need
-    # a derived palette texture.
     for facing in ["down", "left", "right", "up"]:
         var regions: Array = FRAME_REGIONS[facing]
         for source_index in EFFECTIVE_SOURCE_INDICES:
@@ -67,15 +65,10 @@ static func _is_suit_pixel(pixel: Color) -> bool:
     return pixel.h >= 0.025 and pixel.h <= 0.115 and pixel.s >= 0.78 and pixel.v >= 0.48
 
 static func _is_skin_pixel(pixel: Color, local_y: int, frame_height: int) -> bool:
-    return local_y < int(float(frame_height) * 0.48) \
-        and pixel.h >= 0.025 and pixel.h <= 0.115 \
-        and pixel.s >= 0.34 and pixel.s < 0.78 \
-        and pixel.v >= 0.20 and pixel.v <= 0.78
+    return local_y < int(float(frame_height) * 0.48) and pixel.h >= 0.025 and pixel.h <= 0.115 and pixel.s >= 0.34 and pixel.s < 0.78 and pixel.v >= 0.20 and pixel.v <= 0.78
 
 static func _is_scouter_pixel(pixel: Color, local_y: int, frame_height: int) -> bool:
-    return local_y < int(float(frame_height) * 0.48) \
-        and pixel.h >= 0.22 and pixel.h <= 0.48 \
-        and pixel.s >= 0.45 and pixel.v >= 0.28
+    return local_y < int(float(frame_height) * 0.48) and pixel.h >= 0.22 and pixel.h <= 0.48 and pixel.s >= 0.45 and pixel.v >= 0.28
 
 static func _retint(source: Color, target: Color, reference_value: float) -> Color:
     var shade := clampf(source.v / reference_value, 0.28, 1.22)
@@ -92,29 +85,32 @@ static func build_frames() -> SpriteFrames:
     for facing in ["down", "left", "right", "up"]:
         var regions: Array = FRAME_REGIONS[facing]
         _add_animation(frames, StringName("idle_" + facing), texture, [regions[0]], 1.0, true)
-        var walk_regions: Array = [regions[1], regions[3], regions[5], regions[7]]
+        var walk_regions: Array = []
+        for source_index in WALK_SOURCE_INDICES:
+            walk_regions.append(regions[int(source_index)])
         _add_animation(frames, StringName("walk_" + facing), texture, walk_regions, WALK_FPS, true)
     return frames
 
 static func frame_region(facing: String, frame: int) -> Rect2i:
     var safe_facing := facing if FRAME_REGIONS.has(facing) else "down"
     var regions: Array = FRAME_REGIONS[safe_facing]
-    var effective_index := clampi(frame, 0, EFFECTIVE_SOURCE_INDICES.size() - 1)
-    return regions[int(EFFECTIVE_SOURCE_INDICES[effective_index])]
+    if frame <= 0:
+        return regions[0]
+    var walk_index := clampi(frame - 1, 0, WALK_SOURCE_INDICES.size() - 1)
+    return regions[int(WALK_SOURCE_INDICES[walk_index])]
 
 static func walk_frame(moving: bool, step_phase: float) -> int:
     if not moving:
         return 0
-    return 1 + mini(int(floor(fposmod(step_phase, TAU) / TAU * WALK_FRAME_COUNT)), WALK_FRAME_COUNT - 1)
+    var cycle := fposmod(step_phase, TAU) / TAU
+    return 1 + mini(int(floor(cycle * WALK_FRAME_COUNT)), WALK_FRAME_COUNT - 1)
 
 static func frame_offset(region: Rect2i) -> Vector2:
     return Vector2(floor((FRAME_SIZE.x - region.size.x) * 0.5), FOOT_ANCHOR.y - region.size.y)
 
 static func debug_ready() -> bool:
     var texture := load_texture()
-    return texture != null and Vector2i(texture.get_size()) == SHEET_SIZE \
-        and FRAME_REGIONS.size() == 4 and FRAME_REGIONS["down"].size() == 8 \
-        and EFFECTIVE_SOURCE_INDICES.size() * FRAME_REGIONS.size() == EFFECTIVE_FRAME_COUNT
+    return texture != null and Vector2i(texture.get_size()) == SHEET_SIZE and FRAME_REGIONS.size() == 4 and FRAME_REGIONS["down"].size() == 8 and WALK_SOURCE_INDICES == [1, 3, 5, 7] and EFFECTIVE_SOURCE_INDICES.size() * FRAME_REGIONS.size() == EFFECTIVE_FRAME_COUNT
 
 static func _add_animation(frames: SpriteFrames, name: StringName, texture: Texture2D, regions: Array, fps: float, loop: bool) -> void:
     frames.add_animation(name)
