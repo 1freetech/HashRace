@@ -55,8 +55,8 @@ func _validate() -> void:
         return
     for direction in ["down", "left", "right", "up"]:
         _require(frames.get_frame_count("idle_" + direction) == 1, direction + " needs one idle pose")
-        _require(frames.get_frame_count("walk_" + direction) == 3, direction + " needs three walk poses")
-        for effective_index in range(4):
+        _require(frames.get_frame_count("walk_" + direction) == 4, direction + " needs four walk poses")
+        for effective_index in range(5):
             var region: Rect2i = Sheet.frame_region(direction, effective_index)
             _require(Rect2i(Vector2i.ZERO, image.get_size()).encloses(region), "frame outside PNG")
             var crop := image.get_region(region)
@@ -66,9 +66,9 @@ func _validate() -> void:
     var walked: Dictionary = {}
     for index in range(30):
         var selected := Sheet.walk_frame(true, TAU * float(index) / 30.0)
-        _require(selected >= 1 and selected <= 3, "walking must exclude idle")
+        _require(selected >= 1 and selected <= 4, "walking must exclude idle")
         walked[selected] = true
-    _require(walked.size() == 3 and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit three phases then hold idle")
+    _require(walked.size() == 4 and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit four phases then hold idle")
     var visual := Visual.new()
     root.add_child(visual)
     for direction in ["down", "left", "right", "up"]:
@@ -80,5 +80,5 @@ func _validate() -> void:
     if not failures.is_empty():
         quit(1)
         return
-    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries; exact 32-pose PNG source; effective 16-pose runtime cycle" % decoded)
+    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries; exact 32-pose PNG source; effective 20-pose runtime cycle" % decoded)
     quit(0)

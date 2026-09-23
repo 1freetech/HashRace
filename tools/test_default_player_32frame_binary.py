@@ -30,11 +30,11 @@ def main():
     assert seen_iend
     assert len(zlib.decompress(bytes(idat))) > 1024
     code = (ROOT / "Godot/scripts/default_player_sprite_sheet.gd").read_text()
-    assert 'EFFECTIVE_FRAME_COUNT := 16' in code
-    assert 'EFFECTIVE_SOURCE_INDICES := [0, 2, 4, 6]' in code
-    assert 'WALK_FRAME_COUNT := 3' in code
-    assert 'WALK_FPS := 6.0' in code
-    print("Hash Race exact player PNG + effective 16-frame runtime contract: PASS")
+    assert 'EFFECTIVE_FRAME_COUNT := 20' in code
+    assert 'EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]' in code
+    assert 'WALK_FRAME_COUNT := 4' in code
+    assert 'WALK_FPS := 8.0' in code
+    print("Hash Race exact player PNG + effective 20-frame runtime contract: PASS")
 
 if __name__ == "__main__":
     main()
