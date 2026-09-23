@@ -55,8 +55,8 @@ func _validate() -> void:
         return
     for direction in ["down", "left", "right", "up"]:
         _require(frames.get_frame_count("idle_" + direction) == 1, direction + " needs one idle pose")
-        _require(frames.get_frame_count("walk_" + direction) == 4, direction + " needs four walk poses")
-        for effective_index in range(5):
+        _require(frames.get_frame_count("walk_" + direction) == Sheet.WALK_FRAME_COUNT, direction + " needs all authored walk poses")
+        for effective_index in range(Sheet.WALK_FRAME_COUNT + 1):
             var region: Rect2i = Sheet.frame_region(direction, effective_index)
             _require(Rect2i(Vector2i.ZERO, image.get_size()).encloses(region), "frame outside PNG")
             var crop := image.get_region(region)
@@ -64,11 +64,11 @@ func _validate() -> void:
             var source_index: int = int(Sheet.EFFECTIVE_SOURCE_INDICES[effective_index])
             _require(region == Sheet.FRAME_REGIONS[direction][source_index], "effective frame mapping drift")
     var walked: Dictionary = {}
-    for index in range(30):
-        var selected := Sheet.walk_frame(true, TAU * float(index) / 30.0)
-        _require(selected >= 1 and selected <= 4, "walking must exclude idle")
+    for index in range(42):
+        var selected := Sheet.walk_frame(true, TAU * float(index) / 42.0)
+        _require(selected >= 1 and selected <= Sheet.WALK_FRAME_COUNT, "walking must exclude idle")
         walked[selected] = true
-    _require(walked.size() == 4 and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit four phases then hold idle")
+    _require(walked.size() == Sheet.WALK_FRAME_COUNT and Sheet.walk_frame(false, 1.9) == 0, "walk cycle must visit every authored phase then hold idle")
     var visual := Visual.new()
     root.add_child(visual)
     for direction in ["down", "left", "right", "up"]:
@@ -80,5 +80,5 @@ func _validate() -> void:
     if not failures.is_empty():
         quit(1)
         return
-    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries; exact 32-pose PNG source; effective 20-pose runtime cycle" % decoded)
+    print("HASH RACE PLAYER VALIDATION PASS: %d image binaries; exact 32-pose PNG source; full 32-pose runtime cycle" % decoded)
     quit(0)
