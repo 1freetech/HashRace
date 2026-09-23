@@ -1,0 +1,39 @@
+name: v0.163 wind runtime proof
+
+on:
+  push:
+    branches: [automation/v163-wind-runtime-asset]
+  pull_request:
+
+jobs:
+  exact-head-wind-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+      - name: Fresh checkout import and binary decode
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --editor --import 2>&1 | tee /tmp/v163-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v163-import.log; then exit 1; fi
+          python tools/test_v127_asset_bundle_contract.py
+      - name: Render actual wind gameplay proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v163_wind.gd 2>&1 | tee /tmp/v163-wind.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|V163 WIND PROOF FAIL" /tmp/v163-wind.log; then exit 1; fi
+          grep -q "V163 WIND PROOF PASS" /tmp/v163-wind.log
+          test -s visual-proof/v163-wind-runtime.png
+      - name: Upload exact-head gameplay screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-v163-wind-runtime-proof
+          path: visual-proof/v163-wind-runtime.png
+          if-no-files-found: error
