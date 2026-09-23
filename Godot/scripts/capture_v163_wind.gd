@@ -1,6 +1,13 @@
 extends SceneTree
 
 const OUTPUT := "res://../visual-proof/v163-wind-runtime.png"
+const HIGHER_PRIORITY_ENERGY: Array[String] = [
+    "nuclear_smr",
+    "hydro_turbine",
+    "gas_turbine",
+    "coal_plant",
+    "solar_array",
+]
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -27,6 +34,16 @@ func _capture() -> void:
     if inventory == null or inventory.item_resource("wind_farm") == null:
         _fail("wind farm missing from real infrastructure inventory")
         return
+
+    # The live selector intentionally prefers other deployed energy sources before
+    # wind. Isolate the proof fixture by undeploying only those higher-priority
+    # sources through the real inventory API instead of mutating dictionaries.
+    for item_id in HIGHER_PRIORITY_ENERGY:
+        var deployed_count: int = inventory.deployed_quantity(item_id)
+        if deployed_count > 0 and not inventory.undeploy(item_id, company, deployed_count):
+            _fail("could not isolate wind fixture from " + item_id)
+            return
+
     if inventory.quantity("wind_farm") <= 0 and not inventory.add("wind_farm", 1):
         _fail("could not add wind farm")
         return
