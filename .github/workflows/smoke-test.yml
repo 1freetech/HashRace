@@ -73,6 +73,19 @@ jobs:
           xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-visual.log; then exit 1; fi
           test -s visual-proof/hashrace-screenshot.png
+      - name: Render and inspect genuine v0.161 solar asset in live site
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v161_solar.gd 2>&1 | tee /tmp/hashrace-v161-solar.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|V161 SOLAR PROOF FAIL" /tmp/hashrace-v161-solar.log; then exit 1; fi
+          test -s visual-proof/v161-solar-overview.png
+      - name: Upload v0.161 real solar in-game proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-v161-live-solar-proof
+          path: visual-proof/v161-solar-overview.png
+          if-no-files-found: error
       - name: Render all 32 approved player poses in the actual world
         shell: bash
         run: |
@@ -167,6 +180,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Validate new solar PNG binary and exact live wiring
+        run: python tools/test_v161_solar_overview.py
       - name: Test the core mining and concept contract
         run: python tools/smoke_test.py
       - name: Test the ten-miner league standings contract
