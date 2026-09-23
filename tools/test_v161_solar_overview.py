@@ -42,12 +42,22 @@ def test_png():
 
 def test_live():
     script = (ROOT / "Godot/scripts/world_v161.gd").read_text()
-    current = (ROOT / "Godot/scripts/world_v162.gd").read_text()
+    v162 = (ROOT / "Godot/scripts/world_v162.gd").read_text()
+    v163_path = ROOT / "Godot/scripts/world_v163.gd"
     catalog = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_v161_solar.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert "world_v162.gd" in scene
-    assert 'extends "res://scripts/world_v161.gd"' in current
+    # Preservation assertion follows the current live inheritance chain instead
+    # of pinning the scene forever to an older live-world layer.
+    if v163_path.exists():
+        current = v163_path.read_text()
+        assert "world_v163.gd" in scene
+        assert 'extends "res://scripts/world_v162.gd"' in current
+        assert "V161Solar.texture()" in current
+        assert "func _draw_power_building(" in current
+    else:
+        assert "world_v162.gd" in scene
+    assert 'extends "res://scripts/world_v161.gd"' in v162
     assert "solar_array_overview.png" in catalog
     assert "V161Solar.texture()" in script
     assert "func _v114_draw_energy_source(" in script
