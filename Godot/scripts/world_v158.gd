@@ -26,9 +26,12 @@ func _ready() -> void:
 func _build_art_tilemap() -> void:
     super._build_art_tilemap()
 
+    # Strip the old 3-6-cell roads and all orphan lot/plaza checker patches.
+    # Canonical facilities draw their own small foundations below.
     for raw_cell in art_cells.keys():
         var cell: Vector2i = raw_cell
-        if int(art_cells.get(cell, TILE_GRASS)) == TILE_ROAD:
+        var value := int(art_cells.get(cell, TILE_GRASS))
+        if value == TILE_ROAD or value == TILE_LOT or value == TILE_PLAZA:
             art_cells[cell] = TILE_GRASS_DARK if (cell.x * 5 + cell.y * 7) % 19 == 0 else TILE_GRASS
 
     GBPaint.paint_line(art_cells, Vector2i(2, 19), Vector2i(60, 19), V158_ROAD_WIDTH_CELLS, TILE_ROAD, art_columns, art_rows)
@@ -38,19 +41,15 @@ func _build_art_tilemap() -> void:
 
     set_meta("hashrace_v158_visual_road_tiles", debug_gbc_road_tiles())
 
-# The old world-prop inheritance chain carried hard-coded solar/fan/pylon props,
-# per-town four-object campus copies, the v0.127 utility pile, and later cable/
-# planner additions. Normal play now gets one authoritative player mining site.
-# Interactive partner/service/company buildings are still rendered as entities.
 func _draw_world_props_pixel() -> void:
     if player.is_empty() or town_zones.is_empty():
         return
     var origin := _energy_campus_origin()
-    if rep_pos.distance_to(origin) <= 1100.0:
+    # The player site is a destination, not permanent wallpaper behind the town.
+    # It appears once the player walks into its campus parcel.
+    if rep_pos.distance_to(origin) <= 520.0:
         _v115_draw_live_site(origin)
 
-# Do not re-add decorative four-object mining clusters behind every company HQ.
-# The HQ entity itself communicates the company; the player has one real site.
 func _draw_mining_campus(_center: Vector2, _accent: Color) -> void:
     pass
 
@@ -59,39 +58,61 @@ func _draw_mining_campus(_center: Vector2, _accent: Color) -> void:
 func _energy_campus_origin() -> Vector2:
     var hq := _player_hq_center()
     var candidates: Array[Vector2] = [
-        hq + Vector2(0.0, 360.0),
-        hq + Vector2(0.0, -360.0),
-        hq + Vector2(430.0, 260.0),
-        hq + Vector2(-430.0, 260.0),
-        hq + Vector2(430.0, -260.0),
-        hq + Vector2(-430.0, -260.0)
+        hq + Vector2(650.0, 0.0),
+        hq + Vector2(-650.0, 0.0),
+        hq + Vector2(0.0, 540.0),
+        hq + Vector2(0.0, -540.0),
+        hq + Vector2(560.0, 410.0),
+        hq + Vector2(-560.0, 410.0),
+        hq + Vector2(560.0, -410.0),
+        hq + Vector2(-560.0, -410.0)
     ]
-    var best := hq + Vector2(0.0, 360.0)
+    var site_half := Vector2(305.0, 295.0)
+    var best := hq + Vector2(650.0, 0.0)
     var best_score := -1.0e20
+
     for raw_candidate in candidates:
         var candidate: Vector2 = raw_candidate
-        candidate.x = clampf(candidate.x, 300.0, WORLD_SIZE.x - 300.0)
-        candidate.y = clampf(candidate.y, 260.0, WORLD_SIZE.y - 260.0)
-        var cell := _world_to_art_cell(candidate)
-        var tile := int(art_cells.get(cell, TILE_GRASS))
-        if tile == TILE_WATER:
-            continue
-        var nearest := 99999.0
+        candidate.x = clampf(candidate.x, site_half.x + 40.0, WORLD_SIZE.x - site_half.x - 40.0)
+        candidate.y = clampf(candidate.y, site_half.y + 40.0, WORLD_SIZE.y - site_half.y - 40.0)
+
+        var water_penalty := 0.0
+        var samples: Array[Vector2] = [
+            candidate,
+            candidate + Vector2(site_half.x * 0.78, site_half.y * 0.78),
+            candidate + Vector2(-site_half.x * 0.78, site_half.y * 0.78),
+            candidate + Vector2(site_half.x * 0.78, -site_half.y * 0.78),
+            candidate + Vector2(-site_half.x * 0.78, -site_half.y * 0.78)
+        ]
+        for sample in samples:
+            if int(art_cells.get(_world_to_art_cell(sample), TILE_GRASS)) == TILE_WATER:
+                water_penalty += 2400.0
+
+        var overlap_penalty := 0.0
+        var nearest_edge := 99999.0
         for raw_entity in entities:
             var entity: Dictionary = raw_entity
             var kind := String(entity.get("kind", ""))
-            if kind == "partner_rep" or kind == "rival_rep":
+            if not WorldScale.is_building_kind(kind):
                 continue
-            nearest = minf(nearest, candidate.distance_to(Vector2(entity.get("pos", Vector2.ZERO))))
-        var road_penalty := 260.0 if tile == TILE_ROAD else 0.0
-        var score := nearest - road_penalty
+            var building_pos := Vector2(entity.get("pos", Vector2.ZERO))
+            var building_half := WorldScale.size_for_kind(kind) * 0.5 + Vector2(54.0, 54.0)
+            var dx := absf(candidate.x - building_pos.x) - (site_half.x + building_half.x)
+            var dy := absf(candidate.y - building_pos.y) - (site_half.y + building_half.y)
+            if dx < 0.0 and dy < 0.0:
+                overlap_penalty += (absf(dx) + absf(dy) + 1.0) * 60.0
+            else:
+                nearest_edge = minf(nearest_edge, maxf(dx, dy))
+
+        var center_tile := int(art_cells.get(_world_to_art_cell(candidate), TILE_GRASS))
+        var road_penalty := 500.0 if center_tile == TILE_ROAD else 0.0
+        var score := nearest_edge - overlap_penalty - water_penalty - road_penalty
         if score > best_score:
             best_score = score
             best = candidate
+
     return VisualStack.snap_to_pixel(best)
 
-# Representatives use the same human scale but stand in a real apron beside the
-# facility rather than touching doors, containers or permanent labels.
 func _build_entities() -> void:
     super._build_entities()
     for i in range(entities.size()):
@@ -128,8 +149,21 @@ func _v158_draw_facility(entity: Dictionary, idx: int, accent: Color) -> void:
     var size_value := WorldScale.size_for_kind(kind)
     var rect := Rect2(pos - size_value * Vector2(0.5, 0.62), size_value)
     _selection_ring(pos, idx, WorldScale.selection_radius(kind))
-    _v103_draw_building_shadow(pos, size_value)
 
+    # One intentional concrete foundation and one narrow front walk replace the
+    # orphan lot/plaza tile checker. They sit behind the building silhouette.
+    var foundation := Rect2(
+        rect.position + Vector2(-8.0, rect.size.y * 0.42),
+        Vector2(rect.size.x + 16.0, rect.size.y * 0.58 + 12.0)
+    )
+    draw_rect(foundation, Color(0.28, 0.32, 0.28, 0.62), true)
+    draw_rect(foundation, Color(0.42, 0.48, 0.40, 0.50), false, 2.0)
+    var front_walk := Rect2(Vector2(pos.x - 20.0, rect.end.y - 4.0), Vector2(40.0, 44.0))
+    draw_rect(front_walk, Color(0.38, 0.42, 0.36, 0.78), true)
+    for i in range(5):
+        draw_rect(Rect2(front_walk.position + Vector2(5.0 + float(i) * 7.0, 7.0 + float(i % 2) * 18.0), Vector2(2.0, 2.0)), Color(0.54, 0.60, 0.48, 0.65), true)
+
+    _v103_draw_building_shadow(pos, size_value)
     draw_rect(rect, Color("111b21"), true)
     draw_rect(rect, Color("071016"), false, 4.0)
     draw_rect(Rect2(rect.position + Vector2(4.0, 4.0), Vector2(rect.size.x - 8.0, 18.0)), accent.darkened(0.30), true)
