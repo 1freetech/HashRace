@@ -57,7 +57,23 @@ def check_runtime() -> None:
     assert "draw_texture_rect(v160_transformer_texture" in world
     assert "substation_transformer_rear.png" in catalog
     assert "GROUND_CONTACT" in catalog and "sort_y" in catalog
-    assert 'world_v160.gd' in SCENE.read_text(encoding="utf-8")
+    # The current scene advances by inheritance. Never pin regression coverage
+    # to v0.160 forever: require its real implementation in the live chain.
+    import re
+    scene_source = SCENE.read_text(encoding="utf-8")
+    match = re.search(r'res://scripts/(world_v\\d+\\.gd)', scene_source)
+    assert match, "live scene has no versioned world"
+    current = match.group(1)
+    seen = set()
+    while current != "world_v160.gd":
+        assert current not in seen, "cycle in live world inheritance chain"
+        seen.add(current)
+        source_path = ROOT / "Godot/scripts" / current
+        assert source_path.is_file(), f"missing live layer {current}"
+        parent = re.search(r'^extends "res://scripts/(world_v\\d+\\.gd)"',
+                           source_path.read_text(encoding="utf-8"), re.MULTILINE)
+        assert parent, f"v0.160 no longer inherited from live {current}"
+        current = parent.group(1)
     assert "debug_v160_transformer_ready" in ENERGY_PROOF.read_text(encoding="utf-8")
 
 
