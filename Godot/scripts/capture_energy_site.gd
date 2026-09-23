@@ -81,6 +81,13 @@ func _capture() -> void:
         _fail("v0.117 energy renderer contract failed at runtime")
         return
 
+    # Do not accept a source-only or hidden asset as a successful integration.
+    # The scene must decode the cropped Library PNG, register its ground
+    # footprint in navigation and retain the v0.114 capacity tiers.
+    if not scene.has_method("debug_v160_transformer_ready") or not bool(scene.call("debug_v160_transformer_ready")):
+        _fail("isolated v0.160 transformer sprite/footprint is not live")
+        return
+
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
