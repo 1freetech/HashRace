@@ -3,7 +3,6 @@ extends "res://scripts/world_v162.gd"
 # v0.163: replace one generic power-house silhouette with the already proven
 # authored solar infrastructure sprite. This is visual-only: entity identity,
 # selection, interaction, simulation state and world scale remain unchanged.
-const V161Solar = preload("res://scripts/v161_solar_overview_sprite.gd")
 const V163_INFRA_REPLACEMENT_REVISION := 1
 var v163_solar_texture: Texture2D
 var v163_solar_rect := Rect2()
@@ -11,6 +10,7 @@ var v163_solar_footprint := Rect2()
 var v163_solar_late := false
 
 func _ready() -> void:
+    # V161Solar is inherited from world_v161.gd; do not redeclare it here.
     v163_solar_texture = V161Solar.texture()
     super._ready()
     set_meta("hashrace_v163_one_house_replaced_by_infrastructure", V161Solar.valid_texture(v163_solar_texture))
