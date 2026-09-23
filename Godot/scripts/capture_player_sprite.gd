@@ -41,10 +41,10 @@ func _capture() -> void:
     DirAccess.make_dir_recursive_absolute(output)
     var hashes: Dictionary = {}
     for direction in ["down", "left", "right", "up"]:
-        for frame in range(5):
+        for frame in range(Sheet.WALK_FRAME_COUNT + 1):
             scene.set("rep_facing", direction)
             scene.set("rep_animation_state", direction + ("_idle" if frame == 0 else "_walk"))
-            scene.set("rep_step_phase", 0.0 if frame == 0 else (float(frame) - 0.5) * TAU / 4.0)
+            scene.set("rep_step_phase", 0.0 if frame == 0 else (float(frame) - 0.5) * TAU / float(Sheet.WALK_FRAME_COUNT))
             scene.queue_redraw()
             await process_frame
             await RenderingServer.frame_post_draw
@@ -72,7 +72,7 @@ func _capture() -> void:
                 return
     # Render a *moving* character using actual traveled pixels at the live
     # speed, with a stationary camera so visual motion is visible against the
-    # world. Preserve the existing 20-pose still captures separately.
+    # world. Preserve all 32 authored idle/walk pose captures separately.
     var directions := {
         "down": Vector2.DOWN,
         "left": Vector2.LEFT,
@@ -108,5 +108,5 @@ func _capture() -> void:
                 _fail("could not save actual-world player motion frame")
                 return
         scene.set("rep_pos", player_position)
-    print("HASH RACE PLAYER RENDER PASS: 20 live poses and 16 controlled-distance moving frames from the approved 32-pose source")
+    print("HASH RACE PLAYER RENDER PASS: 32 live poses and 28 controlled-distance moving frames from the approved 32-pose source")
     quit(0)
