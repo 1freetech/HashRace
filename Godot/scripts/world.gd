@@ -5,6 +5,7 @@ const WORLD_SIZE := Vector2(1800, 1120)
 const PLAYER_SPEED := 230.0
 const GridNavigation = preload("res://scripts/grid_navigation.gd")
 const Inventory = preload("res://scripts/infrastructure_inventory.gd")
+const PlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
 
 const PLAYER_ART := preload("res://art/characters/default_player_sheet.png")
 const CONTAINER_ART := preload("res://art/buildings/c01_mining_container.png")
@@ -20,6 +21,8 @@ var rep_pos := Vector2(900, 650)
 var camera: Camera2D
 var target := Vector2.ZERO
 var walking := false
+var player_sprite: AnimatedSprite2D
+var player_facing := "down"
 
 const CAMPUS := {
     "container": Rect2(280, 300, 330, 190),
@@ -33,6 +36,7 @@ func _ready() -> void:
     grid_nav.configure(WORLD_SIZE, 48.0)
     for rect in CAMPUS.values():
         grid_nav.block_rect(_ground_foot(rect))
+    _build_player_sprite()
     camera = Camera2D.new()
     camera.position = rep_pos
     camera.position_smoothing_enabled = true
@@ -41,17 +45,38 @@ func _ready() -> void:
     camera.make_current()
     queue_redraw()
 
+func _build_player_sprite() -> void:
+    var frames := PlayerSheet.build_frames()
+    if frames == null:
+        return
+    player_sprite = AnimatedSprite2D.new()
+    player_sprite.name = "PlayerSprite"
+    player_sprite.sprite_frames = frames
+    player_sprite.animation = &"idle_down"
+    player_sprite.position = rep_pos
+    player_sprite.scale = Vector2(0.4, 0.4)
+    player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    player_sprite.z_index = 20
+    add_child(player_sprite)
+
 func _process(delta: float) -> void:
     var direction := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+    var moving := false
     if direction.length() > 0.0:
         walking = false
-        move_player(direction.normalized() * PLAYER_SPEED * delta)
+        moving = move_player(direction.normalized() * PLAYER_SPEED * delta)
+        if moving:
+            _set_player_facing(direction)
     elif walking:
         var offset := target - rep_pos
         if offset.length() < 5.0:
             walking = false
         else:
-            move_player(offset.normalized() * minf(PLAYER_SPEED * delta, offset.length()))
+            var direction_to_target := offset.normalized()
+            moving = move_player(direction_to_target * minf(PLAYER_SPEED * delta, offset.length()))
+            if moving:
+                _set_player_facing(direction_to_target)
+    _update_player_animation(moving)
     camera.position = rep_pos
     queue_redraw()
 
@@ -60,12 +85,35 @@ func _unhandled_input(event: InputEvent) -> void:
         target = get_global_mouse_position()
         walking = true
 
-func move_player(delta_pos: Vector2) -> void:
+func move_player(delta_pos: Vector2) -> bool:
     var candidate := rep_pos + delta_pos
     candidate.x = clampf(candidate.x, 40.0, WORLD_SIZE.x - 40.0)
     candidate.y = clampf(candidate.y, 40.0, WORLD_SIZE.y - 40.0)
-    if grid_nav.world_is_walkable(candidate):
-        rep_pos = candidate
+    if not grid_nav.world_is_walkable(candidate):
+        return false
+    var moved := candidate.distance_to(rep_pos) > 0.01
+    rep_pos = candidate
+    if player_sprite != null:
+        player_sprite.position = rep_pos
+    return moved
+
+func _set_player_facing(direction: Vector2) -> void:
+    if absf(direction.x) > absf(direction.y):
+        player_facing = "right" if direction.x > 0.0 else "left"
+    else:
+        player_facing = "down" if direction.y > 0.0 else "up"
+
+func _update_player_animation(moving: bool) -> void:
+    if player_sprite == null:
+        return
+    var wanted := StringName(("walk_" if moving else "idle_") + player_facing)
+    if player_sprite.animation != wanted:
+        player_sprite.play(wanted)
+    elif moving and not player_sprite.is_playing():
+        player_sprite.play(wanted)
+    elif not moving and player_sprite.is_playing():
+        player_sprite.stop()
+        player_sprite.frame = 0
 
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("568c43"))
@@ -75,7 +123,6 @@ func _draw() -> void:
     _draw_asset(TRANSFORMER_ART, CAMPUS.transformer)
     _draw_asset(ASIC_ART, CAMPUS.asic)
     _draw_wind()
-    _draw_player()
     _draw_hud()
 
 func _draw_service_road() -> void:
@@ -92,14 +139,6 @@ func _draw_wind() -> void:
         return
     var source := Rect2(Vector2.ZERO, Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0))
     draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)
-
-func _draw_player() -> void:
-    if PLAYER_ART == null:
-        draw_circle(rep_pos, 18.0, Color("64ff8c"))
-        return
-    var frame_size := Vector2(PLAYER_ART.get_width() / 8.0, PLAYER_ART.get_height() / 4.0)
-    var source := Rect2(Vector2.ZERO, frame_size)
-    draw_texture_rect_region(PLAYER_ART, Rect2(rep_pos - Vector2(24, 42), Vector2(48, 64)), source)
 
 func _draw_hud() -> void:
     var font := ThemeDB.fallback_font
@@ -141,8 +180,16 @@ func infrastructure_ready(asset_id: String) -> bool:
         return false
     return not grid_nav.world_is_walkable(foot.get_center())
 
+func player_animation_ready() -> bool:
+    if player_sprite == null or player_sprite.sprite_frames == null:
+        return false
+    for facing in ["down", "left", "right", "up"]:
+        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != PlayerSheet.WALK_FRAME_COUNT:
+            return false
+    return true
+
 func runtime_ready() -> bool:
-    if camera == null or not camera.is_inside_tree():
+    if camera == null or not camera.is_inside_tree() or not player_animation_ready():
         return false
     if grid_nav.blocked_count() < CAMPUS.size():
         return false
