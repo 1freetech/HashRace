@@ -8,6 +8,7 @@ const V165_DIESEL_ASSET_ID := "diesel_generator"
 const V165_DIESEL_REVISION := 1
 var v165_diesel_drawn := false
 var v165_diesel_rect := Rect2()
+var v165_diesel_footprint := Rect2()
 
 func _v114_primary_energy_id(center: Vector2) -> String:
     if center.distance_to(_player_hq_center()) <= 8.0     and infrastructure_inventory != null     and infrastructure_inventory.deployed_quantity(V165_DIESEL_ASSET_ID) > 0:
@@ -36,6 +37,7 @@ func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float
     )
     v165_diesel_drawn = true
     v165_diesel_rect = dest
+    v165_diesel_footprint = foot
     if grid_nav != null:
         grid_nav.block_rect(foot)
     draw_ellipse_shadow(pos + Vector2(0.0, side * 0.34), side * 0.30, side * 0.07)
