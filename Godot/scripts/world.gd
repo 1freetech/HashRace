@@ -25,7 +25,8 @@ const CAMPUS := {
     "container": Rect2(280, 300, 330, 190),
     "solar": Rect2(1060, 210, 230, 230),
     "transformer": Rect2(950, 520, 180, 162),
-    "asic": Rect2(560, 700, 190, 190)
+    "asic": Rect2(560, 700, 190, 190),
+    "wind": Rect2(1310, 260, 220, 220)
 }
 
 func _ready() -> void:
@@ -90,7 +91,7 @@ func _draw_wind() -> void:
     if WIND_ART == null:
         return
     var source := Rect2(Vector2.ZERO, Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0))
-    draw_texture_rect_region(WIND_ART, Rect2(1310, 260, 220, 220), source)
+    draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)
 
 func _draw_player() -> void:
     if PLAYER_ART == null:
@@ -109,5 +110,12 @@ func _draw_hud() -> void:
 func _ground_foot(rect: Rect2) -> Rect2:
     return Rect2(rect.position + Vector2(rect.size.x * 0.16, rect.size.y * 0.74), Vector2(rect.size.x * 0.68, rect.size.y * 0.22))
 
+func debug_wind_ready() -> bool:
+    var foot := _ground_foot(CAMPUS.wind)
+    return WIND_ART != null \
+        and Vector2i(WIND_ART.get_size()) == Vector2i(128, 128) \
+        and foot.size.x > 0.0 \
+        and not grid_nav.world_is_walkable(foot.get_center())
+
 func debug_runtime_ready() -> bool:
-    return PLAYER_ART != null and CONTAINER_ART != null and TRANSFORMER_ART != null and SOLAR_ART != null and WIND_ART != null and ASIC_ART != null and grid_nav.blocked_count() > 0
+    return PLAYER_ART != null and CONTAINER_ART != null and TRANSFORMER_ART != null and SOLAR_ART != null and WIND_ART != null and ASIC_ART != null and grid_nav.blocked_count() > 0 and debug_wind_ready()
