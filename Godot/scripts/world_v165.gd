@@ -44,4 +44,4 @@ func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float
     _v127_draw_region(v114_energy_texture, region, dest)
 
 func debug_v165_diesel_ready() -> bool:
-    return V165_DIESEL_REVISION == 1         and v165_diesel_drawn         and v165_diesel_rect.size.x >= 106.0         and v114_energy_texture != null         and grid_nav != null         and debug_v164_wind_ready()
+    return V165_DIESEL_REVISION == 1         and v165_diesel_drawn         and v165_diesel_rect.size.x >= 106.0         and v114_energy_texture != null         and grid_nav != null         and v165_diesel_footprint.size.x > 0.0         and not grid_nav.world_is_walkable(v165_diesel_footprint.get_center())
