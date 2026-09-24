@@ -17,9 +17,10 @@ func _capture() -> void:
     var scene := packed.instantiate()
     root.add_child(scene)
 
-    # Match the proven v0.164 wind capture path: allow _ready(), imported
-    # Texture2D resources, camera state, and queued redraws to settle before
-    # validating or reading viewport pixels.
+    # Reproduce the exact capture cadence already proven green by
+    # capture_v164_wind.gd on this branch. Do not add a second renderer wait:
+    # settle 12 process frames, validate live runtime state, redraw, settle 12
+    # more frames plus 0.25 s, then read the root viewport.
     for _frame in range(12):
         await process_frame
     if not scene.has_method("debug_runtime_ready") or not scene.call("debug_runtime_ready"):
@@ -30,11 +31,10 @@ func _capture() -> void:
     for _frame in range(12):
         await process_frame
     await create_timer(0.25).timeout
-    await RenderingServer.frame_post_draw
 
     var image := root.get_texture().get_image()
     if image == null or image.is_empty():
-        _fail("viewport image missing after frame_post_draw")
+        _fail("viewport image missing after proven capture cadence")
         return
     var folder := ProjectSettings.globalize_path("res://../visual-proof")
     DirAccess.make_dir_recursive_absolute(folder)
