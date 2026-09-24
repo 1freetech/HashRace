@@ -11,9 +11,20 @@ const PIXEL_SIZE := Vector2i(80, 72)
 const GROUND_CONTACT := Rect2(0.12, 0.82, 0.76, 0.18)
 
 static func texture() -> Texture2D:
-    if not ResourceLoader.exists(TEXTURE_PATH):
+    # Fresh CI checkouts can reach world _ready() before the imported Texture2D
+    # cache is available. Decode the committed PNG directly as a deterministic
+    # fallback, matching the proven wind binary-loading path.
+    if ResourceLoader.exists(TEXTURE_PATH):
+        var resource := load(TEXTURE_PATH) as Texture2D
+        if resource != null:
+            return resource
+    var absolute_path := ProjectSettings.globalize_path(TEXTURE_PATH)
+    if not FileAccess.file_exists(absolute_path):
         return null
-    return load(TEXTURE_PATH) as Texture2D
+    var image := Image.new()
+    if image.load(absolute_path) != OK or image.is_empty():
+        return null
+    return ImageTexture.create_from_image(image)
 
 static func draw_size(footprint_tiles: int) -> Vector2:
     # Keep the inherited 2/4/6/8-tile footprint contract; it controls scale
