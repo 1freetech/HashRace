@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource path="res://scripts/world_pixel_landscape.gd" type="Script" id="1_pixel"]
-
-[node name="PixelLandscapeProbe" type="Node2D"]
-script = ExtResource("1_pixel")

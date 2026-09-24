@@ -1,19 +1,18 @@
-name: Clean runtime gameplay proof
+name: Gameplay proof
 on:
   push:
-    branches: [automation/v164-wind-forward-port]
   pull_request:
     branches: [main]
 jobs:
-  gameplay-proof:
+  proof:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - name: Assert exact head
+      - name: Exact head
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
-      - name: Install Godot 4.7.2
+      - name: Install Godot
         run: |
           wget -q https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
           unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
@@ -23,13 +22,13 @@ jobs:
           rm -rf Godot/.godot
           cd Godot
           timeout 90s godot --headless --editor --path . --quit-after 2
-      - name: Render gameplay
+      - name: Runtime screenshot
         run: |
           mkdir -p visual-proof
           cd Godot
           xvfb-run -a godot --path . --script res://scripts/gameplay_capture.gd
-          test -s ../visual-proof/gameplay-clean-runtime.png
+          test -s ../visual-proof/gameplay.png
       - uses: actions/upload-artifact@v4
         with:
-          name: hashrace-clean-runtime-gameplay
-          path: visual-proof/gameplay-clean-runtime.png
+          name: hashrace-gameplay
+          path: visual-proof/gameplay.png

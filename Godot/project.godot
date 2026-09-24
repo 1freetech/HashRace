@@ -1,14 +1,10 @@
 ; Engine configuration file.
-; Hash Race Godot primary prototype.
 config_version=5
 
 [application]
 config/name="Hash Race"
-run/main_scene="res://scenes/campaign_setup.tscn"
+run/main_scene="res://scenes/world.tscn"
 config/features=PackedStringArray("4.7")
-
-[autoload]
-SceneManager="*res://autoloads/scene_manager.gd"
 
 [display]
 window/size/viewport_width=1440
@@ -19,10 +15,7 @@ window/stretch/mode="viewport"
 window/stretch/scale_mode="integer"
 
 [rendering]
-2d/snap/snap_2d_transforms_to_pixel=true
-2d/snap/snap_2d_vertices_to_pixel=true
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/default_filters/use_nearest_mipmap_filter=true
 textures/canvas_textures/default_texture_filter=0
-textures/canvas_textures/default_texture_repeat=0

@@ -1,19 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
-; Stable world entry point. Release history belongs in GitHub Releases.
-[ext_resource path="res://scripts/world.gd" type="Script" id="1_world"]
-[ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
+[ext_resource path="res://scripts/world.gd" type="Script" id="1"]
 
-[node name="HashRaceRPGStrategyWorld" type="Node2D"]
-script = ExtResource("1_world")
-
-[node name="LiveTreasuryControls" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 1.0
-offset_bottom = 1.0
-mouse_filter = 2
-script = ExtResource("2_treasury")
-
-[node name="BootFallback" type="CanvasLayer" parent="."]
-layer = 100
+[node name="HashRaceWorld" type="Node2D"]
+script = ExtResource("1")
