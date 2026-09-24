@@ -1,4 +1,4 @@
-"""Binary and live-wiring contract for the v0.164 wind asset."""
+"""Binary and current live-wiring contract for the validated wind asset."""
 from pathlib import Path
 import hashlib
 import struct
@@ -36,24 +36,19 @@ def test_png():
 
 
 def test_live_wiring():
-    world = (ROOT / "Godot/scripts/world_v164.gd").read_text()
-    catalog = (ROOT / "Godot/scripts/wind_turbine_catalog.gd").read_text()
-    capture = (ROOT / "Godot/scripts/capture_v164_wind.gd").read_text()
+    world = (ROOT / "Godot/scripts/world.gd").read_text()
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert "world_v164.gd" in scene
-    assert 'asset_id != "wind_farm"' in world
-    assert "V164Wind.load_texture()" in world
-    assert "grid_nav.block_rect(foot)" in world
-    assert "_v127_draw_region(v164_wind_texture" in world
-    assert "wind_turbine_directional_sheet.png" in catalog
-    assert "SOURCE_MATTE" in catalog and "MATTE_TOLERANCE" in catalog
-    assert "Image.FORMAT_RGBA8" in catalog and "image.set_pixel" in catalog
-    assert 'inventory.deploy("wind_farm"' in capture
-    assert '!= "wind_farm"' in capture
-    assert "debug_v164_wind_ready" in capture
+    assert 'res://scripts/world.gd' in scene
+    assert 'preload("res://art/energy/wind_turbine_directional_sheet.png")' in world
+    assert '"wind": Rect2(1310, 260, 220, 220)' in world
+    assert 'grid_nav.block_rect(_ground_foot(rect))' in world
+    assert 'draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)' in world
+    assert 'func debug_wind_ready() -> bool:' in world
+    assert 'Vector2i(WIND_ART.get_size()) == Vector2i(128, 128)' in world
+    assert 'not grid_nav.world_is_walkable(foot.get_center())' in world
 
 
 if __name__ == "__main__":
     test_png()
     test_live_wiring()
-    print("v0.164 wind PNG CRC/hash/dimensions + runtime matte cleanup/live wiring passed")
+    print("wind PNG CRC/hash/dimensions + current stable runtime wiring passed")
