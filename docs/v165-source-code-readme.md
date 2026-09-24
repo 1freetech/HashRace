@@ -4,48 +4,44 @@
 
 Godot 4.7 SpriteFrames: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html
 
-Godot 4.7 TSCN/resources: https://docs.godotengine.org/en/4.7/engine_details/file_formats/tscn.html
+Godot 4.7 ImageTexture: https://docs.godotengine.org/en/4.7/classes/class_imagetexture.html
 
-Godot SceneTree scene loading: https://docs.godotengine.org/en/latest/tutorials/scripting/scene_tree.html
+Godot 4.7 ResourceLoader: https://docs.godotengine.org/en/4.7/classes/class_resourceloader.html
 
-Imported project textures are loaded as Godot resources (`load`/`preload`/ResourceLoader). `SpriteFrames.add_frame()` appends explicitly supplied Texture2D frames; walking order therefore requires visually verified authored poses and is never inferred from numeric frame parity.
+Imported project textures stay Godot resources loaded through `load`/`preload`/ResourceLoader; the ImageTexture documentation explicitly warns that filesystem Image loading may fail in exported projects. `SpriteFrames.add_frame()` appends explicitly supplied Texture2D frames, so walking order must come from visually verified authored poses rather than numeric parity.
 
 ## Proven repository implementation inspected
 
-The last intact PR runtime tree `63439529e3ef866463d692acd2018d6030761483` was inspected before the repair series. Its player catalog uses explicit per-facing frame regions and SpriteFrames, and its imported art uses `res://` project resources. The recovered live entry point is intentionally stable: `Godot/scenes/world.tscn -> res://scripts/world.gd`.
+The last intact runtime tree `63439529e3ef866463d692acd2018d6030761483` was inspected before the repair series. Its character implementation uses explicit facing regions/SpriteFrames and its imported art uses `res://` resources. The current live entry point is deliberately stable: `Godot/scenes/world.tscn -> res://scripts/world.gd`.
 
-The successful exact-head wind capture is the proven screenshot method: instantiate the live scene, wait 12 process frames, validate live wiring, request redraw, wait 12 more process frames plus 0.25 seconds, then read the root viewport.
+The last successful wind proof establishes the screenshot cadence used here: instantiate the real world, wait 12 process frames, validate live wiring, request redraw, wait another 12 frames plus 0.25 seconds, then read the root viewport.
 
-## Current source and contract repairs
+## Current semantic runtime API
 
-Gameplay commit `51c82fd7486df60f5a33e7d7ad2ec9d7d07a5f6b` changed `Godot/scripts/world.gd`. `CAMPUS` contains the actual wind destination `Rect2(1310, 260, 220, 220)`. `_ready()` registers its grounded navigation footprint through `grid_nav.block_rect(_ground_foot(rect))`; `_draw_wind()` draws to that same placement; `debug_wind_ready()` verifies the imported 128x128 Texture2D and non-walkable grounded footprint.
+Commit `c97f462da5e55ee42068ce59cf9ae5993c1da01c` rebuilt `Godot/scripts/world.gd` around unnumbered APIs: `move_player()`, `runtime_ready()`, `infrastructure_ready(asset_id)`, `infrastructure_rect(asset_id)`, and `infrastructure_footprint(asset_id)`. `debug_wind_ready()` and `debug_runtime_ready()` remain only unnumbered compatibility wrappers while callers migrate.
 
-Contract commit `30e1d206aa8a9d4ff329d0ddc9744fb66449f709` changed `tools/test_v164_wind_asset.py`. The wind PNG signature, CRC, SHA-256 `5087f4b52e2fe324669efc6ffee0b4bbfd000b80d2280b7f73869ded94330c7d`, byte length 2278 and 128x128 dimensions remain mandatory.
+Commit `bc64b1d9f3c50e4b1a79ecaa8502ce2c15129529` changed `Godot/scripts/validate_overworld.gd` to call those semantic APIs. Exact-head CI subsequently passed fresh import/decode, walking cadence/four-way idle, campaign boot, company-town boot, and the selected-company/playable-town validator. The validator printed `HASH RACE WORLD OK: semantic runtime APIs, five collision footprints, camera and movement validated`.
 
-Runtime-proof commit `e05de960c39d174338b57f98aa3ef08cbf320041` changed `Godot/scripts/capture_v164_wind.gd` to instantiate real `world.tscn`, require `debug_wind_ready()`, center on the live placement, wait for rendered frames and write `visual-proof/v164-wind-overview.png`.
+## Current CI repairs
 
-Solar preservation commit `45318e0d9c3d8b7ce74c6cc83e571566827fcf70` changed `tools/test_v161_solar_overview.py` so the preservation assertion follows the stable runtime instead of historical numbered wiring. It verifies the imported `SOLAR_ART` preload, `CAMPUS.solar`, live draw call and shared grounded collision registration without weakening binary checks.
+Exact head `bc64b1d9f3c50e4b1a79ecaa8502ce2c15129529` exposed two remaining stale callers rather than a gameplay parse/import failure.
 
-Core-contract commit `7a499ff27b27aa2f745dd3ef5ce1184b9e2fa16b` changed `tools/smoke_test.py` so the live-world assertion accepts the stable `world.gd` entry point or a historical numbered world while still requiring the resolved script to exist.
+Commit `68146d786795c52d548ac8105bb4044fbdc00600` changed `tools/test_v161_solar_overview.py`. Binary integrity remains strict: PNG signature/CRC, SHA-256 `06b542233279854dea18a10cf10e16b32772057add0bec8f896fc2a282ab407f`, 128x136 dimensions and transparency. Live wiring now checks the stable `SOLAR_ART` preload, `CAMPUS.solar`, `_draw_asset`, shared collision registration, and semantic `infrastructure_ready("solar")` implementation instead of demanding the removed literal `SOLAR_ART != null` expression.
 
-Gameplay capture commit `94ec44f0e9e49f5c98350c8426e9c584b364ebd5` changed `Godot/scripts/gameplay_capture.gd` to reproduce the already-green wind cadence: 12 process frames, runtime validation, redraw, 12 process frames, 0.25-second timer, root viewport read/save.
+Commit `d4a61b2ea5e5671409be7676579622c7777652d7` changed `Godot/scripts/capture_screenshot.gd`. The failed exact-head job proved fresh Godot 4.7.2 import/decode and semantic overworld validation were green, then the old screenshot harness rejected the stable world because it demanded `BootFallback`/`hashrace_v124...`/`debug_v138_ready`/other numbered metadata. The replacement instantiates actual `world.tscn`, waits the proven 12-frame cadence, requires `runtime_ready()` and all five `infrastructure_ready()` assets, redraws, waits 12 frames plus 0.25 seconds, reads the viewport, writes `visual-proof/hashrace-screenshot.png`, and preserves the nonblank histogram gate.
 
-League-contract commit `13a2930d2732b1137b21de8486d5f0ee2651b13b` changed `tools/test_league_contract.py` to remove obsolete numbered-world coupling while retaining the league/company assertions.
+## Asset provenance and runtime wiring
 
-Stable-world validation commits `b16189aa3314345974940ab0db86046c747ad54a` and `83165c50ca3c3dcf0a7e7d04ba7a86cb194fe926` changed `Godot/scripts/validate_overworld.gd`. The old validator still required dozens of retired `debug_vXXX_ready` methods even though `world.tscn` now deliberately enters `world.gd`. The replacement validates the actual PackedScene load/instantiate path, `debug_runtime_ready()`, `debug_wind_ready()`, the live Camera2D, all five registered infrastructure collision footprints, and real open-terrain player movement. It does not weaken those current-runtime checks by pretending removed historical layers are still gameplay architecture.
+Wind: `Godot/art/energy/wind_turbine_directional_sheet.png` -> `res://art/energy/wind_turbine_directional_sheet.png`; 2278 bytes; 128x128; SHA-256 `5087f4b52e2fe324669efc6ffee0b4bbfd000b80d2280b7f73869ded94330c7d`. Live placement is `CAMPUS.wind = Rect2(1310, 260, 220, 220)`; `_draw_wind()` uses that destination and `infrastructure_footprint("wind")` resolves the same grounded collision footprint.
 
-## Asset provenance and binary/decode evidence
+Solar: `Godot/art/energy/solar_array_overview.png` -> `res://art/energy/solar_array_overview.png`; 128x136 transparent PNG; SHA-256 `06b542233279854dea18a10cf10e16b32772057add0bec8f896fc2a282ab407f`. It is preloaded as `SOLAR_ART`, drawn at `CAMPUS.solar`, and its grounded footprint is registered through the same `_ground_foot()` path.
 
-Wind repository binary: `Godot/art/energy/wind_turbine_directional_sheet.png`; runtime path `res://art/energy/wind_turbine_directional_sheet.png`; Git blob `f908cc6993452c8d9d2f43c612535b3d90a0e236`; 2278 bytes; 128x128; required SHA-256 `5087f4b52e2fe324669efc6ffee0b4bbfd000b80d2280b7f73869ded94330c7d`.
-
-Solar repository binary: `Godot/art/energy/solar_array_overview.png`; runtime path `res://art/energy/solar_array_overview.png`; required SHA-256 `06b542233279854dea18a10cf10e16b32772057add0bec8f896fc2a282ab407f`.
-
-At exact head `39d376d9cd6f1b7e78179188ece6835bf346ce67`, the dedicated wind proof was green. The main Godot job successfully imported/decoded fresh-checkout runtime image binaries, validated walking distance/animation cadence/four-way idle, booted campaign setup, validated character preview, and booted the real company town network. It failed only when the obsolete selected-company/legacy-overworld validator ran, so screenshot stages were skipped. The clean-runtime proof also failed later and therefore supplied no qualifying screenshot artifact. No skipped screenshot is counted as visual proof.
+The exact-head import log for `bc64b1d9...` explicitly reimported `default_player_sheet.png`, `c01_mining_container.png`, `substation_transformer_rear.png`, `solar_array_overview.png`, `wind_turbine_directional_sheet.png`, and `asic_air_s19j_directional.png` under Godot 4.7.2 before runtime validation passed.
 
 ## Walking state
 
-No new alternating-leg fix is claimed. Godot 4.7 defines SpriteFrames as the frame library for AnimatedSprite2D and `add_frame()` appends frames in explicit order. Although CI validates movement distance, cadence and four-way idle, the actual player-sheet pixels have not been visually established in this run as alternating left/right poses. Numeric indices are not accepted as evidence. Walking remains gated on visible pose verification plus fresh rendered motion proof.
+No new alternating-leg visual fix is claimed. CI proves the existing 4-frame-per-direction, 8 FPS, 72 px cycle and four-way idle contract, but that is not proof that the authored pixels visibly alternate left/right legs. Numeric frame indices remain unacceptable evidence. Walking remains gated on visual inspection of the actual sheet followed by fresh rendered motion proof.
 
-## Exact-head gate
+## Screenshot and exact-head gate
 
-Current source repair head before this report: `83165c50ca3c3dcf0a7e7d04ba7a86cb194fe926`. This report commit changes the exact head again. Fresh exact-head Godot import/decode, actual gameplay screenshot artifact and all required CI must pass before merge. No new 34-point gameplay item is counted solely from source wiring or a code-only validation repair.
+At `bc64b1d9...`, screenshot capture failed before viewport read only because the harness still required retired numbered metadata; therefore that run is not counted as visual proof. `d4a61b2e...` repairs that harness using the already-proven capture cadence. This report commit changes the exact head again, so fresh exact-head Godot import/decode, actual gameplay screenshot artifact, and all required CI must still pass before merge. No additional 34-point visual item is counted from source or test wiring alone.
