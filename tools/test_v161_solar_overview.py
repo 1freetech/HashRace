@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PNG = ROOT / "Godot/art/energy/solar_array_overview.png"
 EXPECTED = "06b542233279854dea18a10cf10e16b32772057add0bec8f896fc2a282ab407f"
 
+
 def test_png():
     data = PNG.read_bytes()
     assert data.startswith(b"\x89PNG\r\n\x1a\n")
@@ -40,43 +41,31 @@ def test_png():
     assert has_alpha, "transparent palette/background required"
     assert len(zlib.decompress(image_stream)) == 136 * (1 + 128)
 
+
 def test_live():
-    script = (ROOT / "Godot/scripts/world_v161.gd").read_text()
-    v162 = (ROOT / "Godot/scripts/world_v162.gd").read_text()
-    v163_path = ROOT / "Godot/scripts/world_v163.gd"
-    v164_path = ROOT / "Godot/scripts/world_v164.gd"
+    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+    stable_world = ROOT / "Godot/scripts/world.gd"
     catalog = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
     capture = (ROOT / "Godot/scripts/capture_v161_solar.gd").read_text()
-    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    # Preservation assertion follows the current live inheritance chain instead
-    # of pinning the scene forever to an older live-world layer.
-    if v164_path.exists():
-        current = v164_path.read_text()
-        v163 = v163_path.read_text()
-        assert "world_v164.gd" in scene
-        assert 'extends "res://scripts/world_v163.gd"' in current
-        assert 'extends "res://scripts/world_v162.gd"' in v163
-        assert "V161Solar.texture()" in v163
-        assert "func _draw_power_building(" in v163
-    elif v163_path.exists():
-        current = v163_path.read_text()
-        assert "world_v163.gd" in scene
-        assert 'extends "res://scripts/world_v162.gd"' in current
-        assert "V161Solar.texture()" in current
-        assert "func _draw_power_building(" in current
-    else:
-        assert "world_v162.gd" in scene
-    assert 'extends "res://scripts/world_v161.gd"' in v162
+
+    # The live scene now has a deliberately stable entry point. Release-numbered
+    # scripts remain historical evidence, but must not be mistaken for live wiring.
+    assert 'path="res://scripts/world.gd" type="Script"' in scene
+    assert stable_world.exists()
+    live = stable_world.read_text()
+    assert 'const SOLAR_ART := preload("res://art/energy/solar_array_overview.png")' in live
+    assert '"solar": Rect2(' in live
+    assert '_draw_asset(SOLAR_ART, CAMPUS.solar)' in live
+    assert 'grid_nav.block_rect(_ground_foot(rect))' in live
+    assert 'SOLAR_ART != null' in live
+
+    # Preserve the original binary/catalog and historical render proof contracts.
     assert "solar_array_overview.png" in catalog
-    assert "V161Solar.texture()" in script
-    assert "func _v114_draw_energy_source(" in script
-    assert "super._v114_draw_energy_source(" in script
-    assert "grid_nav.block_rect(foot)" in script
-    assert "func _draw_rep()" in script and "draw_texture_rect(v161_solar_texture" in script
     assert 'inventory.deploy("solar_array"' in capture
     assert "debug_v161_solar_ready" in capture
+
 
 if __name__ == "__main__":
     test_png()
     test_live()
-    print("v0.161 real solar PNG CRC/alpha/hash/live inheritance passed")
+    print("v0.161 real solar PNG CRC/alpha/hash/stable-live wiring passed")
