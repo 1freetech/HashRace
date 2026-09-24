@@ -45,13 +45,13 @@ func _process(delta: float) -> void:
     var direction := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
     if direction.length() > 0.0:
         walking = false
-        _move_player(direction.normalized() * PLAYER_SPEED * delta)
+        move_player(direction.normalized() * PLAYER_SPEED * delta)
     elif walking:
         var offset := target - rep_pos
         if offset.length() < 5.0:
             walking = false
         else:
-            _move_player(offset.normalized() * minf(PLAYER_SPEED * delta, offset.length()))
+            move_player(offset.normalized() * minf(PLAYER_SPEED * delta, offset.length()))
     camera.position = rep_pos
     queue_redraw()
 
@@ -60,7 +60,7 @@ func _unhandled_input(event: InputEvent) -> void:
         target = get_global_mouse_position()
         walking = true
 
-func _move_player(delta_pos: Vector2) -> void:
+func move_player(delta_pos: Vector2) -> void:
     var candidate := rep_pos + delta_pos
     candidate.x = clampf(candidate.x, 40.0, WORLD_SIZE.x - 40.0)
     candidate.y = clampf(candidate.y, 40.0, WORLD_SIZE.y - 40.0)
@@ -110,12 +110,50 @@ func _draw_hud() -> void:
 func _ground_foot(rect: Rect2) -> Rect2:
     return Rect2(rect.position + Vector2(rect.size.x * 0.16, rect.size.y * 0.74), Vector2(rect.size.x * 0.68, rect.size.y * 0.22))
 
+func infrastructure_rect(asset_id: String) -> Rect2:
+    return CAMPUS.get(asset_id, Rect2())
+
+func infrastructure_footprint(asset_id: String) -> Rect2:
+    var rect := infrastructure_rect(asset_id)
+    if rect.size == Vector2.ZERO:
+        return Rect2()
+    return _ground_foot(rect)
+
+func infrastructure_ready(asset_id: String) -> bool:
+    var texture: Texture2D = null
+    match asset_id:
+        "container":
+            texture = CONTAINER_ART
+        "solar":
+            texture = SOLAR_ART
+        "transformer":
+            texture = TRANSFORMER_ART
+        "asic":
+            texture = ASIC_ART
+        "wind":
+            texture = WIND_ART
+        _:
+            return false
+    var foot := infrastructure_footprint(asset_id)
+    if texture == null or foot.size == Vector2.ZERO:
+        return false
+    if asset_id == "wind" and Vector2i(texture.get_size()) != Vector2i(128, 128):
+        return false
+    return not grid_nav.world_is_walkable(foot.get_center())
+
+func runtime_ready() -> bool:
+    if camera == null or not camera.is_inside_tree():
+        return false
+    if grid_nav.blocked_count() < CAMPUS.size():
+        return false
+    for asset_id in CAMPUS.keys():
+        if not infrastructure_ready(String(asset_id)):
+            return false
+    return PLAYER_ART != null
+
+# Compatibility names are semantic, never release-numbered.
 func debug_wind_ready() -> bool:
-    var foot := _ground_foot(CAMPUS.wind)
-    return WIND_ART != null \
-        and Vector2i(WIND_ART.get_size()) == Vector2i(128, 128) \
-        and foot.size.x > 0.0 \
-        and not grid_nav.world_is_walkable(foot.get_center())
+    return infrastructure_ready("wind")
 
 func debug_runtime_ready() -> bool:
-    return PLAYER_ART != null and CONTAINER_ART != null and TRANSFORMER_ART != null and SOLAR_ART != null and WIND_ART != null and ASIC_ART != null and grid_nav.blocked_count() > 0 and debug_wind_ready()
+    return runtime_ready()
