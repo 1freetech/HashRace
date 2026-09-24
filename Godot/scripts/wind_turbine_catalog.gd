@@ -11,16 +11,19 @@ const REGIONS := {
 const SOURCE_MATTE := Color8(109, 109, 110, 255)
 const MATTE_TOLERANCE := 8
 
-# The authored sheet contains a flat gray source matte. Preserve the validated
-# repository binary, decode it through Godot, then remove only pixels near the
-# known matte color before creating the runtime texture. This prevents the
-# square source background from appearing as a world object.
+# Load the committed project image through Godot's imported-resource pipeline so
+# the same res:// path works in editor, CI, and exported builds. The authored
+# sheet contains a flat gray source matte; remove only pixels near that known
+# color from a copy of the imported texture image before creating the runtime
+# transparent texture. The repository binary itself remains unchanged.
 static func load_texture() -> Texture2D:
-    var absolute_path := ProjectSettings.globalize_path(SHEET_PATH)
-    if not FileAccess.file_exists(absolute_path):
+    if not ResourceLoader.exists(SHEET_PATH, "Texture2D"):
         return null
-    var image := Image.new()
-    if image.load(absolute_path) != OK or image.is_empty():
+    var imported := ResourceLoader.load(SHEET_PATH, "Texture2D") as Texture2D
+    if imported == null:
+        return null
+    var image := imported.get_image()
+    if image == null or image.is_empty():
         return null
     image.convert(Image.FORMAT_RGBA8)
     for y in range(image.get_height()):
@@ -36,4 +39,4 @@ static func region(direction: String) -> Rect2i:
     return REGIONS.get(direction, REGIONS["down"])
 
 static func debug_ready() -> bool:
-    return REGIONS.size() == 4 and FileAccess.file_exists(ProjectSettings.globalize_path(SHEET_PATH))
+    return REGIONS.size() == 4 and ResourceLoader.exists(SHEET_PATH, "Texture2D")
