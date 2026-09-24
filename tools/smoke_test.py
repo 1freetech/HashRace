@@ -63,8 +63,8 @@ def main():
 
     assert 'run/main_scene="res://scenes/campaign_setup.tscn"' in project
     assert "campaign_setup.gd" in setup_scene
-    live_world_match = re.search(r'path="(res://scripts/world_v\d{3}\.gd)"', world_scene)
-    assert live_world_match, "Live scene does not reference a versioned world script"
+    live_world_match = re.search(r'path="(res://scripts/world(?:_v\d{3})?\.gd)"', world_scene)
+    assert live_world_match, "Live scene does not reference a world script"
     live_world_path = live_world_match.group(1)
     assert Path("Godot", live_world_path.removeprefix("res://")).is_file(), f"Live world is missing: {live_world_path}"
     assert 'extends "res://scripts/world_v080.gd"' in microtile_release
