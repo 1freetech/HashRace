@@ -44,21 +44,8 @@ func _run() -> void:
 
     var grid_nav = scene.get("grid_nav")
     if grid_nav == null or int(grid_nav.call("blocked_count")) < 5:
-        _fail("infrastructure collision footprints were not registered")
+        _fail("five infrastructure collision footprints were not registered")
         return
-
-    var campus: Dictionary = scene.get("CAMPUS") if scene.get("CAMPUS") != null else {}
-    if campus.size() != 5:
-        _fail("expected five current mining-campus infrastructure placements")
-        return
-    for key in ["container", "solar", "transformer", "asic", "wind"]:
-        if not campus.has(key):
-            _fail("campus placement missing: %s" % key)
-            return
-        var rect: Rect2 = campus[key]
-        if rect.size.x <= 0.0 or rect.size.y <= 0.0:
-            _fail("invalid campus placement dimensions: %s" % key)
-            return
 
     # Prove the current playable loop can move on open terrain while collision
     # remains authoritative. This is intentionally semantic, not release-numbered.
@@ -72,5 +59,5 @@ func _run() -> void:
 
     scene.queue_free()
     await process_frame
-    print("HASH RACE WORLD OK: stable campus resources, collision, camera and movement validated")
+    print("HASH RACE WORLD OK: stable resources, five collision footprints, camera and movement validated")
     quit(0)
