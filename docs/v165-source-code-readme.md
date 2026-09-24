@@ -4,9 +4,11 @@
 
 Godot 4.7 SpriteFrames: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html
 
-Godot 4.7 importing images: https://docs.godotengine.org/en/4.7/tutorials/assets_pipeline/importing_images.html
+Godot 4.7 TSCN/resources: https://docs.godotengine.org/en/4.7/engine_details/file_formats/tscn.html
 
-Imported project textures are loaded as Godot resources (`load`/`preload`/ResourceLoader) so runtime uses imported Texture2D resources. `SpriteFrames.add_frame()` appends explicitly supplied Texture2D frames; walking order therefore requires visually verified authored poses and is never inferred from numeric frame parity.
+Godot SceneTree scene loading: https://docs.godotengine.org/en/latest/tutorials/scripting/scene_tree.html
+
+Imported project textures are loaded as Godot resources (`load`/`preload`/ResourceLoader). `SpriteFrames.add_frame()` appends explicitly supplied Texture2D frames; walking order therefore requires visually verified authored poses and is never inferred from numeric frame parity.
 
 ## Proven repository implementation inspected
 
@@ -28,7 +30,9 @@ Core-contract commit `7a499ff27b27aa2f745dd3ef5ce1184b9e2fa16b` changed `tools/s
 
 Gameplay capture commit `94ec44f0e9e49f5c98350c8426e9c584b364ebd5` changed `Godot/scripts/gameplay_capture.gd` to reproduce the already-green wind cadence: 12 process frames, runtime validation, redraw, 12 process frames, 0.25-second timer, root viewport read/save.
 
-League-contract commit `13a2930d2732b1137b21de8486d5f0ee2651b13b` changes `tools/test_league_contract.py`. Exact head `98526459a2a43598da61826182a39aebdf9a33f4` proved fresh Godot import/decode and the core mining/concept contract, then failed at the ten-miner league contract because that test still required `world_v###.gd` and VERSION coupling. The live scene actually declares `res://scripts/world.gd`. The repair accepts `world.gd` or historical numbered worlds, still requires the resolved script to exist, and preserves every league/company/inheritance assertion. It removes only obsolete runtime-version coupling.
+League-contract commit `13a2930d2732b1137b21de8486d5f0ee2651b13b` changed `tools/test_league_contract.py` to remove obsolete numbered-world coupling while retaining the league/company assertions.
+
+Stable-world validation commits `b16189aa3314345974940ab0db86046c747ad54a` and `83165c50ca3c3dcf0a7e7d04ba7a86cb194fe926` changed `Godot/scripts/validate_overworld.gd`. The old validator still required dozens of retired `debug_vXXX_ready` methods even though `world.tscn` now deliberately enters `world.gd`. The replacement validates the actual PackedScene load/instantiate path, `debug_runtime_ready()`, `debug_wind_ready()`, the live Camera2D, all five registered infrastructure collision footprints, and real open-terrain player movement. It does not weaken those current-runtime checks by pretending removed historical layers are still gameplay architecture.
 
 ## Asset provenance and binary/decode evidence
 
@@ -36,12 +40,12 @@ Wind repository binary: `Godot/art/energy/wind_turbine_directional_sheet.png`; r
 
 Solar repository binary: `Godot/art/energy/solar_array_overview.png`; runtime path `res://art/energy/solar_array_overview.png`; required SHA-256 `06b542233279854dea18a10cf10e16b32772057add0bec8f896fc2a282ab407f`.
 
-At exact head `98526459a2a43598da61826182a39aebdf9a33f4`, the dedicated wind proof was green and the main Godot job successfully imported and decoded fresh-checkout runtime image binaries. The main Godot job then failed later at selected-company transition, while the Python job failed at the obsolete league entry-point assertion. The clean-runtime job fresh-imported successfully but failed at Render gameplay. No skipped screenshot is counted as visual proof.
+At exact head `39d376d9cd6f1b7e78179188ece6835bf346ce67`, the dedicated wind proof was green. The main Godot job successfully imported/decoded fresh-checkout runtime image binaries, validated walking distance/animation cadence/four-way idle, booted campaign setup, validated character preview, and booted the real company town network. It failed only when the obsolete selected-company/legacy-overworld validator ran, so screenshot stages were skipped. The clean-runtime proof also failed later and therefore supplied no qualifying screenshot artifact. No skipped screenshot is counted as visual proof.
 
 ## Walking state
 
-No new walking fix is claimed. Godot 4.7 defines SpriteFrames as the frame library for AnimatedSprite2D and `add_frame()` appends frames in explicit order. The repository player-sheet pixels have not been visually established in this run as alternating left/right poses, so numeric indices are not accepted as evidence. A walking change remains gated on visible pose verification plus fresh rendered motion proof.
+No new alternating-leg fix is claimed. Godot 4.7 defines SpriteFrames as the frame library for AnimatedSprite2D and `add_frame()` appends frames in explicit order. Although CI validates movement distance, cadence and four-way idle, the actual player-sheet pixels have not been visually established in this run as alternating left/right poses. Numeric indices are not accepted as evidence. Walking remains gated on visible pose verification plus fresh rendered motion proof.
 
 ## Exact-head gate
 
-The league source-contract repair is `13a2930d2732b1137b21de8486d5f0ee2651b13b`. This report commit changes the exact head again. Fresh exact-head Godot import/decode, actual gameplay screenshot artifact and all required CI must pass before merge. No new 34-point gameplay item is counted solely from source wiring or a code-only contract repair.
+Current source repair head before this report: `83165c50ca3c3dcf0a7e7d04ba7a86cb194fe926`. This report commit changes the exact head again. Fresh exact-head Godot import/decode, actual gameplay screenshot artifact and all required CI must pass before merge. No new 34-point gameplay item is counted solely from source wiring or a code-only validation repair.
