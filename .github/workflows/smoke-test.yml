@@ -1,0 +1,302 @@
+name: Hash Race multi-language smoke test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  godot-world-boot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+      - name: Import and decode fresh-checkout runtime image binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --editor --import 2>&1 | tee /tmp/hashrace-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-import.log; then exit 1; fi
+          godot --headless --path Godot --script res://scripts/validate_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-binary.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER VALIDATION FAIL" /tmp/hashrace-player-binary.log; then exit 1; fi
+      - name: Validate live walking distance, animation cadence and four-way idle
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_player_walk_motion.gd 2>&1 | tee /tmp/hashrace-walk-motion.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|WALK MOTION FAIL" /tmp/hashrace-walk-motion.log; then exit 1; fi
+          grep -q "HASH RACE WALK MOTION PASS" /tmp/hashrace-walk-motion.log
+      - name: Boot opening campaign setup with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-setup.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-setup.log; then exit 1; fi
+      - name: Validate live campaign character preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_campaign_setup.gd 2>&1 | tee /tmp/hashrace-campaign-preview.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE CAMPAIGN SETUP FAIL" /tmp/hashrace-campaign-preview.log; then exit 1; fi
+      - name: Parse pixel landscape directly
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot res://scenes/pixel_landscape_probe.tscn --quit-after 1 2>&1 | tee /tmp/hashrace-pixel-probe.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-pixel-probe.log; then exit 1; fi
+      - name: Parse v0.072 modular scripts directly
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_modular_scripts.gd 2>&1 | tee /tmp/hashrace-modular-parse.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MODULAR PARSE FAIL" /tmp/hashrace-modular-parse.log; then exit 1; fi
+      - name: Validate v0.072 negotiation scene directly
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --script res://scripts/validate_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-validate.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION FAIL" /tmp/hashrace-negotiation-validate.log; then exit 1; fi
+      - name: Boot real company town network with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-world.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log; then exit 1; fi
+      - name: Validate selected-company transition and playable town loop
+        run: godot --headless --path Godot --script res://scripts/validate_overworld.gd
+      - name: Install virtual display for real rendered-frame proof
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+      - name: Capture and validate gameplay screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-visual.log; then exit 1; fi
+          test -s visual-proof/hashrace-screenshot.png
+      - name: Render and inspect genuine v0.161 solar asset in live site
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v161_solar.gd 2>&1 | tee /tmp/hashrace-v161-solar.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|V161 SOLAR PROOF FAIL" /tmp/hashrace-v161-solar.log; then exit 1; fi
+          test -s visual-proof/v161-solar-overview.png
+      - name: Upload v0.161 real solar in-game proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-v161-live-solar-proof
+          path: visual-proof/v161-solar-overview.png
+          if-no-files-found: error
+      - name: Render all 20 active player poses plus 16 controlled-motion gameplay frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-render.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-player-render.log; then exit 1; fi
+          for direction in down left right up; do
+            test -s "visual-proof/player/${direction}-idle.png"
+            test -s "visual-proof/player/${direction}-walk-04.png"
+            test -s "visual-proof/player/motion-${direction}-00.png"
+            test -s "visual-proof/player/motion-${direction}-03.png"
+          done
+      - name: Upload actual player gameplay proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-player-32frame-proof
+          path: visual-proof/player/*.png
+          if-no-files-found: warn
+      - name: Render and validate close-up 2D detail frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-2d-detail.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|2D DETAIL PROOF FAIL" /tmp/hashrace-2d-detail.log; then exit 1; fi
+          test -s visual-proof/hashrace-2d-detail.png
+      - name: Render and validate live Mining Ops widget proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd 2>&1 | tee /tmp/hashrace-mining-ops-widget.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MINING OPS WIDGET PROOF FAIL" /tmp/hashrace-mining-ops-widget.log; then exit 1; fi
+          test -s visual-proof/hashrace-mining-ops-widget.png
+      - name: Render and validate negotiation scene proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-proof.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-negotiation-proof.log; then exit 1; fi
+          test -s visual-proof/hashrace-negotiation-scene.png
+      - name: Render and validate live energy-site proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-energy-site.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ENERGY SITE PROOF FAIL" /tmp/hashrace-energy-site.log; then exit 1; fi
+          test -s visual-proof/hashrace-energy-site.png
+      - name: Upload gameplay screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-gameplay-screenshot
+          path: visual-proof/hashrace-screenshot.png
+          if-no-files-found: error
+      - name: Render and validate semiconductor-fab proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_semiconductor_fab.gd 2>&1 | tee /tmp/hashrace-semiconductor-fab.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SEMICONDUCTOR FAB PROOF FAIL" /tmp/hashrace-semiconductor-fab.log; then exit 1; fi
+          test -s visual-proof/hashrace-semiconductor-fab.png
+      - name: Upload live energy-site proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-energy-site-proof
+          path: visual-proof/hashrace-energy-site.png
+          if-no-files-found: error
+      - name: Upload semiconductor-fab proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-semiconductor-fab-proof
+          path: visual-proof/hashrace-semiconductor-fab.png
+          if-no-files-found: error
+      - name: Upload close-up 2D detail proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-2d-detail-visual-proof
+          path: visual-proof/hashrace-2d-detail.png
+          if-no-files-found: error
+      - name: Upload Mining Ops widget proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-mining-ops-widget-proof
+          path: visual-proof/hashrace-mining-ops-widget.png
+          if-no-files-found: error
+      - name: Upload negotiation scene proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-negotiation-scene-proof
+          path: visual-proof/hashrace-negotiation-scene.png
+          if-no-files-found: error
+
+  python-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate new solar PNG binary and exact live wiring
+        run: python tools/test_v161_solar_overview.py
+      - name: Test the core mining and concept contract
+        run: python tools/smoke_test.py
+      - name: Test the ten-miner league standings contract
+        run: python tools/test_league_contract.py
+      - name: Test the life and operations contract
+        run: python tools/test_life_ops_contract.py
+      - name: Test energy deployment and visual contract
+        run: python tools/test_energy_visual_contract.py
+      - name: Test compact consolidated Mining Ops widget contract
+        run: python tools/test_mining_ops_widget_contract.py
+      - name: Test v0.090 runtime polish and visual readability contract
+        run: python tools/test_runtime_polish_contract.py
+      - name: Test v0.090 strategy, finite power and rival-intent contract
+        run: python tools/test_strategy_power_ai_contract.py
+      - name: Test v0.091 interaction-quality contract
+        run: python tools/test_v091_interaction_quality.py
+      - name: Test v0.093 start preview and UI cleanup contract
+        run: python tools/test_v093_start_ui_contract.py
+      - name: Test v0.102 overworld visual cleanup contract
+        run: python tools/test_v102_visual_cleanup_contract.py
+      - name: Test v0.103 intentional-world composition contract
+        run: python tools/test_v103_composition_contract.py
+      - name: Test v0.107 pixel-world composition contract
+        run: python tools/test_v107_visual_composition_contract.py
+      - name: Test v0.112 imported-art integration contract
+        run: python tools/test_v112_imported_art_contract.py
+      - name: Test v0.113 industrial-site replacement contract
+        run: python tools/test_v113_industrial_site_contract.py
+      - name: Test v0.114 live energy-site scaling contract
+        run: python tools/test_v114_energy_site_contract.py
+      - name: Test v0.115 direct live mining-site contract
+        run: python tools/test_v115_direct_site_contract.py
+      - name: Test v0.116 exact semiconductor-fab asset contract
+        run: python tools/test_v116_fab_asset_contract.py
+      - name: Test v0.117 complete energy library and district compression contract
+        run: python tools/test_v117_energy_library_contract.py
+      - name: Test v0.123 locked visual-target contract
+        run: python tools/test_v123_visual_target_contract.py
+      - name: Test v0.124 screenshot-match environment contract
+        run: python tools/test_v124_visual_target_contract.py
+      - name: Test v0.125 authored dirt-road atlas contract
+        run: python tools/test_v125_dirt_road_contract.py
+      - name: Test v0.126 authored grass-terrain atlas contract
+        run: python tools/test_v126_grass_terrain_contract.py
+      - name: Test v0.127 live uploaded-asset bundle contract
+        run: python tools/test_v127_asset_bundle_contract.py
+      - name: Test v0.128 road de-clutter and C-01 container contract
+        run: python tools/test_v128_road_container_contract.py
+      - name: Validate v0.160 extracted real transformer PNG and runtime wiring
+        run: python tools/test_v160_transformer_sprite.py
+      - name: Test v0.144 exact-sheet character customization contract
+        run: python tools/test_v144_character_customization_contract.py
+      - name: Enforce approved 32-source / 20-active binary and walk synchronization contracts
+        run: |
+          python tools/test_default_player_32frame_binary.py
+          python tools/test_walk_sync_contract.py
+      - name: Test v0.070 modular architecture contract
+        run: python tools/test_modular_architecture_contract.py
+      - name: Test v0.072 negotiation scene contract
+        run: python tools/test_negotiation_contract.py
+      - name: Test pixel landscape and compact UI contract
+        run: python tools/test_pixel_landscape_ui_contract.py
+      - name: Test v0.088 world scale and transition contract
+        run: python tools/test_world_transition_contract.py
+
+  cpp-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Compile C++ simulation, inventory, catalogs and core checks
+        run: >-
+          g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
+          native/cpp/hashrace_catalog.cpp
+          native/cpp/hashrace_simulation.cpp
+          native/cpp/hashrace_core.cpp
+          -o /tmp/hashrace_cpp
+      - name: Run C++ simulation checks
+        run: /tmp/hashrace_cpp
+
+  rust-balance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Run Rust balance unit tests
+        run: rustc --edition=2021 --test native/rust/hashrace_balance.rs -o /tmp/hashrace_rust_tests && /tmp/hashrace_rust_tests
+      - name: Run Rust one-year balance probe
+        run: rustc --edition=2021 native/rust/hashrace_balance.rs -o /tmp/hashrace_rust && /tmp/hashrace_rust
+
+  typescript-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install TypeScript compiler
+        run: npm install --no-save typescript@5.8.3
+      - name: Compile TypeScript content validator
+        run: npx tsc tools/typescript/hashrace_validate.ts --target ES2020 --module commonjs --strict --outDir .tmp-ts
+      - name: Validate Hash Race content contract
+        run: node .tmp-ts/hashrace_validate.js

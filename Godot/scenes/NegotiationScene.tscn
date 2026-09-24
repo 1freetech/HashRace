@@ -1,0 +1,282 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/negotiation_scene.gd" id="1_negotiation"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_card_player"]
+bg_color = Color(0.035, 0.075, 0.075, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.34, 1, 0.5, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_card_opponent"]
+bg_color = Color(0.09, 0.045, 0.035, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.42, 0.18, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_negotiation"]
+bg_color = Color(0.018, 0.03, 0.05, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.78, 1, 0.95)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="NegotiationScene" type="CanvasLayer"]
+layer = 240
+script = ExtResource("1_negotiation")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.008, 0.016, 0.026, 0.985)
+
+[node name="LeftGlow" type="ColorRect" parent="."]
+anchor_right = 0.46
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.04, 0.25, 0.16, 0.22)
+
+[node name="RightGlow" type="ColorRect" parent="."]
+anchor_left = 0.54
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.32, 0.09, 0.035, 0.20)
+
+[node name="CenterLine" type="ColorRect" parent="."]
+anchor_left = 0.498
+anchor_top = 0.10
+anchor_right = 0.502
+anchor_bottom = 0.52
+mouse_filter = 2
+color = Color(0.35, 1, 0.50, 0.9)
+
+[node name="IntroTitle" type="Label" parent="."]
+anchor_left = 0.24
+anchor_top = 0.06
+anchor_right = 0.76
+anchor_bottom = 0.15
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 32
+text = "NEGOTIATION START"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerCard" type="PanelContainer" parent="."]
+anchor_left = 0.055
+anchor_top = 0.20
+anchor_right = 0.455
+anchor_bottom = 0.48
+theme_override_styles/panel = SubResource("StyleBox_card_player")
+
+[node name="Margin" type="MarginContainer" parent="PlayerCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="PlayerCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PlayerTag" type="Label" parent="PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "YOUR COMPANY // NEGOTIATOR"
+
+[node name="PlayerName" type="Label" parent="PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 1, 0.94, 1)
+theme_override_font_sizes/font_size = 25
+text = "PLAYER MINING CO."
+
+[node name="PlayerStat" type="Label" parent="PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.63, 0.9, 0.76, 1)
+theme_override_font_sizes/font_size = 14
+text = "REP 50 // LEVERAGE 50"
+
+[node name="PlayerFlavor" type="Label" parent="PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.72, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "CASH • HASHRATE • POWER • REPUTATION"
+
+[node name="OpponentCard" type="PanelContainer" parent="."]
+anchor_left = 0.545
+anchor_top = 0.20
+anchor_right = 0.945
+anchor_bottom = 0.48
+theme_override_styles/panel = SubResource("StyleBox_card_opponent")
+
+[node name="Margin" type="MarginContainer" parent="OpponentCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="OpponentCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="OpponentTag" type="Label" parent="OpponentCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.55, 0.28, 1)
+theme_override_font_sizes/font_size = 12
+text = "COUNTERPARTY // RIVAL MINER"
+horizontal_alignment = 2
+
+[node name="OpponentName" type="Label" parent="OpponentCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.93, 0.88, 1)
+theme_override_font_sizes/font_size = 25
+text = "RIVAL MINER"
+horizontal_alignment = 2
+
+[node name="OpponentStat" type="Label" parent="OpponentCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.56, 1)
+theme_override_font_sizes/font_size = 14
+text = "POWER 60 // GREED 40"
+horizontal_alignment = 2
+
+[node name="OpponentFlavor" type="Label" parent="OpponentCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.76, 0.54, 0.46, 1)
+theme_override_font_sizes/font_size = 11
+text = "TREASURY • AGGRESSION • POSITION"
+horizontal_alignment = 2
+
+[node name="NegotiationPanel" type="PanelContainer" parent="."]
+anchor_left = 0.09
+anchor_top = 0.54
+anchor_right = 0.91
+anchor_bottom = 0.95
+theme_override_styles/panel = SubResource("StyleBox_negotiation")
+
+[node name="Margin" type="MarginContainer" parent="NegotiationPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="NegotiationPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="StatusRow" type="HBoxContainer" parent="NegotiationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="DealLabel" type="Label" parent="NegotiationPanel/Margin/VBox/StatusRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "SHARED POWER CAPACITY"
+
+[node name="OfferState" type="Label" parent="NegotiationPanel/Margin/VBox/StatusRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.78, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "YOUR OFFER -- // THEIR ASK --"
+horizontal_alignment = 2
+
+[node name="PressureLabel" type="Label" parent="NegotiationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.78, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "LEVERAGE 50/100 • REP 50/100"
+
+[node name="DialogueBox" type="RichTextLabel" parent="NegotiationPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+theme_override_colors/default_color = Color(0.88, 0.94, 0.98, 1)
+theme_override_font_sizes/normal_font_size = 14
+text = "Negotiation loading..."
+
+[node name="SuccessMeter" type="ProgressBar" parent="NegotiationPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+show_percentage = false
+
+[node name="OfferBox" type="HBoxContainer" parent="NegotiationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MakeOfferButton" type="Button" parent="NegotiationPanel/Margin/VBox/OfferBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.35, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "MAKE OFFER"
+
+[node name="CounterOfferButton" type="Button" parent="NegotiationPanel/Margin/VBox/OfferBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.45, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "COUNTER"
+
+[node name="WalkAwayButton" type="Button" parent="NegotiationPanel/Margin/VBox/OfferBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.86, 0.86, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "WALK AWAY"
+
+[node name="ResultLabel" type="RichTextLabel" parent="NegotiationPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+theme_override_font_sizes/normal_font_size = 13
+
+[node name="Footer" type="Label" parent="NegotiationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 10
+text = "HASH RACE // NEGOTIATION LINK  •  ESC RETURNS TO WORLD"
+horizontal_alignment = 1
+
+[node name="IntroAnimation" type="AnimationPlayer" parent="."]

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "transformer_5mw"
+display_name = "5 MW Substation Transformer"
+category = "POWER"
+slot_type = "POWER"
+price = 390000.0
+deployable = true
+effect = "mw"
+effect_amount = 5.0000
+effect_unit = "MW"
+visual = "transformer"
+description = "5 MW Substation Transformer used by the Hash Race infrastructure and physical deployment systems."

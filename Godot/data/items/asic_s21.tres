@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="HashRaceItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/item_resource.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "asic_s21"
+display_name = "S21-Class ASIC Rack"
+category = "MINERS"
+slot_type = "ASIC"
+price = 95000.0
+deployable = true
+base_hashrate_ph = 40.000
+power_draw_mw = 0.700
+heat_generated_mw = 0.650
+effect = "hashrate"
+effect_amount = 40.0000
+effect_unit = "PH/s"
+visual = "rack"
+tier = 3
+description = "S21-Class ASIC Rack used by the Hash Race infrastructure and physical deployment systems."

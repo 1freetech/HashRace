@@ -1,0 +1,306 @@
+name: Hash Race Godot Desktop Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - '.github/workflows/desktop-release.yml'
+      - 'Godot/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      # Never cancel the Linux render lane because another matrix lane fails.
+      fail-fast: false
+      matrix:
+        include:
+          - preset: Windows Desktop
+            platform: windows-x64
+            export_path: build/windows/HashRace.exe
+            package_name: windows-x64.zip
+          - preset: Linux
+            platform: linux-x64
+            export_path: build/linux/HashRace.x86_64
+            package_name: linux-x64.tar.gz
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+
+      - name: Set up Godot 4.7.2 with export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+
+      - name: Import and validate exact source image binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --editor --import 2>&1 | tee /tmp/hashrace-release-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-release-import.log; then exit 1; fi
+          godot --headless --path Godot --script res://scripts/validate_player_sprite.gd 2>&1 | tee /tmp/hashrace-release-player.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PLAYER VALIDATION FAIL" /tmp/hashrace-release-player.log; then exit 1; fi
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Strictly verify source game and town network
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --quit-after 3 2>&1 | tee /tmp/hashrace-release-source.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-release-source.log; then
+            echo "Source game emitted a Godot script error."
+            exit 1
+          fi
+          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-release-world.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-release-world.log; then
+            echo "Town network emitted a Godot script error."
+            exit 1
+          fi
+          godot --headless --path Godot --script res://scripts/validate_overworld.gd
+          godot --headless --path Godot --script res://scripts/validate_negotiation_scene.gd
+
+      - name: Install virtual display for rendered release proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Capture and validate release screenshot
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-release-visual.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-release-visual.log; then
+            echo "Release screenshot capture failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-screenshot.png
+
+      # Upload the gameplay proof immediately. Later render/export/package failures must never discard it.
+      - name: Preserve gameplay screenshot immediately
+        if: matrix.platform == 'linux-x64' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-${{ steps.version.outputs.value }}-gameplay-proof-${{ github.run_attempt }}
+          path: visual-proof/hashrace-screenshot.png
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Render and validate close-up 2D detail proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-release-2d-detail.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|2D DETAIL PROOF FAIL" /tmp/hashrace-release-2d-detail.log; then
+            echo "Rendered 2D detail proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-2d-detail.png
+
+      - name: Render and validate live Mining Ops widget proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd 2>&1 | tee /tmp/hashrace-release-mining-ops-widget.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MINING OPS WIDGET PROOF FAIL" /tmp/hashrace-release-mining-ops-widget.log; then
+            echo "Rendered Mining Ops widget proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-mining-ops-widget.png
+
+      - name: Render and validate negotiation scene proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-release-negotiation.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-release-negotiation.log; then
+            echo "Rendered negotiation proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-negotiation-scene.png
+
+      - name: Render and validate live energy-site proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-release-energy-site.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ENERGY SITE PROOF FAIL" /tmp/hashrace-release-energy-site.log; then
+            echo "Rendered energy-site proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-energy-site.png
+
+      - name: Render and validate semiconductor-fab proof
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_semiconductor_fab.gd 2>&1 | tee /tmp/hashrace-release-semiconductor-fab.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SEMICONDUCTOR FAB PROOF FAIL" /tmp/hashrace-release-semiconductor-fab.log; then
+            echo "Rendered semiconductor-fab proof failed."
+            exit 1
+          fi
+          test -s visual-proof/hashrace-semiconductor-fab.png
+
+      - name: Render all 32 approved player poses
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-release-player-render.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-release-player-render.log; then exit 1; fi
+
+      - name: Export current Godot game
+        shell: bash
+        run: |
+          EXPORT_PATH="$GITHUB_WORKSPACE/${{ matrix.export_path }}"
+          mkdir -p "$(dirname "$EXPORT_PATH")"
+          godot --headless --path Godot --export-release "${{ matrix.preset }}" "$EXPORT_PATH"
+
+      - name: Verify exported Linux build boots
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x build/linux/HashRace.x86_64
+          build/linux/HashRace.x86_64 --headless --quit-after 3 2>&1 | tee /tmp/hashrace-exported-linux.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-exported-linux.log; then
+            echo "Exported Linux build emitted a Godot script error."
+            exit 1
+          fi
+
+      - name: Package Windows build
+        if: matrix.platform == 'windows-x64'
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.value }}"
+          cd build/windows
+          zip -j "../../HashRace-${VERSION}-windows-x64.zip" HashRace.exe
+
+      - name: Package Linux build
+        if: matrix.platform == 'linux-x64'
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.value }}"
+          chmod +x build/linux/HashRace.x86_64
+          tar -czf "HashRace-${VERSION}-linux-x64.tar.gz" -C build/linux HashRace.x86_64
+
+      - name: Upload packaged build
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-${{ steps.version.outputs.value }}-${{ matrix.platform }}
+          path: HashRace-${{ steps.version.outputs.value }}-${{ matrix.package_name }}
+          if-no-files-found: error
+
+      - name: Upload release screenshots and visual checks
+        # Preserve every proof that was successfully rendered even when a later proof/export step fails.
+        if: matrix.platform == 'linux-x64' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-${{ steps.version.outputs.value }}-screenshots
+          path: |
+            visual-proof/hashrace-screenshot.png
+            visual-proof/hashrace-2d-detail.png
+            visual-proof/hashrace-mining-ops-widget.png
+            visual-proof/hashrace-negotiation-scene.png
+            visual-proof/hashrace-energy-site.png
+            visual-proof/hashrace-semiconductor-fab.png
+          if-no-files-found: warn
+
+  release:
+    needs: build
+    if: ${{ always() && needs.build.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Hash Race
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: echo "value=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Download any packaged builds and rendered previews that passed
+        uses: actions/download-artifact@v4
+        with:
+          pattern: HashRace-${{ steps.version.outputs.value }}-*
+          path: release
+          merge-multiple: true
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -lah release
+          WINDOWS_FILE="release/HashRace-$VERSION-windows-x64.zip"
+          LINUX_FILE="release/HashRace-$VERSION-linux-x64.tar.gz"
+          SCREENSHOT_FILE="release/hashrace-screenshot.png"
+          WINDOWS_LINE="- Windows x64: pending validation"
+          LINUX_LINE="- Linux x64: pending validation"
+          STATUS_LINE="Validated desktop packages are listed below."
+          SCREENSHOT_SECTION=""
+          if [ -s "$WINDOWS_FILE" ]; then
+            WINDOWS_LINE="- [Windows x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-windows-x64.zip)"
+          fi
+          if [ -s "$LINUX_FILE" ]; then
+            LINUX_LINE="- [Linux x64](https://github.com/${{ github.repository }}/releases/download/$VERSION/HashRace-$VERSION-linux-x64.tar.gz)"
+          else
+            LINUX_LINE="- Linux x64: validation/fix in progress; it will be attached to this same release once its lane passes."
+          fi
+          if [ -s "$WINDOWS_FILE" ] && [ -s "$LINUX_FILE" ]; then
+            STATUS_LINE="Windows x64 and Linux x64 both passed validation for this release."
+          elif [ -s "$WINDOWS_FILE" ]; then
+            STATUS_LINE="Windows x64 passed validation; Linux x64 is still being repaired and will attach to this release after it passes."
+          elif [ -s "$LINUX_FILE" ]; then
+            STATUS_LINE="Linux x64 passed validation; Windows x64 is still being repaired and will attach to this release after it passes."
+          fi
+          if [ -s "$SCREENSHOT_FILE" ]; then
+            SCREENSHOT_URL="https://github.com/${{ github.repository }}/releases/download/$VERSION/hashrace-screenshot.png"
+            SCREENSHOT_SECTION=$(printf '\n## Screenshot\n\n![Hash Race gameplay screenshot](%s)\n' "$SCREENSHOT_URL")
+          fi
+          NOTES=$(cat <<EOF
+          Hash Race $VERSION
+
+          $STATUS_LINE
+
+          ## Downloads
+
+          $WINDOWS_LINE
+          $LINUX_LINE
+          $SCREENSHOT_SECTION
+          EOF
+          )
+          if [ ! -s "$WINDOWS_FILE" ] && [ ! -s "$LINUX_FILE" ]; then
+            echo "No validated desktop package is available to publish."
+            exit 1
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" release/* --clobber
+            gh release edit "$VERSION" --title "Hash Race $VERSION" --notes "$NOTES" --latest
+          else
+            gh release create "$VERSION" release/* --target "$GITHUB_SHA" --title "Hash Race $VERSION" --notes "$NOTES" --latest
+          fi
