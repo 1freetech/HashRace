@@ -45,11 +45,9 @@ def test_png():
 def test_live():
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
     stable_world = ROOT / "Godot/scripts/world.gd"
-    catalog = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
-    capture = (ROOT / "Godot/scripts/capture_v161_solar.gd").read_text()
 
-    # The live scene now has a deliberately stable entry point. Release-numbered
-    # scripts remain historical evidence, but must not be mistaken for live wiring.
+    # The current scene has one stable entry point and one semantic infrastructure
+    # API. Release-numbered catalogs/capture scripts are historical evidence only.
     assert 'path="res://scripts/world.gd" type="Script"' in scene
     assert stable_world.exists()
     live = stable_world.read_text()
@@ -57,15 +55,12 @@ def test_live():
     assert '"solar": Rect2(' in live
     assert '_draw_asset(SOLAR_ART, CAMPUS.solar)' in live
     assert 'grid_nav.block_rect(_ground_foot(rect))' in live
-    assert 'SOLAR_ART != null' in live
-
-    # Preserve the original binary/catalog and historical render proof contracts.
-    assert "solar_array_overview.png" in catalog
-    assert 'inventory.deploy("solar_array"' in capture
-    assert "debug_v161_solar_ready" in capture
+    assert 'func infrastructure_ready(asset_id: String) -> bool:' in live
+    assert '"solar":\n            texture = SOLAR_ART' in live
+    assert 'return not grid_nav.world_is_walkable(foot.get_center())' in live
 
 
 if __name__ == "__main__":
     test_png()
     test_live()
-    print("v0.161 real solar PNG CRC/alpha/hash/stable-live wiring passed")
+    print("solar PNG CRC/alpha/hash and semantic stable-runtime wiring passed")
