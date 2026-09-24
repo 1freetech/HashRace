@@ -2,8 +2,11 @@ extends "res://scripts/world_v163.gd"
 
 # v0.164: integrate exactly one existing validated binary into the actual
 # wind_farm energy renderer while preserving the proven v0.163 solar building.
+# Fresh runtime proof also exposed an inherited decorative gray strip directly
+# beneath the player. v0.164 suppresses that non-simulation renderer here rather
+# than preserving visually bad infrastructure for its own sake.
 const V164Wind = preload("res://scripts/wind_turbine_catalog.gd")
-const V164_WIND_REVISION := 1
+const V164_WIND_REVISION := 2
 var v164_wind_texture: Texture2D
 var v164_wind_drawn := false
 var v164_wind_rect := Rect2()
@@ -16,7 +19,16 @@ func _ready() -> void:
     super._ready()
     set_meta("hashrace_v164_wind_binary_live", v164_wind_texture != null)
     set_meta("hashrace_v164_wind_asset_path", V164Wind.SHEET_PATH)
+    set_meta("hashrace_v164_player_underfoot_decor_removed", true)
     queue_redraw()
+
+# The exact-head v0.164 gameplay proof showed the inherited decorative cable
+# tray as a long gray strip directly beneath the player's feet. It is not a
+# simulation entity and has no interaction contract, so remove its world draw
+# completely. The source binary remains available for a future deliberate,
+# grounded placement.
+func _v159_draw_cable_tray(_center: Vector2) -> void:
+    pass
 
 func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float, orientation: String = "up") -> void:
     if asset_id != "wind_farm" or v164_wind_texture == null:
@@ -39,13 +51,14 @@ func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float
     _v127_draw_region(v164_wind_texture, V164Wind.region(orientation), dest)
 
 func debug_v164_wind_ready() -> bool:
-    return V164_WIND_REVISION == 1 \
+    return V164_WIND_REVISION == 2 \
         and v164_wind_texture != null \
         and V164Wind.debug_ready() \
         and v164_wind_drawn \
         and v164_wind_rect.size.x >= 100.0 \
         and v164_wind_footprint.size.x > 0.0 \
         and v164_wind_footprint_registered \
+        and bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)) \
         and grid_nav != null \
         and not grid_nav.world_is_walkable(v164_wind_footprint.get_center()) \
         and debug_v160_transformer_ready()
