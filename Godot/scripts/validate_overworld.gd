@@ -25,15 +25,15 @@ func _run() -> void:
     for _frame in range(6):
         await process_frame
 
-    for method_name in ["debug_runtime_ready", "debug_wind_ready", "_move_player"]:
+    for method_name in ["runtime_ready", "infrastructure_ready", "infrastructure_rect", "infrastructure_footprint", "move_player"]:
         if not scene.has_method(method_name):
             _fail("stable runtime method missing: %s" % method_name)
             return
 
-    if not bool(scene.call("debug_runtime_ready")):
+    if not bool(scene.call("runtime_ready")):
         _fail("imported gameplay textures/navigation did not initialize")
         return
-    if not bool(scene.call("debug_wind_ready")):
+    if not bool(scene.call("infrastructure_ready", "wind")):
         _fail("wind texture dimensions or blocked ground footprint are invalid")
         return
 
@@ -50,7 +50,7 @@ func _run() -> void:
     # Prove the current playable loop can move on open terrain while collision
     # remains authoritative. This is intentionally semantic, not release-numbered.
     var start: Vector2 = scene.get("rep_pos")
-    scene.call("_move_player", Vector2(12.0, 0.0))
+    scene.call("move_player", Vector2(12.0, 0.0))
     await process_frame
     var moved: Vector2 = scene.get("rep_pos")
     if moved.distance_to(start) < 1.0:
@@ -59,5 +59,5 @@ func _run() -> void:
 
     scene.queue_free()
     await process_frame
-    print("HASH RACE WORLD OK: stable resources, five collision footprints, camera and movement validated")
+    print("HASH RACE WORLD OK: semantic runtime APIs, five collision footprints, camera and movement validated")
     quit(0)
