@@ -25,17 +25,29 @@ func _run() -> void:
     for _frame in range(6):
         await process_frame
 
-    for method_name in ["runtime_ready", "infrastructure_ready", "infrastructure_rect", "infrastructure_footprint", "move_player"]:
+    for method_name in ["runtime_ready", "infrastructure_ready", "infrastructure_rect", "infrastructure_footprint", "move_player", "player_animation_ready"]:
         if not scene.has_method(method_name):
             _fail("stable runtime method missing: %s" % method_name)
             return
 
     if not bool(scene.call("runtime_ready")):
-        _fail("imported gameplay textures/navigation did not initialize")
+        _fail("imported gameplay textures/navigation/player animation did not initialize")
         return
     if not bool(scene.call("infrastructure_ready", "wind")):
         _fail("wind texture dimensions or blocked ground footprint are invalid")
         return
+    if not bool(scene.call("player_animation_ready")):
+        _fail("live AnimatedSprite2D does not contain the verified walk frames")
+        return
+
+    var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
+    if player_sprite == null or not player_sprite.is_inside_tree():
+        _fail("live AnimatedSprite2D player did not initialize")
+        return
+    for facing in ["down", "left", "right", "up"]:
+        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 4:
+            _fail("walk_%s does not have four authored alternating poses" % facing)
+            return
 
     var camera := scene.get("camera") as Camera2D
     if camera == null or not camera.is_inside_tree():
@@ -48,16 +60,21 @@ func _run() -> void:
         return
 
     # Prove the current playable loop can move on open terrain while collision
-    # remains authoritative. This is intentionally semantic, not release-numbered.
+    # remains authoritative and switches the live sprite into a walk animation.
     var start: Vector2 = scene.get("rep_pos")
     scene.call("move_player", Vector2(12.0, 0.0))
+    scene.call("_set_player_facing", Vector2.RIGHT)
+    scene.call("_update_player_animation", true)
     await process_frame
     var moved: Vector2 = scene.get("rep_pos")
     if moved.distance_to(start) < 1.0:
         _fail("player could not move through open terrain")
         return
+    if player_sprite.animation != &"walk_right" or not player_sprite.is_playing():
+        _fail("movement did not activate the live right-walk animation")
+        return
 
     scene.queue_free()
     await process_frame
-    print("HASH RACE WORLD OK: semantic runtime APIs, five collision footprints, camera and movement validated")
+    print("HASH RACE WORLD OK: semantic runtime APIs, imported infrastructure, live SpriteFrames walking, collision, camera and movement validated")
     quit(0)
