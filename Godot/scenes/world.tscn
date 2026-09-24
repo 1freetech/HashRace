@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-; v0.164 preserves proven solar infrastructure and integrates real wind_farm art.
-[ext_resource path="res://scripts/world_v164.gd" type="Script" id="1_world"]
+; v0.165 preserves proven solar/wind and integrates diesel_generator into the live player campus.
+[ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
