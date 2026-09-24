@@ -43,12 +43,13 @@ def test_live_wiring():
     assert '"wind": Rect2(1310, 260, 220, 220)' in world
     assert 'grid_nav.block_rect(_ground_foot(rect))' in world
     assert 'draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)' in world
-    assert 'func debug_wind_ready() -> bool:' in world
-    assert 'Vector2i(WIND_ART.get_size()) == Vector2i(128, 128)' in world
-    assert 'not grid_nav.world_is_walkable(foot.get_center())' in world
+    assert 'func infrastructure_ready(asset_id: String) -> bool:' in world
+    assert 'if asset_id == "wind" and Vector2i(texture.get_size()) != Vector2i(128, 128):' in world
+    assert 'return not grid_nav.world_is_walkable(foot.get_center())' in world
+    assert 'return infrastructure_ready("wind")' in world
 
 
 if __name__ == "__main__":
     test_png()
     test_live_wiring()
-    print("wind PNG CRC/hash/dimensions + current stable runtime wiring passed")
+    print("wind PNG CRC/hash/dimensions + semantic stable runtime wiring passed")
