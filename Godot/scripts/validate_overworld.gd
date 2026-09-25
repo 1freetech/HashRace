@@ -46,8 +46,8 @@ func _run() -> void:
         _fail("live AnimatedSprite2D player did not initialize")
         return
     for facing in ["down", "left", "right", "up"]:
-        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 7:
-            _fail("walk_%s does not have seven visually verified authored poses" % facing)
+        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 4:
+            _fail("walk_%s does not have four explicitly ordered visually verified authored poses" % facing)
             return
 
     var camera := scene.get("camera") as Camera2D
