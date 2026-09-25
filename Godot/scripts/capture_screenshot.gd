@@ -39,12 +39,16 @@ func _capture() -> void:
         _fail("live AnimatedSprite2D player is missing")
         return
     scene.call("_set_player_facing", Vector2.RIGHT)
-    scene.call("_update_player_animation", true)
     var captured_walk_frames: Dictionary = {}
+    # Drive the real movement path continuously. world._process() derives
+    # moving from displacement each frame; a one-shot animation call returns
+    # to idle on the next frame and cannot prove walking.
+    Input.action_press("move_right")
     for _frame in range(24):
         await process_frame
-        if player_sprite.animation == &"walk_right":
+        if player_sprite.animation == &"walk_right" and player_sprite.is_playing():
             captured_walk_frames[player_sprite.frame] = true
+    Input.action_release("move_right")
     if captured_walk_frames.size() < 2:
         _fail("walking proof did not advance through at least two authored frames")
         return
