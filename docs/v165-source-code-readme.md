@@ -75,3 +75,20 @@ Commit `b4449d555b152203ed8c0e8f66910d8fc0b52ff5` changes `Godot/scripts/default
 Asset provenance remains the approved 32-pose player binary, SHA-256 `2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211`. The visually verified explicit WALK 1-7 order from commit `5b440b33407cb820f03b060ab1481568134f9106` is unchanged.
 
 Exact-head proof gate: not counted as integrated until this new head completes import/decode, gameplay render, walking screenshot evidence, and green CI.
+
+
+## 34-point infrastructure scale pass — 2026-09-24
+
+Targeted inspection defect: inconsistent infrastructure scale / stretched pasted-looking assets. Before editing, the proven repository implementation in `world_v163.gd::_draw_power_building()` was re-inspected. That implementation deliberately preserves the validated PNG aspect ratio and grounds the rendered image at its contact footprint rather than stretching it into the obsolete house rectangle.
+
+Official Godot 4.7 basis: `Texture2D.get_size()/get_width()/get_height()` expose the imported texture dimensions and `draw_texture_rect()` draws the imported Texture2D into the destination rectangle. Reference: https://docs.godotengine.org/en/4.7/classes/class_texture2d.html. Imported project textures remain preloaded resources; no filesystem image loader was introduced.
+
+Commit `180940a1841c6768809fe0f9fd6475661aefb52e` changes `Godot/scripts/world.gd`:
+- changes the C-01 mining-container campus bounds from the arbitrary stretched `330x190` box to `256x204`, an exact 2x multiple of the validated `128x102` binary;
+- adds `_aspect_fit_rect()`, which derives render size from the imported Texture2D dimensions and bottom-centers it so visual ground contact stays aligned with the navigation footprint;
+- routes `_draw_asset()` through the aspect-fit rectangle, preventing non-wind infrastructure from being distorted by mismatched destination proportions;
+- adds a runtime dimension gate requiring the container Texture2D to decode as exactly `128x102`.
+
+The existing `_ground_foot()` collision/navigation registration remains tied to the campus bounds, so the visual replacement remains non-walkable at its grounded footprint. The live runtime contains no generic house renderer for this container; it draws `CONTAINER_ART` directly from `res://art/buildings/c01_mining_container.png`.
+
+Proof status: source correction is committed but is NOT counted as a completed 34-point visual fix until the exact head produces a fresh Godot import/gameplay screenshot and green CI.
