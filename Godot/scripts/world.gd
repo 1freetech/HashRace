@@ -91,7 +91,6 @@ func _build_npc_population() -> void:
         sprite.scale = Vector2.ONE * float(spec.scale)
         sprite.flip_h = bool(spec.flip)
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-        sprite.y_sort_origin = 96
         npc_sprites.append(sprite)
         add_child(sprite)
 
@@ -184,8 +183,6 @@ func _build_infrastructure_sprites() -> void:
         sprite.position = fitted.position
         sprite.scale = fitted.size / Vector2(texture.get_size())
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-        # Sort at ground contact, not at the image's top edge.
-        sprite.y_sort_origin = int(round(fitted.size.y))
         infrastructure_sprites[asset_id] = sprite
         add_child(sprite)
 
@@ -207,7 +204,6 @@ func _build_infrastructure_sprites() -> void:
             wind_bounds.end.y - wind_size.y
         ).round()
         wind_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-        wind_sprite.y_sort_origin = int(round(wind_size.y))
         infrastructure_sprites["wind"] = wind_sprite
         add_child(wind_sprite)
 
