@@ -1,425 +1,306 @@
 extends Node2D
 
+# Hash Race clean runtime. Release numbers belong in Git history, not gameplay.
 const WORLD_SIZE := Vector2(1800, 1120)
-const WALK_SPEED := 240.0
-const CYAN := Color("55e7ff")
-const GREEN := Color("64ff8c")
-const ORANGE := Color("ffb65c")
-const RED := Color("ff6b6b")
-const PANEL := Color("111923e6")
+const PLAYER_SPEED := 230.0
+const GridNavigation = preload("res://scripts/grid_navigation.gd")
+const Inventory = preload("res://scripts/infrastructure_inventory.gd")
+const PlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
 
-var player_pos := Vector2(420, 560)
-var click_target := Vector2.ZERO
-var has_click_target := false
+const PLAYER_ART := preload("res://art/characters/default_player_sheet.png")
+const CONTAINER_ART := preload("res://art/buildings/c01_mining_container.png")
+const TRANSFORMER_ART := preload("res://art/electrical/substation_transformer_rear.png")
+const SOLAR_ART := preload("res://art/energy/solar_array_overview.png")
+const WIND_ART := preload("res://art/energy/wind_turbine_directional_sheet.png")
+const ASIC_ART := preload("res://art/machines/asic_air_s19j_directional.png")
+
+var grid_nav = GridNavigation.new()
+var infrastructure_inventory = Inventory.new()
+var player := {"cash": 125000.0, "mw": 10.0}
+var rep_pos := Vector2(900, 650)
 var camera: Camera2D
+var target := Vector2.ZERO
+var walking := false
+var player_sprite: AnimatedSprite2D
+var player_facing := "down"
+var infrastructure_sprites: Dictionary = {}
+var npc_sprites: Array[Sprite2D] = []
 
-var company_name := "BlockForge Mining"
-var day := 1
-var season := 1
-var cash := 12500.0
-var fleet := 8
-var machine_hashrate_th := 5.0
-var efficiency_jth := 78.0
-var electricity_price := 0.055
-var uptime := 0.972
-var site_capacity_mw := 0.12
-var research := 0.0
-var research_target := 15000.0
-var generation := 1
-var operating_focus := "Balanced"
-var selected_building := "Hash Hall A"
-var expansion_level := 0
-
-var top_stats: Label
-var detail_label: Label
-var event_label: Label
-var focus_button: Button
-var lab_button: Button
-
-var building_defs := [
-    {"name":"Hash Hall A", "rect":Rect2(220, 180, 360, 260), "color":Color("1e5d74"), "kind":"Mining", "desc":"Primary ASIC hall. Racks turn electricity into hashrate."},
-    {"name":"Hash Hall B", "rect":Rect2(640, 180, 330, 260), "color":Color("24506c"), "kind":"Mining", "desc":"Expansion hall for additional ASIC capacity."},
-    {"name":"Hydro Cooling", "rect":Rect2(250, 690, 300, 220), "color":Color("195c63"), "kind":"Cooling", "desc":"Pumps, heat exchangers and water loops protect uptime."},
-    {"name":"Substation", "rect":Rect2(1030, 155, 300, 250), "color":Color("514824"), "kind":"Power", "desc":"Transformers and switchgear feed the mining campus."},
-    {"name":"ASIC Lab", "rect":Rect2(1040, 500, 300, 210), "color":Color("4a2d68"), "kind":"Research", "desc":"Engineers test silicon, boards, firmware and cooling ideas."},
-    {"name":"NOC + HQ", "rect":Rect2(620, 720, 350, 210), "color":Color("263a68"), "kind":"Operations", "desc":"Network operations, finance, league strategy and company control."}
+const NPCS := [
+    {"pos": Vector2(430, 545), "frame": 0, "scale": 0.26, "flip": false},
+    {"pos": Vector2(760, 545), "frame": 9, "scale": 0.24, "flip": true},
+    {"pos": Vector2(1030, 500), "frame": 18, "scale": 0.27, "flip": false},
+    {"pos": Vector2(1370, 520), "frame": 27, "scale": 0.23, "flip": true},
 ]
 
-var worker_waypoints := [
-    Vector2(330, 520), Vector2(760, 520), Vector2(1170, 460), Vector2(1180, 760),
-    Vector2(760, 840), Vector2(390, 820), Vector2(900, 600), Vector2(610, 570)
-]
-
-var workers := [
-    {"pos":Vector2(360, 510), "target":2, "speed":52.0, "color":CYAN},
-    {"pos":Vector2(760, 530), "target":5, "speed":46.0, "color":GREEN},
-    {"pos":Vector2(1130, 450), "target":4, "speed":49.0, "color":ORANGE},
-    {"pos":Vector2(670, 850), "target":0, "speed":44.0, "color":CYAN}
-]
+const CAMPUS := {
+    # Preserve the validated 128x102 container binary aspect ratio instead of
+    # stretching it across the old oversized house footprint.
+    "container": Rect2(320, 326, 256, 204),
+    "solar": Rect2(1060, 210, 230, 230),
+    "transformer": Rect2(950, 520, 180, 162),
+    "asic": Rect2(560, 700, 190, 190),
+    "wind": Rect2(1310, 260, 220, 220)
+}
 
 func _ready() -> void:
+    grid_nav.configure(WORLD_SIZE, 48.0)
+    for rect in CAMPUS.values():
+        grid_nav.block_rect(_ground_foot(rect))
+    _build_infrastructure_sprites()
+    _build_player_sprite()
+    _build_npc_population()
     camera = Camera2D.new()
-    camera.position = player_pos
+    camera.position = rep_pos
     camera.position_smoothing_enabled = true
-    camera.position_smoothing_speed = 8.0
-    camera.limit_left = 0
-    camera.limit_top = 0
-    camera.limit_right = int(WORLD_SIZE.x)
-    camera.limit_bottom = int(WORLD_SIZE.y)
+    camera.position_smoothing_speed = 7.0
     add_child(camera)
     camera.make_current()
-    build_hud()
-    update_hud("Campus online. Walk with WASD/arrows or click anywhere on the site.")
     queue_redraw()
 
+func _build_player_sprite() -> void:
+    var frames := PlayerSheet.build_frames()
+    if frames == null:
+        return
+    player_sprite = AnimatedSprite2D.new()
+    player_sprite.name = "PlayerSprite"
+    player_sprite.sprite_frames = frames
+    player_sprite.animation = &"idle_down"
+    player_sprite.position = rep_pos
+    player_sprite.scale = Vector2(0.4, 0.4)
+    player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    player_sprite.z_index = 0
+    player_sprite.y_sort_enabled = false
+    add_child(player_sprite)
+
+func _build_npc_population() -> void:
+    # Reuse visually distinct authored poses from the validated 32-pose sheet.
+    # Different facing, stance, scale and mirroring prevents the clone-population
+    # failure without inventing unvalidated binary art.
+    if PLAYER_ART == null:
+        return
+    for index in range(NPCS.size()):
+        var spec: Dictionary = NPCS[index]
+        var sprite := Sprite2D.new()
+        sprite.name = "CampusNPC_%02d" % index
+        sprite.texture = PLAYER_ART
+        sprite.hframes = 8
+        sprite.vframes = 4
+        sprite.frame = int(spec.frame)
+        sprite.position = spec.pos
+        sprite.scale = Vector2.ONE * float(spec.scale)
+        sprite.flip_h = bool(spec.flip)
+        sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        npc_sprites.append(sprite)
+        add_child(sprite)
+
 func _process(delta: float) -> void:
-    var motion := Vector2.ZERO
-    if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
-        motion.y -= 1.0
-    if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
-        motion.y += 1.0
-    if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
-        motion.x -= 1.0
-    if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
-        motion.x += 1.0
-
-    if motion.length() > 0.0:
-        has_click_target = false
-        player_pos += motion.normalized() * WALK_SPEED * delta
-    elif has_click_target:
-        player_pos = player_pos.move_toward(click_target, WALK_SPEED * delta)
-        if player_pos.distance_to(click_target) < 5.0:
-            has_click_target = false
-
-    player_pos.x = clamp(player_pos.x, 40.0, WORLD_SIZE.x - 40.0)
-    player_pos.y = clamp(player_pos.y, 80.0, WORLD_SIZE.y - 40.0)
-    camera.position = player_pos
-    update_workers(delta)
+    var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+    var moving := false
+    if direction.length() > 0.0:
+        walking = false
+        moving = move_player(direction.normalized() * PLAYER_SPEED * delta)
+        if moving:
+            _set_player_facing(direction)
+    elif walking:
+        var offset := target - rep_pos
+        if offset.length() < 5.0:
+            walking = false
+        else:
+            var direction_to_target := offset.normalized()
+            moving = move_player(direction_to_target * minf(PLAYER_SPEED * delta, offset.length()))
+            if moving:
+                _set_player_facing(direction_to_target)
+    _update_player_animation(moving)
+    camera.position = rep_pos
     queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-        var world_click := get_global_mouse_position()
-        for building in building_defs:
-            if building.rect.has_point(world_click):
-                selected_building = building.name
-                update_hud("Selected %s." % selected_building)
-                return
-        click_target = world_click
-        has_click_target = true
+        target = get_global_mouse_position()
+        walking = true
 
-func update_workers(delta: float) -> void:
-    for worker in workers:
-        var target_pos: Vector2 = worker_waypoints[worker.target]
-        worker.pos = worker.pos.move_toward(target_pos, worker.speed * delta)
-        if worker.pos.distance_to(target_pos) < 8.0:
-            worker.target = (worker.target + 1 + randi_range(0, 2)) % worker_waypoints.size()
+func move_player(delta_pos: Vector2) -> bool:
+    var candidate := rep_pos + delta_pos
+    candidate.x = clampf(candidate.x, 40.0, WORLD_SIZE.x - 40.0)
+    candidate.y = clampf(candidate.y, 40.0, WORLD_SIZE.y - 40.0)
+    if not grid_nav.world_is_walkable(candidate):
+        return false
+    var moved := candidate.distance_to(rep_pos) > 0.01
+    rep_pos = candidate
+    if player_sprite != null:
+        player_sprite.position = rep_pos
+    return moved
 
-func total_hashrate() -> float:
-    return float(fleet) * machine_hashrate_th
-
-func power_kw() -> float:
-    return total_hashrate() * efficiency_jth / 1000.0
-
-func daily_profit() -> float:
-    var focus_mult := 1.0
-    if operating_focus == "Efficiency":
-        focus_mult = 1.06
-    elif operating_focus == "Reliability":
-        focus_mult = 1.03
-    elif operating_focus == "R&D":
-        focus_mult = 0.95
-    var revenue := total_hashrate() * 2.25 * uptime * focus_mult
-    var power_cost := power_kw() * 24.0 * electricity_price * uptime
-    var operations := float(fleet) * 1.5
-    return revenue - power_cost - operations
-
-func site_limit_kw() -> float:
-    return site_capacity_mw * 1000.0
-
-func build_hud() -> void:
-    var layer := CanvasLayer.new()
-    add_child(layer)
-
-    var top := Panel.new()
-    top.position = Vector2(0, 0)
-    top.size = Vector2(1280, 58)
-    var top_style := StyleBoxFlat.new()
-    top_style.bg_color = PANEL
-    top_style.border_width_bottom = 2
-    top_style.border_color = Color("1e8ea8")
-    top.add_theme_stylebox_override("panel", top_style)
-    layer.add_child(top)
-
-    var title := Label.new()
-    title.position = Vector2(20, 9)
-    title.size = Vector2(340, 40)
-    title.text = "HASH RACE // %s" % company_name
-    title.add_theme_font_size_override("font_size", 22)
-    title.add_theme_color_override("font_color", GREEN)
-    top.add_child(title)
-
-    top_stats = Label.new()
-    top_stats.position = Vector2(365, 9)
-    top_stats.size = Vector2(900, 40)
-    top_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    top_stats.add_theme_font_size_override("font_size", 15)
-    top_stats.add_theme_color_override("font_color", Color("d7f7ff"))
-    top.add_child(top_stats)
-
-    var side := Panel.new()
-    side.position = Vector2(930, 76)
-    side.size = Vector2(330, 620)
-    var side_style := StyleBoxFlat.new()
-    side_style.bg_color = Color("0b111ae8")
-    side_style.border_width_left = 2
-    side_style.border_width_top = 2
-    side_style.border_width_right = 2
-    side_style.border_width_bottom = 2
-    side_style.border_color = Color("24485a")
-    side_style.corner_radius_top_left = 10
-    side_style.corner_radius_top_right = 10
-    side_style.corner_radius_bottom_left = 10
-    side_style.corner_radius_bottom_right = 10
-    side.add_theme_stylebox_override("panel", side_style)
-    layer.add_child(side)
-
-    var header := Label.new()
-    header.position = Vector2(18, 14)
-    header.size = Vector2(294, 30)
-    header.text = "SITE CONTROL"
-    header.add_theme_font_size_override("font_size", 19)
-    header.add_theme_color_override("font_color", CYAN)
-    side.add_child(header)
-
-    detail_label = Label.new()
-    detail_label.position = Vector2(18, 52)
-    detail_label.size = Vector2(294, 160)
-    detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    detail_label.add_theme_font_size_override("font_size", 14)
-    side.add_child(detail_label)
-
-    add_hud_button(side, "ADVANCE DAY", Vector2(18, 230), advance_day)
-    add_hud_button(side, "BUY ASIC", Vector2(168, 230), buy_asic)
-    add_hud_button(side, "FUND R&D", Vector2(18, 282), fund_rd)
-    add_hud_button(side, "EXPAND SITE", Vector2(168, 282), expand_site)
-
-    focus_button = add_hud_button(side, "FOCUS: BALANCED", Vector2(18, 342), cycle_focus, Vector2(294, 44))
-    lab_button = add_hud_button(side, "OPEN OLD MANAGEMENT", Vector2(18, 394), open_management, Vector2(294, 44))
-
-    var help := Label.new()
-    help.position = Vector2(18, 452)
-    help.size = Vector2(294, 75)
-    help.text = "MOVE: WASD / arrows\nCLICK: walk or inspect building\nWORLD: workers and equipment keep moving"
-    help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    help.add_theme_font_size_override("font_size", 12)
-    help.add_theme_color_override("font_color", Color("a8c4d0"))
-    side.add_child(help)
-
-    event_label = Label.new()
-    event_label.position = Vector2(18, 540)
-    event_label.size = Vector2(294, 64)
-    event_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    event_label.add_theme_font_size_override("font_size", 12)
-    event_label.add_theme_color_override("font_color", ORANGE)
-    side.add_child(event_label)
-
-func add_hud_button(parent: Control, text: String, pos: Vector2, callback: Callable, button_size := Vector2(140, 44)) -> Button:
-    var button := Button.new()
-    button.position = pos
-    button.size = button_size
-    button.text = text
-    button.add_theme_font_size_override("font_size", 12)
-    button.pressed.connect(callback)
-    parent.add_child(button)
-    return button
-
-func selected_description() -> String:
-    for building in building_defs:
-        if building.name == selected_building:
-            return "%s // %s\n%s" % [building.name, building.kind, building.desc]
-    return selected_building
-
-func update_hud(message: String = "") -> void:
-    if not is_instance_valid(top_stats):
-        return
-    top_stats.text = "S%d D%d  |  $%d  |  %d ASICs  |  %.1f TH/s  |  %.1f J/TH  |  %.1f/%.0f kW" % [season, day, int(cash), fleet, total_hashrate(), efficiency_jth, power_kw(), site_limit_kw()]
-    detail_label.text = "%s\n\nFocus: %s\nUptime: %.1f%%\nEst. profit/day: $%d\nR&D: $%d / $%d" % [selected_description(), operating_focus, uptime * 100.0, int(daily_profit()), int(research), int(research_target)]
-    focus_button.text = "FOCUS: %s" % operating_focus.to_upper()
-    if message != "":
-        event_label.text = message
-
-func advance_day() -> void:
-    day += 1
-    cash += daily_profit()
-    if operating_focus == "R&D":
-        research += 180.0
-    if day % 90 == 0:
-        season += 1
-        event_label.text = "Season %d begins. Rival miners also advanced." % season
+func _set_player_facing(direction: Vector2) -> void:
+    if absf(direction.x) > absf(direction.y):
+        player_facing = "right" if direction.x > 0.0 else "left"
     else:
-        event_label.text = "Day %d closed. Net: $%d." % [day, int(daily_profit())]
-    update_hud()
+        player_facing = "down" if direction.y > 0.0 else "up"
 
-func buy_asic() -> void:
-    var price := 650.0 * pow(1.9, generation - 1)
-    var added_kw := machine_hashrate_th * efficiency_jth / 1000.0
-    if cash < price:
-        update_hud("Need $%d for the current ASIC." % int(price))
+func _update_player_animation(moving: bool) -> void:
+    if player_sprite == null:
         return
-    if power_kw() + added_kw > site_limit_kw():
-        update_hud("Power ceiling reached. Expand the site first.")
-        return
-    cash -= price
-    fleet += 1
-    update_hud("New Gen %d ASIC installed in the visible hash hall." % generation)
-
-func fund_rd() -> void:
-    var spend := min(cash, 2500.0)
-    if spend <= 0.0:
-        update_hud("No cash available for R&D.")
-        return
-    cash -= spend
-    var focus_bonus := 1.25 if operating_focus == "R&D" else 1.0
-    research += spend * focus_bonus
-    if research >= research_target:
-        research = 0.0
-        generation += 1
-        machine_hashrate_th *= 1.8
-        efficiency_jth = max(1.0, efficiency_jth * 0.78)
-        research_target *= 2.6
-        update_hud("ASIC Lab unlocked Gen %d: %.1f TH/s at %.1f J/TH." % [generation, machine_hashrate_th, efficiency_jth])
-    else:
-        update_hud("ASIC Lab funded. Research is now $%d / $%d." % [int(research), int(research_target)])
-
-func expand_site() -> void:
-    var cost := 16000.0 * (1.0 + expansion_level * 0.7)
-    if cash < cost:
-        update_hud("Need $%d to energize the next expansion pad." % int(cost))
-        return
-    cash -= cost
-    expansion_level += 1
-    site_capacity_mw *= 1.65
-    update_hud("Expansion %d energized. Site capacity is now %.2f MW." % [expansion_level, site_capacity_mw])
-
-func cycle_focus() -> void:
-    var modes := ["Balanced", "Efficiency", "Reliability", "R&D"]
-    var idx := modes.find(operating_focus)
-    operating_focus = modes[(idx + 1) % modes.size()]
-    if operating_focus == "Efficiency":
-        electricity_price = 0.051
-    elif operating_focus == "Reliability":
-        uptime = 0.989
-    else:
-        electricity_price = 0.055
-        uptime = 0.972
-    update_hud("Campus operating focus changed to %s." % operating_focus)
-
-func open_management() -> void:
-    get_tree().change_scene_to_file("res://scenes/main.tscn")
+    var wanted := StringName(("walk_" if moving else "idle_") + player_facing)
+    if player_sprite.animation != wanted:
+        player_sprite.play(wanted)
+    elif moving and not player_sprite.is_playing():
+        player_sprite.play(wanted)
+    elif not moving and player_sprite.is_playing():
+        player_sprite.stop()
+        player_sprite.frame = 0
 
 func _draw() -> void:
-    draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("081015"), true)
-    draw_grid()
-    draw_campus_paths()
-    for building in building_defs:
-        draw_building(building)
-    draw_power_network()
-    draw_hash_racks()
-    draw_cooling_system()
-    draw_substation_detail()
-    draw_workers()
-    draw_player()
-    draw_world_labels()
+    draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("568c43"))
+    _draw_service_road()
+    _draw_hud()
 
-func draw_grid() -> void:
-    for x in range(0, int(WORLD_SIZE.x), 40):
-        draw_line(Vector2(x, 0), Vector2(x, WORLD_SIZE.y), Color("0e1c23"), 1.0)
-    for y in range(0, int(WORLD_SIZE.y), 40):
-        draw_line(Vector2(0, y), Vector2(WORLD_SIZE.x, y), Color("0e1c23"), 1.0)
+func _draw_service_road() -> void:
+    draw_rect(Rect2(170, 570, 1450, 88), Color("5b5b57"))
+    draw_line(Vector2(170, 614), Vector2(1620, 614), Color("c7b46a"), 3.0)
 
-func draw_campus_paths() -> void:
-    var road := Color("17272f")
-    draw_rect(Rect2(120, 500, 1380, 100), road, true)
-    draw_rect(Rect2(560, 100, 90, 900), road, true)
-    draw_rect(Rect2(980, 100, 80, 860), road, true)
-    for x in range(150, 1480, 70):
-        draw_line(Vector2(x, 550), Vector2(x + 34, 550), Color("43636e"), 3.0)
+func _build_infrastructure_sprites() -> void:
+    # Real Sprite2D nodes give infrastructure and the player a common Y-sort
+    # contract. This prevents the representative from always rendering over a
+    # building just because the old CanvasItem draw call happened first.
+    y_sort_enabled = true
+    var textures := {
+        "container": CONTAINER_ART,
+        "solar": SOLAR_ART,
+        "transformer": TRANSFORMER_ART,
+        "asic": ASIC_ART,
+    }
+    for asset_id in textures.keys():
+        var texture: Texture2D = textures[asset_id]
+        if texture == null:
+            continue
+        var bounds: Rect2 = CAMPUS[asset_id]
+        var fitted := _aspect_fit_rect(texture, bounds)
+        var sprite := Sprite2D.new()
+        sprite.name = "Infrastructure_" + String(asset_id)
+        sprite.texture = texture
+        sprite.centered = false
+        sprite.position = fitted.position
+        sprite.scale = fitted.size / Vector2(texture.get_size())
+        sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        infrastructure_sprites[asset_id] = sprite
+        add_child(sprite)
 
-func draw_building(building: Dictionary) -> void:
-    var rect: Rect2 = building.rect
-    var color: Color = building.color
-    draw_rect(rect, Color("081015"), true)
-    draw_rect(rect.grow(-5), color, true)
-    draw_rect(rect, CYAN if building.name == selected_building else Color("3e6572"), false, 3.0)
-    draw_rect(Rect2(rect.position + Vector2(14, 14), Vector2(rect.size.x - 28, 26)), Color("0a151c"), true)
-    draw_string(ThemeDB.fallback_font, rect.position + Vector2(22, 34), building.name.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("d9fbff"))
+    if WIND_ART != null:
+        var wind_source_size := Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0)
+        var wind_bounds: Rect2 = CAMPUS.wind
+        var wind_scale := minf(wind_bounds.size.x / wind_source_size.x, wind_bounds.size.y / wind_source_size.y)
+        var wind_region := AtlasTexture.new()
+        wind_region.atlas = WIND_ART
+        wind_region.region = Rect2(Vector2.ZERO, wind_source_size)
+        var wind_sprite := Sprite2D.new()
+        wind_sprite.name = "Infrastructure_wind"
+        wind_sprite.texture = wind_region
+        wind_sprite.centered = false
+        wind_sprite.scale = Vector2.ONE * wind_scale
+        var wind_size := wind_source_size * wind_scale
+        wind_sprite.position = Vector2(
+            wind_bounds.position.x + (wind_bounds.size.x - wind_size.x) * 0.5,
+            wind_bounds.end.y - wind_size.y
+        ).round()
+        wind_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        infrastructure_sprites["wind"] = wind_sprite
+        add_child(wind_sprite)
 
-func draw_hash_racks() -> void:
-    var blink := int(Time.get_ticks_msec() / 420) % 2
-    var rack_count := min(fleet, 24)
-    for i in range(rack_count):
-        var hall_b := i >= 12
-        var local_i := i - 12 if hall_b else i
-        var col := local_i % 4
-        var row := local_i / 4
-        var base := Vector2(255, 235) if not hall_b else Vector2(675, 235)
-        var p := base + Vector2(col * 72, row * 58)
-        draw_rect(Rect2(p, Vector2(48, 34)), Color("0b1218"), true)
-        draw_rect(Rect2(p, Vector2(48, 34)), Color("45606b"), false, 2.0)
-        var led := GREEN if (i + blink) % 3 != 0 else CYAN
-        draw_circle(p + Vector2(39, 9), 3.5, led)
-        draw_line(p + Vector2(8, 12), p + Vector2(31, 12), Color("2d8aa0"), 2.0)
-        draw_line(p + Vector2(8, 20), p + Vector2(31, 20), Color("2d8aa0"), 2.0)
+func _aspect_fit_rect(texture: Texture2D, bounds: Rect2) -> Rect2:
+    if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+        return bounds
+    var source_size := Vector2(texture.get_width(), texture.get_height())
+    var fit_scale := minf(bounds.size.x / source_size.x, bounds.size.y / source_size.y)
+    var fitted_size := source_size * fit_scale
+    var fitted_position := Vector2(
+        bounds.position.x + (bounds.size.x - fitted_size.x) * 0.5,
+        bounds.end.y - fitted_size.y
+    )
+    return Rect2(fitted_position.round(), fitted_size.round())
 
-func draw_cooling_system() -> void:
-    var center_positions := [Vector2(320, 790), Vector2(405, 790), Vector2(490, 790)]
-    var spin := float(Time.get_ticks_msec() % 3000) / 3000.0 * TAU
-    for center in center_positions:
-        draw_circle(center, 30, Color("0d2026"))
-        draw_circle(center, 28, Color("3f727a"), false, 3.0)
-        for blade in range(4):
-            var angle := spin + blade * PI / 2.0
-            draw_line(center, center + Vector2(cos(angle), sin(angle)) * 22.0, CYAN, 4.0)
-    draw_line(Vector2(280, 860), Vector2(510, 860), Color("3bb7c9"), 8.0)
+func _draw_hud() -> void:
+    var font := ThemeDB.fallback_font
+    draw_rect(Rect2(1180, 30, 230, 88), Color(0.05, 0.08, 0.10, 0.88))
+    draw_string(font, Vector2(1200, 60), "HASH RACE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("64ff8c"))
+    draw_string(font, Vector2(1200, 88), "Mining campus online", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color.WHITE)
 
-func draw_substation_detail() -> void:
-    for i in range(3):
-        var p := Vector2(1080 + i * 78, 255)
-        draw_rect(Rect2(p, Vector2(48, 70)), Color("242822"), true)
-        draw_rect(Rect2(p, Vector2(48, 70)), ORANGE, false, 2.0)
-        draw_circle(p + Vector2(24, 14), 7, Color("d8b65c"), false, 2.0)
-        draw_line(p + Vector2(24, 21), p + Vector2(24, 56), Color("a88d48"), 3.0)
+func _ground_foot(rect: Rect2) -> Rect2:
+    return Rect2(rect.position + Vector2(rect.size.x * 0.16, rect.size.y * 0.74), Vector2(rect.size.x * 0.68, rect.size.y * 0.22))
 
-func draw_power_network() -> void:
-    var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 260.0)
-    var live_color := Color(CYAN, pulse)
-    draw_line(Vector2(1030, 340), Vector2(970, 340), live_color, 4.0)
-    draw_line(Vector2(970, 340), Vector2(970, 470), live_color, 4.0)
-    draw_line(Vector2(970, 470), Vector2(580, 470), live_color, 4.0)
-    draw_line(Vector2(580, 470), Vector2(580, 350), live_color, 4.0)
-    draw_line(Vector2(580, 350), Vector2(220, 350), live_color, 4.0)
+func infrastructure_rect(asset_id: String) -> Rect2:
+    return CAMPUS.get(asset_id, Rect2())
 
-func draw_workers() -> void:
-    for worker in workers:
-        var p: Vector2 = worker.pos
-        draw_circle(p, 9, Color("091116"))
-        draw_circle(p, 7, worker.color)
-        draw_line(p + Vector2(0, 7), p + Vector2(0, 18), worker.color, 4.0)
-        draw_line(p + Vector2(-7, 12), p + Vector2(7, 12), worker.color, 3.0)
+func infrastructure_footprint(asset_id: String) -> Rect2:
+    var rect := infrastructure_rect(asset_id)
+    if rect.size == Vector2.ZERO:
+        return Rect2()
+    return _ground_foot(rect)
 
-func draw_player() -> void:
-    draw_circle(player_pos, 16, Color("071014"))
-    draw_circle(player_pos, 13, GREEN)
-    draw_circle(player_pos + Vector2(0, -3), 5, Color("d7f7ff"))
-    draw_line(player_pos + Vector2(0, 8), player_pos + Vector2(0, 24), GREEN, 5.0)
-    draw_line(player_pos + Vector2(-9, 14), player_pos + Vector2(9, 14), GREEN, 4.0)
-    draw_string(ThemeDB.fallback_font, player_pos + Vector2(-34, -24), "YOU", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, GREEN)
+func infrastructure_ready(asset_id: String) -> bool:
+    var texture: Texture2D = null
+    match asset_id:
+        "container":
+            texture = CONTAINER_ART
+        "solar":
+            texture = SOLAR_ART
+        "transformer":
+            texture = TRANSFORMER_ART
+        "asic":
+            texture = ASIC_ART
+        "wind":
+            texture = WIND_ART
+        _:
+            return false
+    var foot := infrastructure_footprint(asset_id)
+    if texture == null or foot.size == Vector2.ZERO:
+        return false
+    if not infrastructure_sprites.has(asset_id):
+        return false
+    var sprite := infrastructure_sprites[asset_id] as Sprite2D
+    if sprite == null or not sprite.is_inside_tree():
+        return false
+    if asset_id == "container" and Vector2i(texture.get_size()) != Vector2i(128, 102):
+        return false
+    if asset_id == "wind" and Vector2i(texture.get_size()) != Vector2i(128, 128):
+        return false
+    return not grid_nav.world_is_walkable(foot.get_center())
 
-func draw_world_labels() -> void:
-    draw_string(ThemeDB.fallback_font, Vector2(110, 105), "BLOCKFORGE CAMPUS // ACTIVE MINING SITE", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("8cf8ff"))
-    draw_string(ThemeDB.fallback_font, Vector2(110, 132), "LIVE POWER • COOLING • NETWORK • R&D • OPERATIONS", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("587f8c"))
-    if expansion_level > 0:
-        draw_rect(Rect2(1380, 230, 300, 420), Color("17313d"), true)
-        draw_rect(Rect2(1380, 230, 300, 420), GREEN, false, 3.0)
-        draw_string(ThemeDB.fallback_font, Vector2(1410, 270), "EXPANSION PAD %d" % expansion_level, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, GREEN)
+func player_animation_ready() -> bool:
+    if player_sprite == null or player_sprite.sprite_frames == null:
+        return false
+    for facing in ["down", "left", "right", "up"]:
+        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != PlayerSheet.WALK_FRAME_COUNT:
+            return false
+    return true
+
+func npc_population_ready() -> bool:
+    if npc_sprites.size() != NPCS.size():
+        return false
+    var frames := {}
+    var scales := {}
+    for sprite in npc_sprites:
+        if sprite == null or not sprite.is_inside_tree():
+            return false
+        frames[sprite.frame] = true
+        scales[snappedf(sprite.scale.x, 0.01)] = true
+    return frames.size() == NPCS.size() and scales.size() >= 3
+
+func runtime_ready() -> bool:
+    if not npc_population_ready():
+        return false
+    if camera == null or not camera.is_inside_tree() or not player_animation_ready():
+        return false
+    if grid_nav.blocked_count() < CAMPUS.size():
+        return false
+    for asset_id in CAMPUS.keys():
+        if not infrastructure_ready(String(asset_id)):
+            return false
+    return PLAYER_ART != null
+
+# Compatibility names are semantic, never release-numbered.
+func debug_wind_ready() -> bool:
+    return infrastructure_ready("wind")
+
+func debug_runtime_ready() -> bool:
+    return runtime_ready()

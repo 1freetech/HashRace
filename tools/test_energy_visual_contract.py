@@ -1,31 +1,18 @@
 #!/usr/bin/env python3
-"""Energy/deployment contract retained by Hash Race v0.070+."""
+"""Current Hash Race energy/deployment contract.
+
+Release numbers belong in Git history. This contract validates the stable
+world.gd runtime, imported infrastructure resources, and inventory deployment
+APIs used by the live mining campus.
+"""
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
 inventory = (ROOT / "Godot/scripts/infrastructure_inventory.gd").read_text(encoding="utf-8")
-energy = (ROOT / "Godot/scripts/world_v065.gd").read_text(encoding="utf-8")
-world_v067 = (ROOT / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
-world_v068 = (ROOT / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
-world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
-world_v072 = (ROOT / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
-world_v073 = (ROOT / "Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
+world = (ROOT / "Godot/scripts/world.gd").read_text(encoding="utf-8")
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
-version = (ROOT / "VERSION").read_text().strip()
 
-assert re.fullmatch(r"v0\.\d{3}", version), version
-assert int(version.split(".")[1]) >= 70, version
-# The live scene may advance through thin version layers; verify the current
-# public version is the scene entry point instead of pinning CI to an old one.
-live_world = f'res://scripts/world_v{version.split(".")[1]}.gd'
-assert live_world in scene, f"Live scene does not reference {live_world}"
-assert 'extends "res://scripts/world_v072.gd"' in world_v073
-assert 'extends "res://scripts/world_v070.gd"' in world_v072
-assert 'extends "res://scripts/world_v068.gd"' in world_v070
-assert 'extends "res://scripts/world_v067.gd"' in world_v068
-assert 'extends "res://scripts/world_v065.gd"' in world_v067
-assert 'extends "res://scripts/world_v059.gd"' in energy
+assert 'res://scripts/world.gd' in scene, "Live scene must use the stable world.gd entry point"
 
 for marker in [
     'var deployed: Dictionary = {}',
@@ -36,28 +23,50 @@ for marker in [
     'total_deployed_hashrate_ph',
     'current_energy_output_mw',
     'total_cooling_capacity_mw',
+    'nominal_energy_capacity_mw',
     'debug_deployment_separation_ready',
     'ItemLibrary.load_catalog',
 ]:
     assert marker in inventory, f"Inventory missing deployment marker: {marker}"
 
-for source in ["battery", "solar_array", "wind_farm", "gas_turbine", "hydro_turbine", "oil_field", "coal_plant", "nuclear_smr", "methane_generator", "diesel_generator", "geothermal_generator", "lpg_generator", "hydrogen_fuel_cell"]:
+for source in [
+    "battery", "solar_array", "wind_farm", "gas_turbine", "hydro_turbine",
+    "oil_field", "coal_plant", "nuclear_smr", "methane_generator",
+    "diesel_generator", "geothermal_generator", "lpg_generator",
+    "hydrogen_fuel_cell",
+]:
     path = ROOT / f"Godot/data/items/{source}.tres"
     assert path.exists(), f"Missing energy ItemResource {source}"
     text = path.read_text(encoding="utf-8")
     assert f'id = "{source}"' in text
 
-for visual in [
-    '_draw_energy_campus', '_draw_solar_unit', '_draw_wind_unit', '_draw_gas_unit',
-    '_draw_hydro_unit', '_draw_oil_unit', '_draw_coal_unit', '_draw_smr_unit',
-    '_draw_energy_power_flow', '_draw_heat_exhaust', '_facility_temperature_c',
-    '_grid_stability_ratio', 'ENERGY MARKET', 'WAREHOUSE VS DEPLOYED',
-    'debug_energy_visuals_ready'
+# The live campus uses Godot-imported Texture2D resources. Keep these exact
+# res:// paths in source so exported builds retain their dependencies.
+for texture_path in [
+    "res://art/energy/solar_array_overview.png",
+    "res://art/energy/wind_turbine_directional_sheet.png",
+    "res://art/electrical/substation_transformer_rear.png",
+    "res://art/buildings/c01_mining_container.png",
+    "res://art/machines/asic_air_s19j_directional.png",
 ]:
-    assert visual in energy, f"Energy visual/gameplay layer missing: {visual}"
+    assert f'preload("{texture_path}")' in world, f"Live imported texture missing: {texture_path}"
 
-assert 'purchase_and_deploy(item_id, player, 1)' in energy
-assert 'super._hashrate_th() + infrastructure_inventory.total_deployed_hashrate_ph() * 1000.0' in energy
-assert 'super._machine_load_kw() + infrastructure_inventory.total_deployed_miner_load_mw() * 1000.0' in energy
+for api in [
+    "func runtime_ready()",
+    "func infrastructure_ready(asset_id: String)",
+    "func infrastructure_rect(asset_id: String)",
+    "func infrastructure_footprint(asset_id: String)",
+]:
+    assert api in world, f"Stable energy/infrastructure API missing: {api}"
 
-print(f"Hash Race {version} retained energy/deployment contract passed.")
+for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
+    assert f'"{asset_id}": Rect2' in world, f"Campus placement missing: {asset_id}"
+    assert f'"{asset_id}":' in world or f'"{asset_id}"' in world
+
+assert "grid_nav.block_rect(_ground_foot(rect))" in world
+assert "return not grid_nav.world_is_walkable(foot.get_center())" in world
+assert "_draw_asset(SOLAR_ART, CAMPUS.solar)" in world
+assert "_draw_wind()" in world
+assert "draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)" in world
+
+print("Hash Race stable energy/deployment contract passed.")
