@@ -23,6 +23,7 @@ var target := Vector2.ZERO
 var walking := false
 var player_sprite: AnimatedSprite2D
 var player_facing := "down"
+var infrastructure_sprites: Dictionary = {}
 
 const CAMPUS := {
     # Preserve the validated 128x102 container binary aspect ratio instead of\n    # stretching it across the old oversized house footprint.\n    "container": Rect2(320, 326, 256, 204),
@@ -36,6 +37,7 @@ func _ready() -> void:
     grid_nav.configure(WORLD_SIZE, 48.0)
     for rect in CAMPUS.values():
         grid_nav.block_rect(_ground_foot(rect))
+    _build_infrastructure_sprites()
     _build_player_sprite()
     camera = Camera2D.new()
     camera.position = rep_pos
@@ -56,7 +58,8 @@ func _build_player_sprite() -> void:
     player_sprite.position = rep_pos
     player_sprite.scale = Vector2(0.4, 0.4)
     player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-    player_sprite.z_index = 20
+    player_sprite.z_index = 0
+    player_sprite.y_sort_enabled = false
     add_child(player_sprite)
 
 func _process(delta: float) -> void:
@@ -118,21 +121,62 @@ func _update_player_animation(moving: bool) -> void:
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("568c43"))
     _draw_service_road()
-    _draw_asset(CONTAINER_ART, CAMPUS.container)
-    _draw_asset(SOLAR_ART, CAMPUS.solar)
-    _draw_asset(TRANSFORMER_ART, CAMPUS.transformer)
-    _draw_asset(ASIC_ART, CAMPUS.asic)
-    _draw_wind()
     _draw_hud()
 
 func _draw_service_road() -> void:
     draw_rect(Rect2(170, 570, 1450, 88), Color("5b5b57"))
     draw_line(Vector2(170, 614), Vector2(1620, 614), Color("c7b46a"), 3.0)
 
-func _draw_asset(texture: Texture2D, destination: Rect2) -> void:
-    if texture == null:
-        return
-    draw_texture_rect(texture, _aspect_fit_rect(texture, destination), false)
+func _build_infrastructure_sprites() -> void:
+    # Real Sprite2D nodes give infrastructure and the player a common Y-sort
+    # contract. This prevents the representative from always rendering over a
+    # building just because the old CanvasItem draw call happened first.
+    y_sort_enabled = true
+    var textures := {
+        "container": CONTAINER_ART,
+        "solar": SOLAR_ART,
+        "transformer": TRANSFORMER_ART,
+        "asic": ASIC_ART,
+    }
+    for asset_id in textures.keys():
+        var texture: Texture2D = textures[asset_id]
+        if texture == null:
+            continue
+        var bounds: Rect2 = CAMPUS[asset_id]
+        var fitted := _aspect_fit_rect(texture, bounds)
+        var sprite := Sprite2D.new()
+        sprite.name = "Infrastructure_" + String(asset_id)
+        sprite.texture = texture
+        sprite.centered = false
+        sprite.position = fitted.position
+        sprite.scale = fitted.size / Vector2(texture.get_size())
+        sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        # Sort at ground contact, not at the image's top edge.
+        sprite.y_sort_origin = int(round(fitted.size.y))
+        infrastructure_sprites[asset_id] = sprite
+        add_child(sprite)
+
+    if WIND_ART != null:
+        var wind_source_size := Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0)
+        var wind_bounds: Rect2 = CAMPUS.wind
+        var wind_scale := minf(wind_bounds.size.x / wind_source_size.x, wind_bounds.size.y / wind_source_size.y)
+        var wind_region := AtlasTexture.new()
+        wind_region.atlas = WIND_ART
+        wind_region.region = Rect2(Vector2.ZERO, wind_source_size)
+        var wind_sprite := Sprite2D.new()
+        wind_sprite.name = "Infrastructure_wind"
+        wind_sprite.texture = wind_region
+        wind_sprite.centered = false
+        wind_sprite.scale = Vector2.ONE * wind_scale
+        var wind_size := wind_source_size * wind_scale
+        wind_sprite.position = Vector2(
+            wind_bounds.position.x + (wind_bounds.size.x - wind_size.x) * 0.5,
+            wind_bounds.end.y - wind_size.y
+        ).round()
+        wind_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        wind_sprite.y_sort_origin = int(round(wind_size.y))
+        infrastructure_sprites["wind"] = wind_sprite
+        add_child(wind_sprite)
 
 func _aspect_fit_rect(texture: Texture2D, bounds: Rect2) -> Rect2:
     if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
@@ -140,19 +184,11 @@ func _aspect_fit_rect(texture: Texture2D, bounds: Rect2) -> Rect2:
     var source_size := Vector2(texture.get_width(), texture.get_height())
     var fit_scale := minf(bounds.size.x / source_size.x, bounds.size.y / source_size.y)
     var fitted_size := source_size * fit_scale
-    # Bottom-center anchoring keeps visible ground contact aligned to the
-    # collision footprint, matching the proven infrastructure renderer.
     var fitted_position := Vector2(
         bounds.position.x + (bounds.size.x - fitted_size.x) * 0.5,
         bounds.end.y - fitted_size.y
     )
     return Rect2(fitted_position.round(), fitted_size.round())
-
-func _draw_wind() -> void:
-    if WIND_ART == null:
-        return
-    var source := Rect2(Vector2.ZERO, Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0))
-    draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)
 
 func _draw_hud() -> void:
     var font := ThemeDB.fallback_font
@@ -189,6 +225,11 @@ func infrastructure_ready(asset_id: String) -> bool:
             return false
     var foot := infrastructure_footprint(asset_id)
     if texture == null or foot.size == Vector2.ZERO:
+        return false
+    if not infrastructure_sprites.has(asset_id):
+        return false
+    var sprite := infrastructure_sprites[asset_id] as Sprite2D
+    if sprite == null or not sprite.is_inside_tree():
         return false
     if asset_id == "container" and Vector2i(texture.get_size()) != Vector2i(128, 102):
         return false
