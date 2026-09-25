@@ -63,7 +63,7 @@ func _build_player_sprite() -> void:
     add_child(player_sprite)
 
 func _process(delta: float) -> void:
-    var direction := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+    var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
     var moving := false
     if direction.length() > 0.0:
         walking = false
