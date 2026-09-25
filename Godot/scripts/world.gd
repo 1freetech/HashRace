@@ -24,6 +24,14 @@ var walking := false
 var player_sprite: AnimatedSprite2D
 var player_facing := "down"
 var infrastructure_sprites: Dictionary = {}
+var npc_sprites: Array[Sprite2D] = []
+
+const NPCS := [
+    {"pos": Vector2(430, 545), "frame": 0, "scale": 0.26, "flip": false},
+    {"pos": Vector2(760, 545), "frame": 9, "scale": 0.24, "flip": true},
+    {"pos": Vector2(1030, 500), "frame": 18, "scale": 0.27, "flip": false},
+    {"pos": Vector2(1370, 520), "frame": 27, "scale": 0.23, "flip": true},
+]
 
 const CAMPUS := {
     # Preserve the validated 128x102 container binary aspect ratio instead of\n    # stretching it across the old oversized house footprint.\n    "container": Rect2(320, 326, 256, 204),
@@ -39,6 +47,7 @@ func _ready() -> void:
         grid_nav.block_rect(_ground_foot(rect))
     _build_infrastructure_sprites()
     _build_player_sprite()
+    _build_npc_population()
     camera = Camera2D.new()
     camera.position = rep_pos
     camera.position_smoothing_enabled = true
@@ -61,6 +70,28 @@ func _build_player_sprite() -> void:
     player_sprite.z_index = 0
     player_sprite.y_sort_enabled = false
     add_child(player_sprite)
+
+func _build_npc_population() -> void:
+    # Reuse visually distinct authored poses from the validated 32-pose sheet.
+    # Different facing, stance, scale and mirroring prevents the clone-population
+    # failure without inventing unvalidated binary art.
+    if PLAYER_ART == null:
+        return
+    for index in range(NPCS.size()):
+        var spec: Dictionary = NPCS[index]
+        var sprite := Sprite2D.new()
+        sprite.name = "CampusNPC_%02d" % index
+        sprite.texture = PLAYER_ART
+        sprite.hframes = 8
+        sprite.vframes = 4
+        sprite.frame = int(spec.frame)
+        sprite.position = spec.pos
+        sprite.scale = Vector2.ONE * float(spec.scale)
+        sprite.flip_h = bool(spec.flip)
+        sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        sprite.y_sort_origin = 96
+        npc_sprites.append(sprite)
+        add_child(sprite)
 
 func _process(delta: float) -> void:
     var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -245,7 +276,21 @@ func player_animation_ready() -> bool:
             return false
     return true
 
+func npc_population_ready() -> bool:
+    if npc_sprites.size() != NPCS.size():
+        return false
+    var frames := {}
+    var scales := {}
+    for sprite in npc_sprites:
+        if sprite == null or not sprite.is_inside_tree():
+            return false
+        frames[sprite.frame] = true
+        scales[snappedf(sprite.scale.x, 0.01)] = true
+    return frames.size() == NPCS.size() and scales.size() >= 3
+
 func runtime_ready() -> bool:
+    if not npc_population_ready():
+        return false
     if camera == null or not camera.is_inside_tree() or not player_animation_ready():
         return false
     if grid_nav.blocked_count() < CAMPUS.size():
