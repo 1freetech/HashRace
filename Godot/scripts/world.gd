@@ -132,7 +132,21 @@ func _draw_service_road() -> void:
 func _draw_asset(texture: Texture2D, destination: Rect2) -> void:
     if texture == null:
         return
-    draw_texture_rect(texture, destination, false)
+    draw_texture_rect(texture, _aspect_fit_rect(texture, destination), false)
+
+func _aspect_fit_rect(texture: Texture2D, bounds: Rect2) -> Rect2:
+    if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+        return bounds
+    var source_size := Vector2(texture.get_width(), texture.get_height())
+    var fit_scale := minf(bounds.size.x / source_size.x, bounds.size.y / source_size.y)
+    var fitted_size := source_size * fit_scale
+    # Bottom-center anchoring keeps visible ground contact aligned to the
+    # collision footprint, matching the proven infrastructure renderer.
+    var fitted_position := Vector2(
+        bounds.position.x + (bounds.size.x - fitted_size.x) * 0.5,
+        bounds.end.y - fitted_size.y
+    )
+    return Rect2(fitted_position.round(), fitted_size.round())
 
 func _draw_wind() -> void:
     if WIND_ART == null:
@@ -175,6 +189,8 @@ func infrastructure_ready(asset_id: String) -> bool:
             return false
     var foot := infrastructure_footprint(asset_id)
     if texture == null or foot.size == Vector2.ZERO:
+        return false
+    if asset_id == "container" and Vector2i(texture.get_size()) != Vector2i(128, 102):
         return false
     if asset_id == "wind" and Vector2i(texture.get_size()) != Vector2i(128, 128):
         return false
