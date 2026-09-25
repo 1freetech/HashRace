@@ -92,3 +92,19 @@ Commit `180940a1841c6768809fe0f9fd6475661aefb52e` changes `Godot/scripts/world.g
 The existing `_ground_foot()` collision/navigation registration remains tied to the campus bounds, so the visual replacement remains non-walkable at its grounded footprint. The live runtime contains no generic house renderer for this container; it draws `CONTAINER_ART` directly from `res://art/buildings/c01_mining_container.png`.
 
 Proof status: source correction is committed but is NOT counted as a completed 34-point visual fix until the exact head produces a fresh Godot import/gameplay screenshot and green CI.
+
+
+## Immediate 34-point repair pass — 2026-09-24
+
+Official Godot basis was rechecked before edits. Godot 4.7 documents `SpriteFrames` as the frame library consumed by `AnimatedSprite2D`, and `add_frame()` appends the supplied Texture2D in explicit order. Godot's 2D CanvasItem API draws imported Texture2D resources into local-space rectangles. References:
+- https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html
+- https://docs.godotengine.org/en/4.7/classes/class_texture2d.html
+
+Repository history rechecked: `world_v163.gd::_draw_power_building()` is the last proven infrastructure-replacement method. It preserves source aspect ratio, omits the obsolete house body/foundation/door, aligns the art to a ground-contact footprint, registers that footprint with navigation, and uses player-foot position for draw ordering.
+
+Commits in this pass:
+- `75c8c68a336a4491b300f8437de6ce38484a8ff3`: fixes the live `world.gd` infrastructure renderer. `_draw_asset()` now calls `_aspect_fit_rect()`, preserving imported Texture2D proportions and bottom-centering art on its collision footprint. It also fixes the malformed CAMPUS comment and adds the exact 128x102 C-01 container decode gate.
+- `59c195870374249a1eba62df8346fcfa6f53f947`: repairs `validate_overworld.gd`. The validator had stale four-frame assertions even though the visually inspected player sheet and live builder now use seven authored WALK poses. It now requires seven frames in all four directions and validates every live infrastructure asset.
+- Screenshot harness commit follows this report's source pass and makes the runtime capture require actual `walk_right` frame advancement before saving proof, so an idle screenshot can no longer masquerade as walking evidence.
+
+No visual inspection item is counted complete from these source changes alone. Fresh exact-head Godot import/gameplay execution, screenshot artifact, and green CI remain the completion gate.
