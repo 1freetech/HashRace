@@ -32,6 +32,23 @@ func _capture() -> void:
             _fail("authored infrastructure is not live and grounded: " + asset_id)
             return
 
+    # Put the actual live AnimatedSprite2D into a verified walk animation before
+    # capture. A static idle screenshot cannot prove the 34-point walking fix.
+    var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
+    if player_sprite == null:
+        _fail("live AnimatedSprite2D player is missing")
+        return
+    scene.call("_set_player_facing", Vector2.RIGHT)
+    scene.call("_update_player_animation", true)
+    var captured_walk_frames: Dictionary = {}
+    for _frame in range(24):
+        await process_frame
+        if player_sprite.animation == &"walk_right":
+            captured_walk_frames[player_sprite.frame] = true
+    if captured_walk_frames.size() < 2:
+        _fail("walking proof did not advance through at least two authored frames")
+        return
+
     scene.queue_redraw()
     for _frame in range(12):
         await process_frame
@@ -72,5 +89,5 @@ func _capture() -> void:
         _fail("screenshot is dominated by one color: %.1f%%" % (dominant_ratio * 100.0))
         return
 
-    print("HASH RACE SCREENSHOT CAPTURE PASS: stable semantic runtime; %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
+    print("HASH RACE SCREENSHOT CAPTURE PASS: stable semantic runtime; live walk advanced through %d frames; %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [captured_walk_frames.size(), image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
     quit(0)
