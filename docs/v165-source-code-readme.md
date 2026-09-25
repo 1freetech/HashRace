@@ -18,7 +18,7 @@ The current live entry point remains `Godot/scenes/world.tscn -> res://scripts/w
 
 ## Visual frame verification
 
-Before wiring animation, the actual Library source `Retro Sci-Fi Hero Sprite Sheet.png` was visually inspected. Its four rows are DOWN, LEFT, RIGHT, UP; each row contains one idle plus seven authored walk poses. The side-facing LEFT and RIGHT rows visibly change stride: forward and rear legs exchange position across the sequence rather than merely translating a static body. The implementation therefore uses the existing explicitly authored source-region order `[1, 3, 5, 7]` from the repository SpriteFrames builder; the decision is based on visible pose contents, not numeric parity alone.
+Before wiring animation, the actual Library source `Retro Sci-Fi Hero Sprite Sheet.png` was visually inspected. Its four rows are DOWN, LEFT, RIGHT, UP; each row contains one idle plus seven authored walk poses. The side-facing LEFT and RIGHT rows visibly change stride: forward and rear legs exchange position across the sequence rather than merely translating a static body. The current sheet was re-inspected directly on 2026-09-24. Each directional row contains one idle pose followed by the authored WALK 1-7 sequence, and the side rows visibly exchange the leading/trailing foot and opposing arm across that sequence. Commit `5b440b33407cb820f03b060ab1481568134f9106` therefore records an explicit per-facing `WALK_SOURCE_ORDER` of `[1, 2, 3, 4, 5, 6, 7]`. This is an authored visual order, not an odd/even or numeric-parity inference.
 
 ## Live walking source changes
 
@@ -49,3 +49,18 @@ Solar: `Godot/art/energy/solar_array_overview.png` -> `res://art/energy/solar_ar
 ## Screenshot and exact-head gate
 
 The preceding exact head `d6ac6455ffc02c3be846dc1faab91a45fd61a2d2` had its four GitHub Actions workflows queued when this walking repair began, so it was not treated as final proof. The new source commits change the exact head again. The walking source integration is therefore **not yet counted as a completed visual inspection item**: a fresh Godot 4.7 import/decode, actual gameplay run, screenshot/artifact showing the animated player, and green exact-head CI are still mandatory before merge. No merge is authorized from source presence alone.
+
+
+## 34-point priority pass — 2026-09-24
+
+This pass intentionally ignored unrelated legacy-contract cleanup and worked only on a user-visible item from the 34-point inspection: the player walking presentation.
+
+Official Godot 4.7 basis: `SpriteFrames` is the animation library used by `AnimatedSprite2D`; `SpriteFrames.add_frame()` appends the supplied `Texture2D` frame in the order provided unless an insertion position is specified. Reference: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html
+
+Visual source evidence: Library asset `Retro Sci-Fi Hero Sprite Sheet.png` was opened and inspected directly. It is a 4-row DOWN/LEFT/RIGHT/UP sheet with one idle plus seven WALK poses per direction. LEFT and RIGHT visibly alternate stride/arm state across the authored WALK 1-7 progression.
+
+Source change: `Godot/scripts/default_player_sprite_sheet.gd` now defines `WALK_SOURCE_ORDER` explicitly for every facing and `build_frames()` constructs each `walk_*` animation from that verified order. `debug_ready()` now also verifies the four direction mappings and seven-frame left/right sequences. Commit: `5b440b33407cb820f03b060ab1481568134f9106`.
+
+Live runtime path remains `world.tscn -> world.gd -> PlayerSheet.build_frames() -> AnimatedSprite2D PlayerSprite`. The obsolete procedural/fixed player draw is not in the live draw path.
+
+Proof status: source and visual frame-order evidence are complete for this pass. This item is still NOT marked integrated until the exact new head completes a fresh Godot import, gameplay run, screenshot showing the walking sprite, and green CI.
