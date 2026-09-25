@@ -31,17 +31,14 @@ const WALK_SOURCE_ORDER := {
 }
 
 static func load_texture() -> Texture2D:
-    if ResourceLoader.exists(SHEET_PATH):
-        var imported := load(SHEET_PATH) as Texture2D
-        if imported != null and Vector2i(imported.get_size()) == SHEET_SIZE:
-            return imported
-    var absolute_path := ProjectSettings.globalize_path(SHEET_PATH)
-    if not FileAccess.file_exists(absolute_path):
+    # Runtime only accepts Godot's imported project resource. Do not fall back
+    # to filesystem Image.load(): that path is not guaranteed in exported games.
+    if not ResourceLoader.exists(SHEET_PATH):
         return null
-    var image := Image.new()
-    if image.load(absolute_path) != OK or image.is_empty() or image.get_size() != SHEET_SIZE:
+    var imported := load(SHEET_PATH) as Texture2D
+    if imported == null or Vector2i(imported.get_size()) != SHEET_SIZE:
         return null
-    return ImageTexture.create_from_image(image)
+    return imported
 
 static func build_customized_texture(skin: Color, suit: Color, scouter: Color) -> Texture2D:
     var source_texture := load_texture()
