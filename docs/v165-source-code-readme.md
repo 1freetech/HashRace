@@ -108,3 +108,20 @@ Commits in this pass:
 - Screenshot harness commit follows this report's source pass and makes the runtime capture require actual `walk_right` frame advancement before saving proof, so an idle screenshot can no longer masquerade as walking evidence.
 
 No visual inspection item is counted complete from these source changes alone. Fresh exact-head Godot import/gameplay execution, screenshot artifact, and green CI remain the completion gate.
+
+
+## 34-point depth/grounding pass — 2026-09-24
+
+Targets: floating/ungrounded infrastructure, incorrect player/building overlap, and pasted-looking draw order.
+
+Official Godot rendering basis: Texture2D is the imported 2D texture resource; CanvasItem Y-sorting renders children with greater Y positions in front when they share a Z index. References: https://docs.godotengine.org/en/4.7/classes/class_texture2d.html and Godot CanvasItem Y-sort documentation.
+
+The proven historical method in `world_v163.gd::_draw_power_building()` was inspected first. It explicitly compares player feet with the infrastructure ground/sort Y and defers the infrastructure draw when the player should pass behind it.
+
+Commit `1b4c1df7cb7bba4ef778b3275635765b8b16773c` moves the five live infrastructure visuals out of unconditional root `_draw()` calls and into actual imported-texture `Sprite2D` nodes created by `_build_infrastructure_sprites()`. The world enables Y sorting; each infrastructure sprite is bottom-grounded and receives a Y-sort origin at its visual contact line. The player remains a live `AnimatedSprite2D` on the same sort plane. Wind uses an `AtlasTexture` region from the existing imported directional sheet rather than a filesystem image.
+
+This removes the old failure mode where the player had z_index 20 and therefore rendered in front of every building regardless of foot position. `infrastructure_ready()` now also requires the corresponding Sprite2D to exist inside the live tree.
+
+Commit `0722f7007a54c9efeef6829022bcc4fb0e1dbaee` extends `validate_overworld.gd` so the exact runtime must instantiate all five imported infrastructure Sprite2D nodes with live textures.
+
+Proof gate remains unchanged: these source repairs are not counted as completed visual points until exact-head gameplay rendering and screenshot evidence pass.
