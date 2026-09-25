@@ -125,3 +125,28 @@ This removes the old failure mode where the player had z_index 20 and therefore 
 Commit `0722f7007a54c9efeef6829022bcc4fb0e1dbaee` extends `validate_overworld.gd` so the exact runtime must instantiate all five imported infrastructure Sprite2D nodes with live textures.
 
 Proof gate remains unchanged: these source repairs are not counted as completed visual points until exact-head gameplay rendering and screenshot evidence pass.
+
+
+## Compatibility/input/export update — 2026-09-24
+
+Requested scope: keep the 34-point visual repairs compatible with the project's current Godot version/export presets, add resource/input error gates, inspect scene/Autoload references, and test walking through keyboard and gamepad mappings.
+
+Project compatibility inspected before edits:
+- `project.godot` declares `config/features=PackedStringArray("4.7")` and the Compatibility renderer.
+- `export_presets.cfg` defines Windows Desktop x86_64 and Linux x86_64 presets with `export_filter="all_resources"`, so the imported `res://` textures used by the current runtime are dependencies included by export.
+- `world.tscn` references only stable `res://scripts/world.gd` plus treasury UI; no obsolete house-renderer script is referenced.
+- the only Autoload is `SceneManager`; no player-animation or replaced-house renderer is registered as an Autoload.
+
+Official Godot 4.7 references:
+- Exporting projects/templates and CLI export: https://docs.godotengine.org/en/4.7/tutorials/export/exporting_projects.html
+- Controllers/gamepads and universal input actions: https://docs.godotengine.org/en/4.7/tutorials/inputs/controllers_gamepads_joysticks.html
+Godot recommends action mappings and `Input.get_vector()` for a common keyboard/controller movement path.
+
+Commits:
+- `fa4ddd3b8ea9e60198bb1a2c554bbdf2b76937cd` adds `move_left/right/up/down` InputMap actions to `project.godot`, each with keyboard and left-stick axis bindings.
+- `b741029028c0683333b3861697ad126b075f3791` changes `world.gd::_process()` from built-in UI actions to those universal movement actions. The same `AnimatedSprite2D` facing/walk selection now receives keyboard and controller vectors through one code path.
+- `4992e56172bce4bef6dd5c87948b1aba17d68608` extends `validate_overworld.gd` to require both key and joypad-axis bindings and inject synthetic keyboard/gamepad input through Godot's input system before the existing walking-animation validation.
+
+34-point references addressed by this set: player/NPC visual consistency and walking behavior (#16/#17), while preserving the existing infrastructure grounding/scale work (#1/#13/#15). These remain proof-gated rather than counted complete.
+
+Export status: presets and export-resource configuration are source-verified, but an editor/exported-binary run is not claimed by this report unless an exact-head workflow actually executes Godot 4.7 with installed export templates. Godot requires matching export templates for binary export.
