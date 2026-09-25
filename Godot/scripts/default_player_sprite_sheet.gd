@@ -19,6 +19,16 @@ const FRAME_REGIONS := {
     "up": [Rect2i(56,745,131,222), Rect2i(245,745,130,225), Rect2i(431,745,128,225), Rect2i(614,745,130,225), Rect2i(798,745,129,225), Rect2i(979,745,131,225), Rect2i(1163,745,133,225), Rect2i(1354,745,130,222)],
 }
 const EFFECTIVE_SOURCE_INDICES := [0, 1, 2, 3, 4, 5, 6, 7]
+# Visually verified against the authored 32-pose sheet on 2026-09-24.
+# Each row's authored WALK 1-7 sequence visibly exchanges the leading/trailing
+# foot and opposing arm across the stride. Keep this explicit per-facing order;
+# never derive walk order from odd/even numeric parity.
+const WALK_SOURCE_ORDER := {
+    "down": [1, 2, 3, 4, 5, 6, 7],
+    "left": [1, 2, 3, 4, 5, 6, 7],
+    "right": [1, 2, 3, 4, 5, 6, 7],
+    "up": [1, 2, 3, 4, 5, 6, 7],
+}
 
 static func load_texture() -> Texture2D:
     if ResourceLoader.exists(SHEET_PATH):
@@ -92,7 +102,9 @@ static func build_frames() -> SpriteFrames:
     for facing in ["down", "left", "right", "up"]:
         var regions: Array = FRAME_REGIONS[facing]
         _add_animation(frames, StringName("idle_" + facing), texture, [regions[0]], 1.0, true)
-        var walk_regions: Array = [regions[1], regions[2], regions[3], regions[4], regions[5], regions[6], regions[7]]
+        var walk_regions: Array = []
+        for source_index in WALK_SOURCE_ORDER[facing]:
+            walk_regions.append(regions[int(source_index)])
         _add_animation(frames, StringName("walk_" + facing), texture, walk_regions, WALK_FPS, true)
     return frames
 
@@ -114,7 +126,10 @@ static func debug_ready() -> bool:
     var texture := load_texture()
     return texture != null and Vector2i(texture.get_size()) == SHEET_SIZE \
         and FRAME_REGIONS.size() == 4 and FRAME_REGIONS["down"].size() == 8 \
-        and EFFECTIVE_SOURCE_INDICES.size() * FRAME_REGIONS.size() == EFFECTIVE_FRAME_COUNT
+        and EFFECTIVE_SOURCE_INDICES.size() * FRAME_REGIONS.size() == EFFECTIVE_FRAME_COUNT \
+        and WALK_SOURCE_ORDER.size() == 4 \
+        and WALK_SOURCE_ORDER["left"].size() == WALK_FRAME_COUNT \
+        and WALK_SOURCE_ORDER["right"].size() == WALK_FRAME_COUNT
 
 static func _add_animation(frames: SpriteFrames, name: StringName, texture: Texture2D, regions: Array, fps: float, loop: bool) -> void:
     frames.add_animation(name)
