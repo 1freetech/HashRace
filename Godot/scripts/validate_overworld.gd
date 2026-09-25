@@ -60,6 +60,19 @@ func _run() -> void:
         _fail("five infrastructure collision footprints were not registered")
         return
 
+    var infrastructure_sprites: Dictionary = scene.get("infrastructure_sprites")
+    if infrastructure_sprites.size() != 5:
+        _fail("five Y-sorted infrastructure Sprite2D nodes were not created")
+        return
+    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
+        var infrastructure_sprite := infrastructure_sprites.get(asset_id) as Sprite2D
+        if infrastructure_sprite == null or not infrastructure_sprite.is_inside_tree():
+            _fail("Y-sorted infrastructure sprite missing: " + asset_id)
+            return
+        if infrastructure_sprite.texture == null:
+            _fail("imported infrastructure texture missing from Sprite2D: " + asset_id)
+            return
+
     # Prove the current playable loop can move on open terrain while collision
     # remains authoritative and switches the live sprite into a walk animation.
     var start: Vector2 = scene.get("rep_pos")
