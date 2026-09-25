@@ -33,9 +33,10 @@ func _run() -> void:
     if not bool(scene.call("runtime_ready")):
         _fail("imported gameplay textures/navigation/player animation did not initialize")
         return
-    if not bool(scene.call("infrastructure_ready", "wind")):
-        _fail("wind texture dimensions or blocked ground footprint are invalid")
-        return
+    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
+        if not bool(scene.call("infrastructure_ready", asset_id)):
+            _fail("%s texture decode or blocked ground footprint is invalid" % asset_id)
+            return
     if not bool(scene.call("player_animation_ready")):
         _fail("live AnimatedSprite2D does not contain the verified walk frames")
         return
@@ -45,8 +46,8 @@ func _run() -> void:
         _fail("live AnimatedSprite2D player did not initialize")
         return
     for facing in ["down", "left", "right", "up"]:
-        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 4:
-            _fail("walk_%s does not have four authored alternating poses" % facing)
+        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 7:
+            _fail("walk_%s does not have seven visually verified authored poses" % facing)
             return
 
     var camera := scene.get("camera") as Camera2D
