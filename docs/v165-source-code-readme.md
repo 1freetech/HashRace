@@ -64,3 +64,14 @@ Source change: `Godot/scripts/default_player_sprite_sheet.gd` now defines `WALK_
 Live runtime path remains `world.tscn -> world.gd -> PlayerSheet.build_frames() -> AnimatedSprite2D PlayerSprite`. The obsolete procedural/fixed player draw is not in the live draw path.
 
 Proof status: source and visual frame-order evidence are complete for this pass. This item is still NOT marked integrated until the exact new head completes a fresh Godot import, gameplay run, screenshot showing the walking sprite, and green CI.
+
+
+## Export-safe player texture gate — 2026-09-24
+
+Official Godot 4.7 ImageTexture guidance warns that dynamically loading source image files with `Image.load()` may not work in exported projects and recommends loading imported textures with `load()`: https://docs.godotengine.org/en/4.7/classes/class_imagetexture.html
+
+Commit `b4449d555b152203ed8c0e8f66910d8fc0b52ff5` changes `Godot/scripts/default_player_sprite_sheet.gd::load_texture()`. The live walking path now accepts only the imported `res://art/characters/default_player_sheet.png` Texture2D through `ResourceLoader.exists()` + `load()`, validates its 1536x1024 dimensions, and removes the filesystem `Image.load()` / `ImageTexture.create_from_image()` fallback. This makes a missing/failed Godot import fail closed instead of silently producing a development-only texture path.
+
+Asset provenance remains the approved 32-pose player binary, SHA-256 `2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211`. The visually verified explicit WALK 1-7 order from commit `5b440b33407cb820f03b060ab1481568134f9106` is unchanged.
+
+Exact-head proof gate: not counted as integrated until this new head completes import/decode, gameplay render, walking screenshot evidence, and green CI.
