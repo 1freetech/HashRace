@@ -73,6 +73,48 @@ func _run() -> void:
             _fail("imported infrastructure texture missing from Sprite2D: " + asset_id)
             return
 
+    # The live movement code uses these actions for both keyboard and joypad.
+    for action_name in ["move_left", "move_right", "move_up", "move_down"]:
+        if not InputMap.has_action(action_name):
+            _fail("universal movement action missing: " + action_name)
+            return
+        var has_key := false
+        var has_joy_axis := false
+        for event in InputMap.action_get_events(action_name):
+            if event is InputEventKey:
+                has_key = true
+            elif event is InputEventJoypadMotion:
+                has_joy_axis = true
+        if not has_key or not has_joy_axis:
+            _fail("movement action lacks keyboard or gamepad axis binding: " + action_name)
+            return
+
+    # Exercise the same Input.get_vector path used by _process with a synthetic
+    # keyboard action, then a synthetic gamepad-axis action.
+    var keyboard_event := InputEventAction.new()
+    keyboard_event.action = &"move_right"
+    keyboard_event.pressed = true
+    keyboard_event.strength = 1.0
+    Input.parse_input_event(keyboard_event)
+    await process_frame
+    if Input.get_vector("move_left", "move_right", "move_up", "move_down").x <= 0.5:
+        _fail("keyboard movement action did not reach universal movement vector")
+        return
+    keyboard_event.pressed = false
+    keyboard_event.strength = 0.0
+    Input.parse_input_event(keyboard_event)
+
+    var gamepad_event := InputEventJoypadMotion.new()
+    gamepad_event.axis = JOY_AXIS_LEFT_X
+    gamepad_event.axis_value = 1.0
+    Input.parse_input_event(gamepad_event)
+    await process_frame
+    if Input.get_vector("move_left", "move_right", "move_up", "move_down").x <= 0.5:
+        _fail("gamepad left-stick axis did not reach universal movement vector")
+        return
+    gamepad_event.axis_value = 0.0
+    Input.parse_input_event(gamepad_event)
+
     # Prove the current playable loop can move on open terrain while collision
     # remains authoritative and switches the live sprite into a walk animation.
     var start: Vector2 = scene.get("rep_pos")
