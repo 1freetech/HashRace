@@ -42,7 +42,13 @@ def test_live_wiring():
     assert 'preload("res://art/energy/wind_turbine_directional_sheet.png")' in world
     assert '"wind": Rect2(1310, 260, 220, 220)' in world
     assert 'grid_nav.block_rect(_ground_foot(rect))' in world
-    assert 'draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)' in world
+    # Live runtime uses the imported PNG through AtlasTexture -> Sprite2D.
+    # Do not regress this contract back to the removed CanvasItem draw path.
+    assert 'var wind_region := AtlasTexture.new()' in world
+    assert 'wind_region.atlas = WIND_ART' in world
+    assert 'wind_sprite.texture = wind_region' in world
+    assert 'infrastructure_sprites["wind"] = wind_sprite' in world
+    assert 'add_child(wind_sprite)' in world
     assert 'func infrastructure_ready(asset_id: String) -> bool:' in world
     assert 'if asset_id == "wind" and Vector2i(texture.get_size()) != Vector2i(128, 128):' in world
     assert 'return not grid_nav.world_is_walkable(foot.get_center())' in world
