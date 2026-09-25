@@ -5,31 +5,21 @@ const SHEET_PATH := "res://art/characters/default_player_sheet.png"
 const SHEET_SIZE := Vector2i(1536, 1024)
 const FRAME_SIZE := Vector2i(160, 240)
 const FOOT_ANCHOR := Vector2i(80, 232)
-const WALK_FRAME_COUNT := 7
-const EFFECTIVE_FRAME_COUNT := 32
+const WALK_FRAME_COUNT := 4
+const EFFECTIVE_FRAME_COUNT := 20
 const WALK_FPS := 8.0
 const SHEET_SHA256 := "2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211"
 
 # Keep the exact approved 32-pose source binary from current main. Runtime uses
-# eight authored poses per direction (one idle + seven visually distinct walk poses) at 8 FPS.
+# the last visually proven five poses per direction (one idle + four alternating-leg walk poses) at 8 FPS.
 const FRAME_REGIONS := {
     "down": [Rect2i(58,41,125,216), Rect2i(250,40,125,219), Rect2i(434,41,125,217), Rect2i(618,40,124,218), Rect2i(803,41,124,217), Rect2i(983,40,125,218), Rect2i(1167,40,124,219), Rect2i(1354,40,124,218)],
     "left": [Rect2i(60,273,131,221), Rect2i(251,273,128,221), Rect2i(436,273,131,221), Rect2i(618,273,135,221), Rect2i(803,274,131,221), Rect2i(988,273,130,221), Rect2i(1170,274,133,220), Rect2i(1354,274,128,220)],
     "right": [Rect2i(54,511,132,225), Rect2i(246,511,133,225), Rect2i(432,511,133,225), Rect2i(614,511,133,225), Rect2i(802,511,134,225), Rect2i(985,511,137,225), Rect2i(1161,511,142,225), Rect2i(1355,511,133,225)],
     "up": [Rect2i(56,745,131,222), Rect2i(245,745,130,225), Rect2i(431,745,128,225), Rect2i(614,745,130,225), Rect2i(798,745,129,225), Rect2i(979,745,131,225), Rect2i(1163,745,133,225), Rect2i(1354,745,130,222)],
 }
-const EFFECTIVE_SOURCE_INDICES := [0, 1, 2, 3, 4, 5, 6, 7]
-# Visually verified against the authored 32-pose sheet on 2026-09-24.
-# Each row's authored WALK 1-7 sequence visibly exchanges the leading/trailing
-# foot and opposing arm across the stride. Keep this explicit per-facing order;
-# never derive walk order from odd/even numeric parity.
-const WALK_SOURCE_ORDER := {
-    "down": [1, 2, 3, 4, 5, 6, 7],
-    "left": [1, 2, 3, 4, 5, 6, 7],
-    "right": [1, 2, 3, 4, 5, 6, 7],
-    "up": [1, 2, 3, 4, 5, 6, 7],
-}
-
+const EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]
+# Proven by the successful walking implementation commit 9f3e8c2: source poses 1,3,5,7 were the visually inspected alternating-leg sequence.\n# Do not replace this with consecutive numeric frames unless a new render proves their leg contents.\nconst WALK_SOURCE_ORDER := {\n    "down": [1, 3, 5, 7],\n    "left": [1, 3, 5, 7],\n    "right": [1, 3, 5, 7],\n    "up": [1, 3, 5, 7],\n}\n
 static func load_texture() -> Texture2D:
     # Runtime only accepts Godot's imported project resource. Do not fall back
     # to filesystem Image.load(): that path is not guaranteed in exported games.
@@ -50,7 +40,7 @@ static func build_customized_texture(skin: Color, suit: Color, scouter: Color) -
 
     # Work only inside the 32 exact source regions. This keeps transparent
     # spacing and every pixel outside a character crop visually untouched. The
-    # runtime uses all eight authored poses per direction, so all 32 regions need
+    # runtime uses the five visually proven poses per direction, so those 20 regions need
     # a derived palette texture.
     for facing in ["down", "left", "right", "up"]:
         var regions: Array = FRAME_REGIONS[facing]
