@@ -34,7 +34,9 @@ const NPCS := [
 ]
 
 const CAMPUS := {
-    # Preserve the validated 128x102 container binary aspect ratio instead of\n    # stretching it across the old oversized house footprint.\n    "container": Rect2(320, 326, 256, 204),
+    # Preserve the validated 128x102 container binary aspect ratio instead of
+    # stretching it across the old oversized house footprint.
+    "container": Rect2(320, 326, 256, 204),
     "solar": Rect2(1060, 210, 230, 230),
     "transformer": Rect2(950, 520, 180, 162),
     "asic": Rect2(560, 700, 190, 190),
