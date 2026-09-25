@@ -19,7 +19,16 @@ const FRAME_REGIONS := {
     "up": [Rect2i(56,745,131,222), Rect2i(245,745,130,225), Rect2i(431,745,128,225), Rect2i(614,745,130,225), Rect2i(798,745,129,225), Rect2i(979,745,131,225), Rect2i(1163,745,133,225), Rect2i(1354,745,130,222)],
 }
 const EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]
-# Proven by the successful walking implementation commit 9f3e8c2: source poses 1,3,5,7 were the visually inspected alternating-leg sequence.\n# Do not replace this with consecutive numeric frames unless a new render proves their leg contents.\nconst WALK_SOURCE_ORDER := {\n    "down": [1, 3, 5, 7],\n    "left": [1, 3, 5, 7],\n    "right": [1, 3, 5, 7],\n    "up": [1, 3, 5, 7],\n}\n
+# Proven by the successful walking implementation commit 9f3e8c2: source poses
+# 1, 3, 5, 7 were the visually inspected alternating-leg sequence. Do not
+# replace this with consecutive numeric frames unless a new render proves them.
+const WALK_SOURCE_ORDER := {
+    "down": [1, 3, 5, 7],
+    "left": [1, 3, 5, 7],
+    "right": [1, 3, 5, 7],
+    "up": [1, 3, 5, 7],
+}
+
 static func load_texture() -> Texture2D:
     # Runtime only accepts Godot's imported project resource. Do not fall back
     # to filesystem Image.load(): that path is not guaranteed in exported games.
