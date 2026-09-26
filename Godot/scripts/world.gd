@@ -24,13 +24,15 @@ var walking := false
 var player_sprite: AnimatedSprite2D
 var player_facing := "down"
 var infrastructure_sprites: Dictionary = {}
-var npc_sprites: Array[Sprite2D] = []
+var npc_sprites: Array[AnimatedSprite2D] = []
+var npc_origins: Array[Vector2] = []
+var npc_time := 0.0
 
 const NPCS := [
-    {"pos": Vector2(430, 545), "frame": 0, "scale": 0.26, "flip": false},
-    {"pos": Vector2(760, 545), "frame": 9, "scale": 0.24, "flip": true},
-    {"pos": Vector2(1030, 500), "frame": 18, "scale": 0.27, "flip": false},
-    {"pos": Vector2(1370, 520), "frame": 27, "scale": 0.23, "flip": true},
+    {"pos": Vector2(430, 545), "scale": 0.26, "skin": Color("6b3f2a"), "suit": Color("1e5aa8"), "scouter": Color("62e88d"), "facing": "right", "patrol": Vector2(54, 0), "phase": 0.0},
+    {"pos": Vector2(760, 545), "scale": 0.24, "skin": Color("c98b62"), "suit": Color("7b2d8e"), "scouter": Color("4fd7ff"), "facing": "left", "patrol": Vector2(-48, 0), "phase": 1.4},
+    {"pos": Vector2(1030, 500), "scale": 0.27, "skin": Color("8b5a3c"), "suit": Color("16705a"), "scouter": Color("ffd35a"), "facing": "down", "patrol": Vector2(0, 44), "phase": 2.8},
+    {"pos": Vector2(1370, 520), "scale": 0.23, "skin": Color("e0ad83"), "suit": Color("9b3b31"), "scouter": Color("b783ff"), "facing": "up", "patrol": Vector2(0, -40), "phase": 4.2},
 ]
 
 const CAMPUS := {
@@ -74,27 +76,53 @@ func _build_player_sprite() -> void:
     add_child(player_sprite)
 
 func _build_npc_population() -> void:
-    # Reuse visually distinct authored poses from the validated 32-pose sheet.
-    # Different facing, stance, scale and mirroring prevents the clone-population
-    # failure without inventing unvalidated binary art.
-    if PLAYER_ART == null:
-        return
+    # Every NPC uses the exact validated player-sheet regions, but gets a
+    # deterministic palette and patrol so the campus is visibly populated by
+    # distinct people rather than uniform-grid crops of the same character.
     for index in range(NPCS.size()):
         var spec: Dictionary = NPCS[index]
-        var sprite := Sprite2D.new()
+        var frames := PlayerSheet.build_customized_frames(spec.skin, spec.suit, spec.scouter)
+        if frames == null:
+            continue
+        var sprite := AnimatedSprite2D.new()
         sprite.name = "CampusNPC_%02d" % index
-        sprite.texture = PLAYER_ART
-        sprite.hframes = 8
-        sprite.vframes = 4
-        sprite.frame = int(spec.frame)
+        sprite.sprite_frames = frames
+        sprite.animation = StringName("idle_" + String(spec.facing))
         sprite.position = spec.pos
         sprite.scale = Vector2.ONE * float(spec.scale)
-        sprite.flip_h = bool(spec.flip)
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        npc_origins.append(spec.pos)
         npc_sprites.append(sprite)
         add_child(sprite)
 
+func _update_npc_population(delta: float) -> void:
+    npc_time += delta
+    for index in range(npc_sprites.size()):
+        var sprite := npc_sprites[index]
+        var spec: Dictionary = NPCS[index]
+        var phase := npc_time * 0.7 + float(spec.phase)
+        var amount := sin(phase)
+        var patrol: Vector2 = spec.patrol
+        var next_position := npc_origins[index] + patrol * amount
+        var velocity := next_position - sprite.position
+        sprite.position = next_position
+        var moving := absf(cos(phase)) > 0.18 and velocity.length_squared() > 0.01
+        var facing := String(spec.facing)
+        if absf(patrol.x) > absf(patrol.y):
+            facing = "right" if velocity.x >= 0.0 else "left"
+        elif absf(patrol.y) > 0.0:
+            facing = "down" if velocity.y >= 0.0 else "up"
+        var wanted := StringName(("walk_" if moving else "idle_") + facing)
+        if sprite.animation != wanted:
+            sprite.play(wanted)
+        elif moving and not sprite.is_playing():
+            sprite.play(wanted)
+        elif not moving and sprite.is_playing():
+            sprite.stop()
+            sprite.frame = 0
+
 func _process(delta: float) -> void:
+    _update_npc_population(delta)
     var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
     var moving := false
     if direction.length() > 0.0:
@@ -275,16 +303,20 @@ func player_animation_ready() -> bool:
     return true
 
 func npc_population_ready() -> bool:
-    if npc_sprites.size() != NPCS.size():
+    if npc_sprites.size() != NPCS.size() or npc_origins.size() != NPCS.size():
         return false
-    var frames := {}
-    var scales := {}
-    for sprite in npc_sprites:
-        if sprite == null or not sprite.is_inside_tree():
+    var palettes := {}
+    for index in range(npc_sprites.size()):
+        var sprite := npc_sprites[index]
+        if sprite == null or not sprite.is_inside_tree() or sprite.sprite_frames == null:
             return false
-        frames[sprite.frame] = true
-        scales[snappedf(sprite.scale.x, 0.01)] = true
-    return frames.size() == NPCS.size() and scales.size() >= 3
+        var spec: Dictionary = NPCS[index]
+        palettes[String(spec.skin) + String(spec.suit) + String(spec.scouter)] = true
+        if sprite.sprite_frames.get_frame_count(&"walk_left") != PlayerSheet.WALK_FRAME_COUNT:
+            return false
+        if sprite.sprite_frames.get_frame_count(&"walk_right") != PlayerSheet.WALK_FRAME_COUNT:
+            return false
+    return palettes.size() == NPCS.size()
 
 func runtime_ready() -> bool:
     if not npc_population_ready():
