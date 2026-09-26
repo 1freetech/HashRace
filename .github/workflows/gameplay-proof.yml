@@ -22,7 +22,7 @@ jobs:
         run: |
           rm -rf Godot/.godot
           cd Godot
-          timeout 90s godot --headless --editor --path . --quit-after 2
+          timeout 90s godot --headless --editor --path . --quit-after 120
       - name: Render gameplay
         run: |
           mkdir -p visual-proof
