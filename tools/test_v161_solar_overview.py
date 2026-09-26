@@ -53,7 +53,9 @@ def test_live():
     live = stable_world.read_text()
     assert 'const SOLAR_ART := preload("res://art/energy/solar_array_overview.png")' in live
     assert '"solar": Rect2(' in live
-    assert '_draw_asset(SOLAR_ART, CAMPUS.solar)' in live
+    assert '"solar": SOLAR_ART' in live
+    assert 'sprite.texture = texture' in live
+    assert 'infrastructure_sprites[asset_id] = sprite' in live
     assert 'grid_nav.block_rect(_ground_foot(rect))' in live
     assert 'func infrastructure_ready(asset_id: String) -> bool:' in live
     assert '"solar":\n            texture = SOLAR_ART' in live
