@@ -38,19 +38,33 @@ func _capture() -> void:
     if player_sprite == null:
         _fail("live AnimatedSprite2D player is missing")
         return
-    scene.call("_set_player_facing", Vector2.RIGHT)
     var captured_walk_frames: Dictionary = {}
-    # Drive the real movement path continuously. world._process() derives
-    # moving from displacement each frame; a one-shot animation call returns
-    # to idle on the next frame and cannot prove walking.
-    Input.action_press("move_right")
-    for _frame in range(24):
+    var start_position: Vector2 = scene.get("rep_pos")
+    var movement_actions := {
+        "move_right": &"walk_right",
+        "move_left": &"walk_left",
+        "move_down": &"walk_down",
+        "move_up": &"walk_up",
+    }
+    # Prove the animation through real displacement, but do not assume the
+    # representative's right-hand tile is open. Try each gameplay direction
+    # until navigation permits movement and two authored frames are observed.
+    for action_name in movement_actions:
+        captured_walk_frames.clear()
+        var attempt_start: Vector2 = scene.get("rep_pos")
+        Input.action_press(action_name)
+        for _frame in range(24):
+            await process_frame
+            if player_sprite.animation == movement_actions[action_name] and player_sprite.is_playing():
+                captured_walk_frames[player_sprite.frame] = true
+        Input.action_release(action_name)
         await process_frame
-        if player_sprite.animation == &"walk_right" and player_sprite.is_playing():
-            captured_walk_frames[player_sprite.frame] = true
-    Input.action_release("move_right")
-    if captured_walk_frames.size() < 2:
-        _fail("walking proof did not advance through at least two authored frames")
+        var attempt_end: Vector2 = scene.get("rep_pos")
+        if attempt_end.distance_to(attempt_start) > 1.0 and captured_walk_frames.size() >= 2:
+            break
+    var end_position: Vector2 = scene.get("rep_pos")
+    if end_position.distance_to(start_position) <= 1.0 or captured_walk_frames.size() < 2:
+        _fail("walking proof did not combine real displacement with at least two authored frames")
         return
 
     scene.queue_redraw()
