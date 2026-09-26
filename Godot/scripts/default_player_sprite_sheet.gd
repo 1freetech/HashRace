@@ -89,7 +89,12 @@ static func _retint(source: Color, target: Color, reference_value: float) -> Col
     return Color.from_hsv(target.h, target.s, value, source.a)
 
 static func build_frames() -> SpriteFrames:
-    var texture := load_texture()
+    return build_frames_from_texture(load_texture())
+
+static func build_customized_frames(skin: Color, suit: Color, scouter: Color) -> SpriteFrames:
+    return build_frames_from_texture(build_customized_texture(skin, suit, scouter))
+
+static func build_frames_from_texture(texture: Texture2D) -> SpriteFrames:
     if texture == null:
         return null
     var frames := SpriteFrames.new()
