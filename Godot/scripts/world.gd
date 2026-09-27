@@ -311,7 +311,7 @@ func npc_population_ready() -> bool:
         if sprite == null or not sprite.is_inside_tree() or sprite.sprite_frames == null:
             return false
         var spec: Dictionary = NPCS[index]
-        palettes[String(spec.skin) + String(spec.suit) + String(spec.scouter)] = true
+        palettes[str(spec.skin) + "|" + str(spec.suit) + "|" + str(spec.scouter)] = true
         if sprite.sprite_frames.get_frame_count(&"walk_left") != PlayerSheet.WALK_FRAME_COUNT:
             return false
         if sprite.sprite_frames.get_frame_count(&"walk_right") != PlayerSheet.WALK_FRAME_COUNT:
