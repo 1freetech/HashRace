@@ -73,3 +73,17 @@ Asset/runtime preservation: no binary was rewritten. Existing imported `res://ar
 Gameplay source commit: `0e5f79161c3e3e1324727c7cc808e329c2c3a593`.
 
 Proof status at this report write: source committed; this README commit advances the exact head, so prior screenshots are historical evidence only. The click-to-move repair is **not counted as runtime-integrated** until fresh exact-head Godot import, actual gameplay screenshot, and applicable CI complete on the report head.
+
+
+## 2026-09-27 infrastructure Y-sort ground-anchor repair
+Official Godot 4.7 contract rechecked before editing: SpriteFrames is the ordered animation-data resource for AnimatedSprite2D, and imported images are textures in Godot's asset pipeline. References: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html ; https://docs.godotengine.org/en/4.7/tutorials/assets_pipeline/importing_images.html .
+
+Proven-history comparison: commit `9f3e8c2cb54b2a791310b7bfec6793080d7e29ac` remains the visually established player walk sequence; current `WALK_SOURCE_ORDER` remains explicit [1, 3, 5, 7] for every facing and was not altered.
+
+Fresh baseline proof: exact head `1aea4eb97b5df8e89db7c46c09e111438608370a` passed Clean runtime gameplay proof and v0.164 exact-head wind proof. The clean artifact `hashrace-clean-runtime-gameplay` (80,310 bytes, sha256:f59689d999393b04269e4d3f4b53e03c77ccd0d3d4c769991310a1efb60efd8a) was downloaded and visually inspected. It visibly renders the C-01 container, solar equipment, wind turbine, transformer, ASIC equipment, player and four differentiated NPCs.
+
+Source defect and repair: `Godot/scripts/world.gd::_build_infrastructure_sprites()` enabled parent Y-sort but positioned each non-wind Sprite2D at its fitted top-left corner; the wind Sprite2D likewise used its top-left render position. Godot Y-sort compares child Node2D positions, so infrastructure ordering was based on roof/top edges rather than ground contact. Commit `a76b935b8b06d882e6adc4651ea1cb1348896348` moves every infrastructure node's Y coordinate to the fitted visual bottom and uses Sprite2D.offset to draw the pixels upward without changing the rendered footprint. Wind receives the same bottom-anchor contract with its AtlasTexture source size. This preserves all validated binaries, preload paths, aspect-fit scale, placement, collision footprints and the wind shader while making player/building occlusion follow feet/ground contact.
+
+Asset provenance/runtime path: unchanged imported binaries under `res://art/buildings/c01_mining_container.png`, `res://art/electrical/substation_transformer_rear.png`, `res://art/energy/solar_array_overview.png`, `res://art/energy/wind_turbine_directional_sheet.png`, and `res://art/machines/asic_air_s19j_directional.png`.
+
+Proof status at report write: the source repair is committed, but this README update advances exact head again. Therefore the Y-sort repair is **not counted as runtime-integrated** until fresh exact-head Godot import, gameplay screenshot and applicable CI pass on the report head.
