@@ -153,6 +153,11 @@ func _process(delta: float) -> void:
             moving = move_player(direction_to_target * minf(PLAYER_SPEED * delta, offset.length()))
             if moving:
                 _set_player_facing(direction_to_target)
+            else:
+                # A blocked click target used to leave walking=true forever,
+                # retrying the same collision every frame. Stop cleanly so the
+                # player returns to idle and the next click responds immediately.
+                walking = false
     var player_ground_speed := rep_pos.distance_to(frame_start_position) / maxf(delta, 0.000001)
     _update_player_animation(moving, player_ground_speed)
     camera.position = rep_pos
