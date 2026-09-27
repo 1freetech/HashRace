@@ -111,3 +111,11 @@ Proof status at report write: the source repair is committed, but this README up
 - Animation integrity: player/NPC SpriteFrames and explicit visually proven walk order `[1,3,5,7]` are unchanged.
 - Official Godot basis: Rect2 position is the origin/top-left and end is position + size: https://docs.godotengine.org/en/4.7/classes/class_rect2.html . Sprite2D offset remains the texture drawing offset used by the existing ground-anchor implementation: https://docs.godotengine.org/en/4.7/classes/class_sprite2d.html .
 - Verification boundary: this placement commit requires a new exact-head checkout/import/gameplay screenshot and green CI. The preceding screenshot proves the defect, not this repair.
+
+
+## 2026-09-27 solar-to-transformer grouping candidate
+Pre-change implementation research revalidated Godot 4.7 SpriteFrames/AnimatedSprite2D behavior and compared current walking against successful commit `9f3e8c2cb54b2a791310b7bfec6793080d7e29ac`. The explicit visually proven walk source order remains `1,3,5,7`; this run does not infer or alter walking frames.
+
+One-asset source change: `Godot/scripts/world.gd::CAMPUS` moves only `solar` from `Rect2(1060, 300, 176, 176)` to `Rect2(1040, 350, 176, 176)` to reduce isolated empty grass and strengthen generation-to-transformer visual grouping. Runtime asset remains imported `res://art/energy/solar_array_overview.png` through `SOLAR_ART = preload(...)`. Existing `Sprite2D`, `_aspect_fit_rect()`, ground-contact Y-sort anchor, `_ground_foot()` collision block, dimensions and source binary are unchanged. Candidate commit: `cd95d99fe079bd0959eae6844c4bdf555b942638`.
+
+Official references: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html and https://docs.godotengine.org/en/4.7/classes/class_animatedsprite2d.html . Proof status at report write: source committed, but fresh exact-head gameplay screenshot and CI are pending; therefore this item is not yet counted against the 34-point inspection.
