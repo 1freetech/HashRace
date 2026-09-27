@@ -165,8 +165,22 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-        target = get_global_mouse_position()
-        walking = true
+        var clicked := get_global_mouse_position()
+        # Keep click-to-move destinations inside the same playable margin used
+        # by move_player(). GridNavigation.world_to_cell() intentionally clamps
+        # coordinates, so accepting an off-map click here used to make the
+        # representative walk all the way to an unrelated edge cell.
+        var bounded_target := Vector2(
+            clampf(clicked.x, 40.0, WORLD_SIZE.x - 40.0),
+            clampf(clicked.y, 40.0, WORLD_SIZE.y - 40.0)
+        )
+        # Reject infrastructure cells up front instead of entering walking for
+        # one frame and discovering the collision in _process().
+        if not grid_nav.world_is_walkable(bounded_target):
+            walking = false
+            return
+        target = bounded_target
+        walking = rep_pos.distance_to(target) >= 5.0
 
 func move_player(delta_pos: Vector2) -> bool:
     var candidate := rep_pos + delta_pos
