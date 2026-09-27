@@ -136,6 +136,7 @@ func _update_npc_population(delta: float) -> void:
 
 func _process(delta: float) -> void:
     _update_npc_population(delta)
+    var frame_start_position := rep_pos
     var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
     var moving := false
     if direction.length() > 0.0:
@@ -152,7 +153,8 @@ func _process(delta: float) -> void:
             moving = move_player(direction_to_target * minf(PLAYER_SPEED * delta, offset.length()))
             if moving:
                 _set_player_facing(direction_to_target)
-    _update_player_animation(moving)
+    var player_ground_speed := rep_pos.distance_to(frame_start_position) / maxf(delta, 0.000001)
+    _update_player_animation(moving, player_ground_speed)
     camera.position = rep_pos
     queue_redraw()
 
@@ -179,9 +181,14 @@ func _set_player_facing(direction: Vector2) -> void:
     else:
         player_facing = "down" if direction.y > 0.0 else "up"
 
-func _update_player_animation(moving: bool) -> void:
+func _update_player_animation(moving: bool, ground_speed: float) -> void:
     if player_sprite == null:
         return
+    # Keep authored foot cadence synchronized to actual world displacement. This
+    # matters for the final click-to-move step, which can be shorter than a full
+    # PLAYER_SPEED frame and otherwise produces a visible one-frame foot slide.
+    var authored_stride_speed := PlayerSheet.WALK_FPS * (WALK_CYCLE_DISTANCE / float(PlayerSheet.WALK_FRAME_COUNT))
+    player_sprite.speed_scale = clampf(ground_speed / authored_stride_speed, 0.2, 1.0) if moving else 1.0
     var wanted := StringName(("walk_" if moving else "idle_") + player_facing)
     if player_sprite.animation != wanted:
         player_sprite.play(wanted)
