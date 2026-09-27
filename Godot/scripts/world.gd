@@ -40,7 +40,7 @@ const CAMPUS := {
     # stretching it across the old oversized house footprint.
     "container": Rect2(340, 380, 192, 153),
     "solar": Rect2(1080, 270, 176, 176),
-    "transformer": Rect2(970, 540, 144, 130),
+    # Screenshot-backed scale repair: keep the validated transformer binary and\n    # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no\n    # longer dominates the nearby player and ASIC equipment.\n    "transformer": Rect2(982, 556, 120, 108),
     "asic": Rect2(580, 700, 160, 160),
     "wind": Rect2(1330, 300, 176, 176)
 }
