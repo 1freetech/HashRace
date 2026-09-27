@@ -48,7 +48,7 @@ const CAMPUS := {
     # Preserve the validated 128x102 container binary aspect ratio instead of
     # stretching it across the old oversized house footprint.
     "container": Rect2(410, 390, 192, 153),
-    "solar": Rect2(1060, 300, 176, 176),
+    # Keep generation visually tied to the distribution transformer instead of\n    # leaving the validated solar asset isolated in empty grass.\n    "solar": Rect2(1040, 350, 176, 176),
     # Screenshot-backed scale repair: keep the validated transformer binary and
     # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no
     # longer dominates the nearby player and ASIC equipment.
