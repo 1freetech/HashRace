@@ -230,8 +230,17 @@ func _draw() -> void:
     _draw_hud()
 
 func _draw_service_road() -> void:
-    draw_rect(Rect2(170, 570, 1450, 88), Color("5b5b57"))
-    draw_line(Vector2(170, 614), Vector2(1620, 614), Color("c7b46a"), 3.0)
+    # One deliberate campus road: carry it through the full playable width so it
+    # reads as infrastructure instead of an isolated gray strip floating in grass.
+    draw_rect(Rect2(0, 570, WORLD_SIZE.x, 88), Color("5b5b57"))
+    draw_line(Vector2(0, 614), Vector2(WORLD_SIZE.x, 614), Color("c7b46a"), 3.0)
+    # Sparse industrial pads visually ground the authored equipment without
+    # introducing a second road layer or filling the campus with decorative clutter.
+    draw_rect(Rect2(392, 374, 228, 180), Color("71806b"))
+    draw_rect(Rect2(874, 434, 152, 124), Color("71806b"))
+    draw_rect(Rect2(1024, 334, 208, 208), Color("71806b"))
+    draw_rect(Rect2(1270, 290, 196, 196), Color("71806b"))
+    draw_rect(Rect2(632, 488, 116, 66), Color("71806b"))
 
 func _build_infrastructure_sprites() -> void:
     # Real Sprite2D nodes give infrastructure and the player a common Y-sort
