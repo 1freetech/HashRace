@@ -247,7 +247,11 @@ func _build_infrastructure_sprites() -> void:
         sprite.name = "Infrastructure_" + str(asset_id)
         sprite.texture = texture
         sprite.centered = false
-        sprite.position = fitted.position
+        # Y-sort compares child Node2D positions, not the bottom edge of their
+        # drawn texture. Anchor each infrastructure node at its ground contact
+        # and offset the pixels upward so player/building occlusion follows feet.
+        sprite.position = Vector2(fitted.position.x, fitted.end.y)
+        sprite.offset = Vector2(0.0, -float(texture.get_height()))
         sprite.scale = fitted.size / Vector2(texture.get_size())
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         infrastructure_sprites[asset_id] = sprite
@@ -266,10 +270,13 @@ func _build_infrastructure_sprites() -> void:
         wind_sprite.centered = false
         wind_sprite.scale = Vector2.ONE * wind_scale
         var wind_size := wind_source_size * wind_scale
+        # Match the common infrastructure ground-anchor contract for Y-sort.
+        # Offset the atlas upward so the rendered turbine remains pixel-identical.
         wind_sprite.position = Vector2(
             wind_bounds.position.x + (wind_bounds.size.x - wind_size.x) * 0.5,
-            wind_bounds.end.y - wind_size.y
+            wind_bounds.end.y
         ).round()
+        wind_sprite.offset = Vector2(0.0, -wind_source_size.y)
         wind_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         # The validated wind sheet still contains a rectangular source
         # backdrop. A simple threshold shader removes only near-neutral gray
