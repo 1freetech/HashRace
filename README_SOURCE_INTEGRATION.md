@@ -99,3 +99,15 @@ Proof status at report write: the source repair is committed, but this README up
 - Asset provenance/binary: no binary changed. Player source remains `res://art/characters/default_player_sheet.png`, expected 1536x1024, SHA-256 `2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211`, loaded through Godot's imported project resource path.
 - Official Godot basis: AnimatedSprite2D documents `centered=true` by default and defines `offset` as the texture drawing offset: https://docs.godotengine.org/en/4.7/classes/class_animatedsprite2d.html . SpriteFrames is the animation frame library used by AnimatedSprite2D and preserves explicitly appended frame order: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html .
 - Verification boundary: preceding head `4cc61db707ca094321e9a3dd666d98ff16912e6f` had fresh exact-head workflows queued when this defect was identified. This commit intentionally invalidates that pending proof. Do not count this repair as integrated and do not merge until a fresh checkout/import, gameplay render screenshot, and exact-head CI pass on the new report head.
+
+
+## Transformer service-road clearance — 2026-09-27
+
+- Gameplay commit: `32dcad014ab1f05a9bdfa03c7275bb9738ed0e27`.
+- Evidence baseline: exact head `c81d0b7da6f55a03bef08bf48a898b2098b94770` passed Clean runtime gameplay proof run 184 and v0.164 exact-head wind proof run 221. The downloaded clean-runtime screenshot visibly showed the validated transformer overlapping the horizontal service road/player corridor.
+- Changed path: `Godot/scripts/world.gd`, `CAMPUS.transformer`: `Rect2(890,520,120,108)` -> `Rect2(890,450,120,108)`. The footprint now ends at y=558, leaving 12 px before the service road begins at y=570.
+- Asset integrity: no transformer binary, preload path, aspect-fit scale, Sprite2D ground-anchor/Y-sort code, or collision derivation changed. Runtime remains `res://art/electrical/substation_transformer_rear.png` through the imported project resource preload.
+- Collision: `_ready()` still derives the navigation block from the same CAMPUS Rect2 via `_ground_foot(rect)`, so collision moves with the visible transformer instead of leaving an invisible road obstacle.
+- Animation integrity: player/NPC SpriteFrames and explicit visually proven walk order `[1,3,5,7]` are unchanged.
+- Official Godot basis: Rect2 position is the origin/top-left and end is position + size: https://docs.godotengine.org/en/4.7/classes/class_rect2.html . Sprite2D offset remains the texture drawing offset used by the existing ground-anchor implementation: https://docs.godotengine.org/en/4.7/classes/class_sprite2d.html .
+- Verification boundary: this placement commit requires a new exact-head checkout/import/gameplay screenshot and green CI. The preceding screenshot proves the defect, not this repair.
