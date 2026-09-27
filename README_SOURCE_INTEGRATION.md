@@ -47,3 +47,15 @@ Exact head `2d4120813968bdba607393bdcd7133aa72e4b05d` preserves the validated 12
 
 ## 2026-09-26 normalized campus scale proof
 Exact source head `19e8dfe88370c39a343bf88dee779180958b8370` passed **Clean runtime gameplay proof** and **v0.164 exact-head wind proof** after `dcd43660476544d21976b3ba658493d064faaaa0` normalized the live CAMPUS bounds and `19e8dfe88370c39a343bf88dee779180958b8370` repaired the wind proof's stale geometry assertion. The fresh clean-runtime artifact `hashrace-clean-runtime-gameplay` (81,161 bytes) was downloaded and visually inspected. It shows the imported C-01 mining container, solar equipment, wind turbine, transformer, ASIC equipment, player and four NPCs in actual gameplay. The former gray wind rectangle is absent and the reduced infrastructure bounds are visible. Remaining screenshot defects include excessive unstructured empty grass, weak source→distribution→load grouping, and the transformer still reading large relative to characters/miners. These remain open and are not counted as fixed.
+
+
+## 2026-09-26 transformer gameplay-scale repair
+Official Godot 4.7 contract rechecked before this edit: AnimatedSprite2D uses SpriteFrames for Texture2D animation frames, SpriteFrames.add_frame() appends supplied Texture2D frames in explicit order, and ResourceLoader/load operate on imported project resources. References: https://docs.godotengine.org/en/4.7/classes/class_animatedsprite2d.html ; https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html ; https://docs.godotengine.org/en/4.7/classes/class_resourceloader.html .
+
+Proven-history comparison: commit `9f3e8c2cb54b2a791310b7bfec6793080d7e29ac` established the visually inspected player walk source poses 1, 3, 5, 7. Current `Godot/scripts/default_player_sprite_sheet.gd::build_frames_from_texture()` preserves that explicit order through `WALK_SOURCE_ORDER`; no numeric alternation was newly inferred in this run.
+
+Source change: `Godot/scripts/world.gd::CAMPUS`, transformer entry only, changed from `Rect2(970, 540, 144, 130)` to `Rect2(982, 556, 120, 108)`. The change preserves `TRANSFORMER_ART = preload("res://art/electrical/substation_transformer_rear.png")`, `_aspect_fit_rect()`, live `Sprite2D`, Y-sort and `_ground_foot()` collision blocking. It does not reintroduce an obsolete house/draw renderer.
+
+Asset provenance/runtime path: repository binary `Godot/art/electrical/substation_transformer_rear.png`, runtime `res://art/electrical/substation_transformer_rear.png`. Existing validator: `tools/test_v160_transformer_sprite.py`. Candidate source commit: `966e135f69f7a2545b678646b76a5003d21e3e7e`.
+
+Proof status at report write: source committed; fresh exact-head CI/gameplay screenshot not yet complete. Therefore this transformer scale item is **not counted as fixed yet**. It becomes countable only after the new report head completes fresh import, actual gameplay screenshot proof showing the reduced transformer, and applicable exact-head CI.
