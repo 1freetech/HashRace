@@ -40,7 +40,7 @@ def test_live_wiring():
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
     assert 'res://scripts/world.gd' in scene
     assert 'preload("res://art/energy/wind_turbine_directional_sheet.png")' in world
-    assert '"wind": Rect2(1310, 260, 220, 220)' in world
+    assert '"wind": Rect2(1330, 300, 176, 176)' in world
     assert 'grid_nav.block_rect(_ground_foot(rect))' in world
     # Live runtime uses the imported PNG through AtlasTexture -> Sprite2D.
     # Do not regress this contract back to the removed CanvasItem draw path.
