@@ -247,7 +247,15 @@ func _build_infrastructure_sprites() -> void:
         var texture: Texture2D = textures[asset_id]
         if texture == null:
             continue
-        var bounds: Rect2 = CAMPUS[asset_id]
+        # Resolve catalog bounds defensively. A missing/malformed infrastructure
+        # entry must skip that optional visual instead of aborting the playable world.
+        # Dictionary.get() also avoids Variant dot/index resolution regressions seen
+        # on the exact-head Godot 4.7.2 CI runtime.
+        var bounds_value: Variant = CAMPUS.get(str(asset_id), null)
+        if not bounds_value is Rect2:
+            push_warning("Skipping infrastructure '%s': CAMPUS bounds missing or invalid." % str(asset_id))
+            continue
+        var bounds: Rect2 = bounds_value as Rect2
         var fitted := _aspect_fit_rect(texture, bounds)
         var sprite := Sprite2D.new()
         sprite.name = "Infrastructure_" + str(asset_id)
