@@ -255,7 +255,7 @@ func _build_infrastructure_sprites() -> void:
         if not bounds_value is Rect2:
             push_warning("Skipping infrastructure '%s': CAMPUS bounds missing or invalid." % str(asset_id))
             continue
-        var bounds: Rect2 = bounds_value as Rect2
+        var bounds: Rect2 = bounds_value
         var fitted := _aspect_fit_rect(texture, bounds)
         var sprite := Sprite2D.new()
         sprite.name = "Infrastructure_" + str(asset_id)
