@@ -87,3 +87,15 @@ Source defect and repair: `Godot/scripts/world.gd::_build_infrastructure_sprites
 Asset provenance/runtime path: unchanged imported binaries under `res://art/buildings/c01_mining_container.png`, `res://art/electrical/substation_transformer_rear.png`, `res://art/energy/solar_array_overview.png`, `res://art/energy/wind_turbine_directional_sheet.png`, and `res://art/machines/asic_air_s19j_directional.png`.
 
 Proof status at report write: the source repair is committed, but this README update advances exact head again. Therefore the Y-sort repair is **not counted as runtime-integrated** until fresh exact-head Godot import, gameplay screenshot and applicable CI pass on the report head.
+
+
+## Character foot-anchor Y-sort repair — 2026-09-27
+
+- Gameplay commit: `b0dcb27ee9dd321cb2972d6396b1f7ca7d10e2ba`.
+- Changed path/function: `Godot/scripts/world.gd`; `_build_player_sprite()` and `_build_npc_population()`, plus shared `CHARACTER_FOOT_DRAW_OFFSET`.
+- Proven source geometry: `default_player_sprite_sheet.gd` pads every AtlasTexture frame to `FRAME_SIZE = 160x240` and declares the authored ground contact at `FOOT_ANCHOR = (80,232)`. With AnimatedSprite2D centered by default, the Node2D origin was therefore 112 source pixels above the feet. Infrastructure had already been corrected to sort at its ground line, leaving characters on a mismatched Y-sort origin.
+- Repair: set AnimatedSprite2D drawing offset to `(0,-112)` for the player and all four campus NPCs. Navigation/patrol coordinates and Node2D positions remain unchanged and now represent the visible foot/ground contact used by Y-sort.
+- Animation integrity: no SpriteFrames regions or order changed. The visually proven walk source order remains explicit `[1,3,5,7]` in every direction.
+- Asset provenance/binary: no binary changed. Player source remains `res://art/characters/default_player_sheet.png`, expected 1536x1024, SHA-256 `2a05fdf8fac364b48ae4c0ca5a0a5573a0439a42c7d2c01e372986f5cfdcd211`, loaded through Godot's imported project resource path.
+- Official Godot basis: AnimatedSprite2D documents `centered=true` by default and defines `offset` as the texture drawing offset: https://docs.godotengine.org/en/4.7/classes/class_animatedsprite2d.html . SpriteFrames is the animation frame library used by AnimatedSprite2D and preserves explicitly appended frame order: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html .
+- Verification boundary: preceding head `4cc61db707ca094321e9a3dd666d98ff16912e6f` had fresh exact-head workflows queued when this defect was identified. This commit intentionally invalidates that pending proof. Do not count this repair as integrated and do not merge until a fresh checkout/import, gameplay render screenshot, and exact-head CI pass on the new report head.
