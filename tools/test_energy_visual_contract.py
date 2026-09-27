@@ -65,8 +65,24 @@ for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
 
 assert "grid_nav.block_rect(_ground_foot(rect))" in world
 assert "return not grid_nav.world_is_walkable(foot.get_center())" in world
-assert "_draw_asset(SOLAR_ART, CAMPUS.solar)" in world
-assert "_draw_wind()" in world
-assert "draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)" in world
+# Infrastructure now renders through live Sprite2D nodes backed by Godot-imported
+# Texture2D/AtlasTexture resources. Reject regression to the obsolete CanvasItem
+# draw helpers while asserting the actual scene-tree integration path.
+for marker in [
+    "func _build_infrastructure_sprites()",
+    "var sprite := Sprite2D.new()",
+    "sprite.texture = texture",
+    "var wind_region := AtlasTexture.new()",
+    "wind_region.atlas = WIND_ART",
+    'infrastructure_sprites["wind"] = wind_sprite',
+]:
+    assert marker in world, f"Live Sprite2D infrastructure renderer missing: {marker}"
+
+for obsolete in [
+    "_draw_asset(SOLAR_ART, CAMPUS.solar)",
+    "func _draw_wind()",
+    "draw_texture_rect_region(WIND_ART, CAMPUS.wind, source)",
+]:
+    assert obsolete not in world, f"Obsolete CanvasItem renderer returned: {obsolete}"
 
 print("Hash Race stable energy/deployment contract passed.")
