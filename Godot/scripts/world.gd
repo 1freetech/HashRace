@@ -87,7 +87,7 @@ func _build_npc_population() -> void:
         var sprite := AnimatedSprite2D.new()
         sprite.name = "CampusNPC_%02d" % index
         sprite.sprite_frames = frames
-        sprite.animation = StringName("idle_" + String(spec.facing))
+        sprite.animation = StringName("idle_" + str(spec.facing))
         sprite.position = spec.pos
         sprite.scale = Vector2.ONE * float(spec.scale)
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -107,7 +107,7 @@ func _update_npc_population(delta: float) -> void:
         var velocity := next_position - sprite.position
         sprite.position = next_position
         var moving := absf(cos(phase)) > 0.18 and velocity.length_squared() > 0.01
-        var facing := String(spec.facing)
+        var facing := str(spec.facing)
         if absf(patrol.x) > absf(patrol.y):
             facing = "right" if velocity.x >= 0.0 else "left"
         elif absf(patrol.y) > 0.0:
@@ -205,7 +205,7 @@ func _build_infrastructure_sprites() -> void:
         var bounds: Rect2 = CAMPUS[asset_id]
         var fitted := _aspect_fit_rect(texture, bounds)
         var sprite := Sprite2D.new()
-        sprite.name = "Infrastructure_" + String(asset_id)
+        sprite.name = "Infrastructure_" + str(asset_id)
         sprite.texture = texture
         sprite.centered = false
         sprite.position = fitted.position
@@ -345,7 +345,7 @@ func runtime_ready() -> bool:
     if grid_nav.blocked_count() < CAMPUS.size():
         return false
     for asset_id in CAMPUS.keys():
-        if not infrastructure_ready(String(asset_id)):
+        if not infrastructure_ready(str(asset_id)):
             return false
     return PLAYER_ART != null
 
