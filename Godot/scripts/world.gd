@@ -10,6 +10,11 @@ const PlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
 # visually inspected alternating-leg poses at 8 FPS move 18 px per pose,
 # yielding a 72 px cycle at 144 px/s instead of the refactor's 230 px/s glide.
 const WALK_CYCLE_DISTANCE := 72.0
+# SpriteFrames are padded to 160x240 with the authored foot at y=232. AnimatedSprite2D
+# centers that texture by default, so without an offset the Node2D/Y-sort position sits
+# 112 source pixels above the feet. Move the drawing upward while keeping rep_pos/NPC
+# positions at the actual ground contact used by navigation and Y-sort.
+const CHARACTER_FOOT_DRAW_OFFSET := Vector2(0.0, -(PlayerSheet.FOOT_ANCHOR.y - PlayerSheet.FRAME_SIZE.y * 0.5))
 
 const PLAYER_ART := preload("res://art/characters/default_player_sheet.png")
 const CONTAINER_ART := preload("res://art/buildings/c01_mining_container.png")
@@ -77,6 +82,7 @@ func _build_player_sprite() -> void:
     player_sprite.animation = &"idle_down"
     player_sprite.position = rep_pos
     player_sprite.scale = Vector2(0.4, 0.4)
+    player_sprite.offset = CHARACTER_FOOT_DRAW_OFFSET
     player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     player_sprite.z_index = 0
     player_sprite.y_sort_enabled = false
@@ -97,6 +103,7 @@ func _build_npc_population() -> void:
         sprite.animation = StringName("idle_" + str(spec.facing))
         sprite.position = spec.pos
         sprite.scale = Vector2.ONE * float(spec.scale)
+        sprite.offset = CHARACTER_FOOT_DRAW_OFFSET
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         npc_origins.append(spec.pos)
         npc_sprites.append(sprite)
