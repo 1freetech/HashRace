@@ -120,6 +120,12 @@ func _update_npc_population(delta: float) -> void:
         elif absf(patrol.y) > 0.0:
             facing = "down" if velocity.y >= 0.0 else "up"
         var wanted := StringName(("walk_" if moving else "idle_") + facing)
+        # Match foot cadence to actual patrol ground speed. The sinusoidal patrol
+        # decelerates near each turnaround; fixed 8 FPS made NPC feet visibly slide.
+        # PlayerSheet's validated four-frame walk advances 18 source pixels per frame.
+        var ground_speed := velocity.length() / maxf(delta, 0.000001)
+        var authored_stride_speed := PlayerSheet.WALK_FPS * (WALK_CYCLE_DISTANCE / float(PlayerSheet.WALK_FRAME_COUNT))
+        sprite.speed_scale = clampf(ground_speed / authored_stride_speed, 0.2, 1.0) if moving else 1.0
         if sprite.animation != wanted:
             sprite.play(wanted)
         elif moving and not sprite.is_playing():
