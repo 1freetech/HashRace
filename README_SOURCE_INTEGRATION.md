@@ -59,3 +59,17 @@ Source change: `Godot/scripts/world.gd::CAMPUS`, transformer entry only, changed
 Asset provenance/runtime path: repository binary `Godot/art/electrical/substation_transformer_rear.png`, runtime `res://art/electrical/substation_transformer_rear.png`. Existing validator: `tools/test_v160_transformer_sprite.py`. Candidate source commit: `966e135f69f7a2545b678646b76a5003d21e3e7e`.
 
 Proof status at report write: source committed; fresh exact-head CI/gameplay screenshot not yet complete. Therefore this transformer scale item is **not counted as fixed yet**. It becomes countable only after the new report head completes fresh import, actual gameplay screenshot proof showing the reduced transformer, and applicable exact-head CI.
+
+
+## 2026-09-27 click-to-move bounds and collision repair
+Official Godot contract rechecked before editing: Godot 4.7 SpriteFrames stores the ordered Texture2D animation data used by AnimatedSprite2D, and ResourceLoader requires imported project resources before load(); the existing explicit walk source order [1, 3, 5, 7] and preload-based infrastructure path remain unchanged. References: https://docs.godotengine.org/en/4.7/classes/class_spriteframes.html ; https://docs.godotengine.org/en/stable/classes/class_resourceloader.html .
+
+Proven-history comparison: commit `9f3e8c2cb54b2a791310b7bfec6793080d7e29ac` remains the last visually established alternating-leg source sequence. This repair does not infer new sprite ordering.
+
+Source change: `Godot/scripts/world.gd::_unhandled_input()` now clamps mouse destinations to the same 40 px playable margin enforced by `move_player()`, rejects blocked infrastructure cells before starting a walk, and does not enter walking state for clicks already within the 5 px arrival radius. This fixes the prior mismatch where `GridNavigation.world_to_cell()` clamps off-map coordinates to an edge cell, causing an off-map click to send the representative toward an unrelated map edge. It also removes the one-frame false walking state for clicks directly on blocked infrastructure.
+
+Asset/runtime preservation: no binary was rewritten. Existing imported `res://art/...` Texture2D resources, Sprite2D/AtlasTexture rendering, Y-sort and `_ground_foot()` collision remain unchanged. Immediately preceding exact head `0f25a4c07660c6e568fa9e39a212367fe3b5748f` had green fresh Clean runtime gameplay proof and green v0.164 exact-head wind proof, with artifacts tied to that SHA.
+
+Gameplay source commit: `0e5f79161c3e3e1324727c7cc808e329c2c3a593`.
+
+Proof status at this report write: source committed; this README commit advances the exact head, so prior screenshots are historical evidence only. The click-to-move repair is **not counted as runtime-integrated** until fresh exact-head Godot import, actual gameplay screenshot, and applicable CI complete on the report head.
