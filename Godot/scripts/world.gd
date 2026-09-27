@@ -52,7 +52,7 @@ const CAMPUS := {
     # Screenshot-backed scale repair: keep the validated transformer binary and
     # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no
     # longer dominates the nearby player and ASIC equipment.
-    "transformer": Rect2(890, 520, 120, 108),
+    "transformer": Rect2(890, 450, 120, 108),
     "asic": Rect2(650, 650, 160, 160),
     "wind": Rect2(1280, 300, 176, 176)
 }
