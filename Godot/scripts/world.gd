@@ -273,6 +273,9 @@ func _build_infrastructure_sprites() -> void:
         var asic_region := AtlasTexture.new()
         asic_region.atlas = ASIC_ART
         asic_region.region = Rect2(0, 0, 64, 64)
+        # Clamp sampling to the selected authored direction so nearest-filtered
+        # scaling cannot expose pixels from the three adjacent atlas cells.
+        asic_region.filter_clip = true
         var asic_sprite := Sprite2D.new()
         asic_sprite.name = "Infrastructure_asic"
         asic_sprite.texture = asic_region
