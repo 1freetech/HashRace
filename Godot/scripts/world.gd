@@ -53,7 +53,7 @@ const CAMPUS := {
     # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no
     # longer dominates the nearby player and ASIC equipment.
     "transformer": Rect2(890, 450, 120, 108),
-    "asic": Rect2(650, 650, 80, 80),
+    # Keep the validated 64x64 ASIC crop in the same imported 2x2 sheet, but\n    # place the mining load beside the container/distribution chain instead of\n    # stranding it below the service road in otherwise empty grass.\n    "asic": Rect2(650, 500, 80, 80),
     "wind": Rect2(1280, 300, 176, 176)
 }
 
