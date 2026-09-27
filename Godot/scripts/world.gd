@@ -260,7 +260,7 @@ func _build_infrastructure_sprites() -> void:
         # entry must skip that optional visual instead of aborting the playable world.
         # Dictionary.get() also avoids Variant dot/index resolution regressions seen
         # on the exact-head Godot 4.7.2 CI runtime.
-        var bounds_value: Variant = CAMPUS.get(str(asset_id), null)
+        var bounds_value: Variant = CAMPUS.get(asset_id, null)
         if not bounds_value is Rect2:
             push_warning("Skipping infrastructure '%s': CAMPUS bounds missing or invalid." % str(asset_id))
             continue
@@ -286,7 +286,7 @@ func _build_infrastructure_sprites() -> void:
     # per-view size visible in the preceding runtime proof instead of scaling a
     # single crop to the old 160x160 whole-sheet bounds.
     if ASIC_ART != null and Vector2i(ASIC_ART.get_size()) == Vector2i(128, 128):
-        var asic_bounds: Rect2 = CAMPUS.asic
+        var asic_bounds: Rect2 = CAMPUS.get("asic", Rect2())
         var asic_region := AtlasTexture.new()
         asic_region.atlas = ASIC_ART
         asic_region.region = Rect2(0, 0, 64, 64)
@@ -307,7 +307,7 @@ func _build_infrastructure_sprites() -> void:
 
     if WIND_ART != null:
         var wind_source_size := Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0)
-        var wind_bounds: Rect2 = CAMPUS.wind
+        var wind_bounds: Rect2 = CAMPUS.get("wind", Rect2())
         var wind_scale := minf(wind_bounds.size.x / wind_source_size.x, wind_bounds.size.y / wind_source_size.y)
         var wind_region := AtlasTexture.new()
         wind_region.atlas = WIND_ART
