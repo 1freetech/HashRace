@@ -48,12 +48,17 @@ const CAMPUS := {
     # Preserve the validated 128x102 container binary aspect ratio instead of
     # stretching it across the old oversized house footprint.
     "container": Rect2(410, 390, 192, 153),
-    # Keep generation visually tied to the distribution transformer instead of\n    # leaving the validated solar asset isolated in empty grass.\n    "solar": Rect2(1040, 350, 176, 176),
+    # Keep generation visually tied to the distribution transformer instead of
+    # leaving the validated solar asset isolated in empty grass.
+    "solar": Rect2(1040, 350, 176, 176),
     # Screenshot-backed scale repair: keep the validated transformer binary and
     # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no
     # longer dominates the nearby player and ASIC equipment.
     "transformer": Rect2(890, 450, 120, 108),
-    # Keep the validated 64x64 ASIC crop in the same imported 2x2 sheet, but\n    # place the mining load beside the container/distribution chain instead of\n    # stranding it below the service road in otherwise empty grass.\n    "asic": Rect2(650, 500, 80, 80),
+    # Keep the validated 64x64 ASIC crop in the same imported 2x2 sheet, but
+    # place the mining load beside the container/distribution chain instead of
+    # stranding it below the service road in otherwise empty grass.
+    "asic": Rect2(650, 500, 80, 80),
     "wind": Rect2(1280, 300, 176, 176)
 }
 
