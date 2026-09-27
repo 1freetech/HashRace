@@ -75,6 +75,8 @@ for marker in [
     "var wind_region := AtlasTexture.new()",
     "wind_region.atlas = WIND_ART",
     'infrastructure_sprites["wind"] = wind_sprite',
+    "var wind_material := ShaderMaterial.new()",
+    "wind_sprite.material = wind_material",
 ]:
     assert marker in world, f"Live Sprite2D infrastructure renderer missing: {marker}"
 
