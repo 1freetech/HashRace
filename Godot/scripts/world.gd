@@ -232,6 +232,25 @@ func _build_infrastructure_sprites() -> void:
             wind_bounds.end.y - wind_size.y
         ).round()
         wind_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        # The validated wind sheet still contains a rectangular source
+        # backdrop. A simple threshold shader removes only near-neutral gray
+        # pixels at runtime while preserving the turbine silhouette and keeps
+        # the original binary/hash untouched for provenance validation.
+        var wind_material := ShaderMaterial.new()
+        var wind_shader := Shader.new()
+        wind_shader.code = """
+shader_type canvas_item;
+void fragment() {
+    vec4 sample_color = texture(TEXTURE, UV);
+    float spread = max(sample_color.r, max(sample_color.g, sample_color.b))
+        - min(sample_color.r, min(sample_color.g, sample_color.b));
+    bool neutral_gray = spread < 0.055
+        && sample_color.r > 0.24 && sample_color.r < 0.82;
+    COLOR = neutral_gray ? vec4(sample_color.rgb, 0.0) : sample_color;
+}
+"""
+        wind_material.shader = wind_shader
+        wind_sprite.material = wind_material
         infrastructure_sprites["wind"] = wind_sprite
         add_child(wind_sprite)
 
