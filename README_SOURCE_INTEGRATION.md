@@ -39,3 +39,7 @@ Official implementation references:
 - AnimatedSprite2D: https://docs.godotengine.org/en/4.7/classes/class_animatedsprite2d.html
 - AtlasTexture: https://docs.godotengine.org/en/4.7/classes/class_atlastexture.html
 - ResourceLoader: https://docs.godotengine.org/en/4.7/classes/class_resourceloader.html
+
+
+## 2026-09-26 wind backdrop optimization
+Exact head `2d4120813968bdba607393bdcd7133aa72e4b05d` preserves the validated 128x128 wind source binary and applies a runtime `ShaderMaterial` only to `Infrastructure_wind`. The shader suppresses near-neutral gray backdrop pixels without rewriting the provenance-controlled PNG. `tools/test_energy_visual_contract.py` now requires the live material path. Exact-head **Clean runtime gameplay proof** and **v0.164 exact-head wind proof** both completed successfully; the wind proof produced the non-empty `hashrace-v164-live-wind-proof` artifact. The artifact was downloaded for inspection. Commit sequence: `618db2d8f0d6246470ea85e3c3cf728d003c574c`, `2d4120813968bdba607393bdcd7133aa72e4b05d`.
