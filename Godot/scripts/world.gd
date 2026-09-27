@@ -2,10 +2,14 @@ extends Node2D
 
 # Hash Race clean runtime. Release numbers belong in Git history, not gameplay.
 const WORLD_SIZE := Vector2(1800, 1120)
-const PLAYER_SPEED := 230.0
+const PLAYER_SPEED := 144.0
 const GridNavigation = preload("res://scripts/grid_navigation.gd")
 const Inventory = preload("res://scripts/infrastructure_inventory.gd")
 const PlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
+# Restore the last runtime-proven walk cadence from commit 9f3e8c2: four
+# visually inspected alternating-leg poses at 8 FPS move 18 px per pose,
+# yielding a 72 px cycle at 144 px/s instead of the refactor's 230 px/s glide.
+const WALK_CYCLE_DISTANCE := 72.0
 
 const PLAYER_ART := preload("res://art/characters/default_player_sheet.png")
 const CONTAINER_ART := preload("res://art/buildings/c01_mining_container.png")
@@ -318,6 +322,8 @@ func infrastructure_ready(asset_id: String) -> bool:
 
 func player_animation_ready() -> bool:
     if player_sprite == null or player_sprite.sprite_frames == null:
+        return false
+    if not is_equal_approx(PLAYER_SPEED / PlayerSheet.WALK_FPS * float(PlayerSheet.WALK_FRAME_COUNT), WALK_CYCLE_DISTANCE):
         return false
     for facing in ["down", "left", "right", "up"]:
         if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != PlayerSheet.WALK_FRAME_COUNT:
