@@ -53,7 +53,7 @@ const CAMPUS := {
     # aspect-fit/Y-sort/collision path, but reduce its live footprint so it no
     # longer dominates the nearby player and ASIC equipment.
     "transformer": Rect2(890, 450, 120, 108),
-    "asic": Rect2(650, 650, 160, 160),
+    "asic": Rect2(650, 650, 80, 80),
     "wind": Rect2(1280, 300, 176, 176)
 }
 
@@ -242,7 +242,6 @@ func _build_infrastructure_sprites() -> void:
         "container": CONTAINER_ART,
         "solar": SOLAR_ART,
         "transformer": TRANSFORMER_ART,
-        "asic": ASIC_ART,
     }
     for asset_id in textures.keys():
         var texture: Texture2D = textures[asset_id]
@@ -263,6 +262,28 @@ func _build_infrastructure_sprites() -> void:
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         infrastructure_sprites[asset_id] = sprite
         add_child(sprite)
+
+    # The validated ASIC binary is a 2x2 directional sheet, not four machines.
+    # Render one authored 64x64 direction through AtlasTexture while keeping the
+    # original imported PNG untouched. The 80x80 live footprint preserves the
+    # per-view size visible in the preceding runtime proof instead of scaling a
+    # single crop to the old 160x160 whole-sheet bounds.
+    if ASIC_ART != null and Vector2i(ASIC_ART.get_size()) == Vector2i(128, 128):
+        var asic_bounds: Rect2 = CAMPUS.asic
+        var asic_region := AtlasTexture.new()
+        asic_region.atlas = ASIC_ART
+        asic_region.region = Rect2(0, 0, 64, 64)
+        var asic_sprite := Sprite2D.new()
+        asic_sprite.name = "Infrastructure_asic"
+        asic_sprite.texture = asic_region
+        asic_sprite.centered = false
+        var asic_fitted := _aspect_fit_rect(asic_region, asic_bounds)
+        asic_sprite.position = Vector2(asic_fitted.position.x, asic_fitted.end.y)
+        asic_sprite.offset = Vector2(0.0, -64.0)
+        asic_sprite.scale = asic_fitted.size / Vector2(64, 64)
+        asic_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        infrastructure_sprites["asic"] = asic_sprite
+        add_child(asic_sprite)
 
     if WIND_ART != null:
         var wind_source_size := Vector2(WIND_ART.get_width() / 2.0, WIND_ART.get_height() / 2.0)
