@@ -1,31 +1,24 @@
 #!/usr/bin/env python3
-"""v0.070+ compact consolidated Mining Ops widget contract."""
+"""Stable compact consolidated Mining Ops widget contract.
+
+Release identifiers belong to Git history. This contract follows the actual
+world.tscn -> world.gd runtime and verifies the live widget behavior without
+requiring retired world_vXXX inheritance.
+"""
 from pathlib import Path
-import re
 
 root = Path(__file__).resolve().parents[1]
-version = (root / "VERSION").read_text(encoding="utf-8").strip()
 scene = (root / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
-current_world = (root / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
-live_world = (root / "Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
-release_world = (root / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
-world = (root / "Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
-parent_world = (root / "Godot/scripts/world_v067.gd").read_text(encoding="utf-8")
+world = (root / "Godot/scripts/world.gd").read_text(encoding="utf-8")
 widget = (root / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encoding="utf-8")
 
-assert re.fullmatch(r"v0\.\d{3}", version), version
-assert int(version.split(".")[1]) >= 70, version
-live_world_match = re.search(r'path="(res://scripts/world_v\d{3}\.gd)"', scene)
-assert live_world_match, "Live scene does not reference a versioned world script"
-live_world_path = live_world_match.group(1)
-assert (root / "Godot" / live_world_path.removeprefix("res://")).is_file(), f"Live world is missing: {live_world_path}"
-assert 'extends "res://scripts/world_v072.gd"' in live_world
-assert 'extends "res://scripts/world_v070.gd"' in current_world
-assert 'extends "res://scripts/world_v068.gd"' in release_world
-assert 'extends "res://scripts/world_v067.gd"' in world
-assert 'MODULAR_ARCHITECTURE_REVISION' in world
-assert 'debug_mining_ops_widget_ready' in parent_world
+assert 'path="res://scripts/world.gd"' in scene, "Live scene must use stable world.gd"
+for marker in [
+    "func runtime_ready()", "func infrastructure_ready(", "func move_player(",
+    "func player_animation_ready()", "AnimatedSprite2D",
+]:
+    assert marker in world, f"Missing stable runtime marker: {marker}"
 
 for marker in [
     '"HASHRATE"', '"POWER"', '"EFFICIENCY"', '"UPTIME"', '"BTC TREASURY"', '"USD CASH"',
@@ -54,6 +47,4 @@ assert 'responsive Mining Ops widget did not grow after resize' in capture
 assert 'const BASE_SIZE := Vector2(528.0, 248.0)' in widget
 assert 'const MIN_SIZE := Vector2(420.0, 208.0)' in widget
 assert 'var mount_slot: int = 1' in widget
-assert 'MINING_OPS_WIDGET_REVISION: int = 2' in parent_world
-assert 'top_stats.visible = false' in world
-print(f"Hash Race {version} consolidated upper-right Mining Ops widget contract passed.")
+print("Hash Race stable consolidated upper-right Mining Ops widget contract passed.")
