@@ -1,17 +1,18 @@
 """Regression contract for Hash Race v0.102 visual cleanup."""
 from pathlib import Path
-from world_script_contract import assert_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
+stable_world = ROOT / "Godot/scripts/world.gd"
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert_world_inherits("world_v102.gd")
+assert 'ext_resource path="res://scripts/world.gd" type="Script" id="1_world"' in scene
+assert stable_world.is_file(), "Live scene stable world entry point is missing"
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
