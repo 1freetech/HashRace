@@ -6,6 +6,8 @@ const PLAYER_SPEED := 144.0
 const GridNavigation = preload("res://scripts/grid_navigation.gd")
 const Inventory = preload("res://scripts/infrastructure_inventory.gd")
 const PlayerSheet = preload("res://scripts/default_player_sprite_sheet.gd")
+const EnergyVisualCatalog = preload("res://systems/energy_visual_catalog.gd")
+const CharacterCustomization = preload("res://scripts/character_customization.gd")
 # Restore the last runtime-proven walk cadence from commit 9f3e8c2: four
 # visually inspected alternating-leg poses at 8 FPS move 18 px per pose,
 # yielding a 72 px cycle at 144 px/s instead of the refactor's 230 px/s glide.
@@ -36,6 +38,9 @@ var infrastructure_sprites: Dictionary = {}
 var npc_sprites: Array[AnimatedSprite2D] = []
 var npc_origins: Array[Vector2] = []
 var npc_time := 0.0
+const DIESEL_SLOT := Rect2(780, 310, 120, 120)
+var campus_hud: Label
+var deployment_message := "E: buy/deploy/store diesel"
 
 const NPCS := [
     {"pos": Vector2(430, 545), "scale": 0.26, "skin": Color("6b3f2a"), "suit": Color("1e5aa8"), "scouter": Color("62e88d"), "facing": "right", "patrol": Vector2(54, 0), "phase": 0.0},
@@ -58,15 +63,14 @@ const CAMPUS := {
     # Keep the validated 64x64 ASIC crop in the same imported 2x2 sheet, but
     # place the mining load beside the container/distribution chain instead of
     # stranding it below the service road in otherwise empty grass.
-    "asic": Rect2(650, 500, 80, 80),
+    "asic": Rect2(650, 480, 80, 80),
     "wind": Rect2(1280, 300, 176, 176)
 }
 
 func _ready() -> void:
-    grid_nav.configure(WORLD_SIZE, 48.0)
-    for rect in CAMPUS.values():
-        grid_nav.block_rect(_ground_foot(rect))
     _build_infrastructure_sprites()
+    infrastructure_inventory.deployment_changed.connect(_sync_deployed_infrastructure)
+    _sync_deployed_infrastructure()
     _build_player_sprite()
     _build_npc_population()
     camera = Camera2D.new()
@@ -75,10 +79,81 @@ func _ready() -> void:
     camera.position_smoothing_speed = 7.0
     add_child(camera)
     camera.make_current()
+    _build_hud()
+    queue_redraw()
+
+func _build_hud() -> void:
+    var layer := CanvasLayer.new()
+    layer.name = "CampusHUD"
+    add_child(layer)
+    var panel := PanelContainer.new()
+    layer.add_child(panel)
+    panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+    panel.position = Vector2(get_viewport_rect().size.x - 290, 20)
+    panel.custom_minimum_size = Vector2(270, 116)
+    panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    campus_hud = Label.new()
+    campus_hud.add_theme_font_size_override("font_size", 15)
+    campus_hud.add_theme_color_override("font_color", Color("64ff8c"))
+    panel.add_child(campus_hud)
+    _refresh_campus_hud()
+
+func _refresh_campus_hud() -> void:
+    if campus_hud != null:
+        campus_hud.text = "HASH RACE\nCash: $%.0f   Power: %.1f MW\nDiesel: %d stored / %d deployed\n%s" % [
+            float(player.cash), float(player.mw),
+            infrastructure_inventory.stored_quantity("diesel_generator"),
+            infrastructure_inventory.deployed_quantity("diesel_generator"), deployment_message]
+
+func deploy_infrastructure(asset_id: String) -> bool:
+    return infrastructure_inventory.deploy(asset_id, player, 1)
+
+func undeploy_infrastructure(asset_id: String) -> bool:
+    return infrastructure_inventory.undeploy(asset_id, player, 1)
+
+func _sync_deployed_infrastructure() -> void:
+    # Rebuild navigation from source footprints so undeployment removes the
+    # diesel obstacle without carving holes in nearby permanent equipment.
+    grid_nav.configure(WORLD_SIZE, 48.0)
+    for rect in CAMPUS.values():
+        grid_nav.block_rect(_ground_foot(rect))
+    var diesel = infrastructure_sprites.get("diesel_generator") as Sprite2D
+    var deployed := infrastructure_inventory.deployed_quantity("diesel_generator") > 0
+    if deployed and diesel == null:
+        var atlas := EnergyVisualCatalog.master_texture()
+        if atlas != null:
+            var region := AtlasTexture.new()
+            region.atlas = atlas
+            region.region = EnergyVisualCatalog.source_region("diesel_generator", "up")
+            region.filter_clip = true
+            diesel = Sprite2D.new()
+            diesel.name = "Infrastructure_diesel_generator"
+            diesel.texture = region
+            diesel.centered = false
+            var fitted := _aspect_fit_rect(region, DIESEL_SLOT)
+            diesel.position = Vector2(fitted.position.x, fitted.end.y)
+            diesel.offset = Vector2(0, -region.get_height())
+            diesel.scale = fitted.size / Vector2(region.get_size())
+            diesel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+            infrastructure_sprites["diesel_generator"] = diesel
+            add_child(diesel)
+    if diesel != null:
+        diesel.visible = deployed
+    if deployed:
+        grid_nav.block_rect(_ground_foot(DIESEL_SLOT))
+    _refresh_campus_hud()
     queue_redraw()
 
 func _build_player_sprite() -> void:
-    var frames := PlayerSheet.build_frames()
+    var skin_idx := int(get_tree().get_meta("hashrace_character_skin_tone", CharacterCustomization.DEFAULT_SKIN_TONE))
+    var suit_idx := int(get_tree().get_meta("hashrace_character_suit_color", CharacterCustomization.DEFAULT_SUIT_COLOR))
+    var scouter_idx := int(get_tree().get_meta("hashrace_character_scouter_color", CharacterCustomization.DEFAULT_SCOUTER_COLOR))
+    player["skin_tone_idx"] = skin_idx
+    player["suit_color_idx"] = suit_idx
+    player["scouter_color_idx"] = scouter_idx
+    var tone: Dictionary = CharacterCustomization.skin_tone(skin_idx)
+    var suit: Dictionary = CharacterCustomization.suit_color(suit_idx)
+    var frames := PlayerSheet.build_customized_frames(Color(tone.skin), Color(suit.color), CharacterCustomization.scouter_lens_color(scouter_idx))
     if frames == null:
         return
     player_sprite = AnimatedSprite2D.new()
@@ -176,6 +251,18 @@ func _process(delta: float) -> void:
     queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
+        deployment_message = "E: buy/deploy/store diesel"
+        if infrastructure_inventory.deployed_quantity("diesel_generator") > 0:
+            undeploy_infrastructure("diesel_generator")
+        elif infrastructure_inventory.stored_quantity("diesel_generator") > 0:
+            deploy_infrastructure("diesel_generator")
+        else:
+            if not infrastructure_inventory.purchase_and_deploy("diesel_generator", player, 1):
+                deployment_message = "Diesel purchase: insufficient cash"
+        _refresh_campus_hud()
+        get_viewport().set_input_as_handled()
+        return
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         var clicked := get_global_mouse_position()
         # Keep click-to-move destinations inside the same playable margin used
@@ -232,7 +319,6 @@ func _update_player_animation(moving: bool, ground_speed: float) -> void:
 func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("568c43"))
     _draw_service_road()
-    _draw_hud()
 
 func _draw_service_road() -> void:
     # One deliberate campus road: carry it through the full playable width so it
@@ -245,7 +331,7 @@ func _draw_service_road() -> void:
     draw_rect(Rect2(874, 434, 152, 124), Color("71806b"))
     draw_rect(Rect2(1024, 334, 208, 208), Color("71806b"))
     draw_rect(Rect2(1270, 290, 196, 196), Color("71806b"))
-    draw_rect(Rect2(632, 488, 116, 66), Color("71806b"))
+    draw_rect(Rect2(632, 468, 116, 66), Color("71806b"))
 
 func _build_infrastructure_sprites() -> void:
     # Real Sprite2D nodes give infrastructure and the player a common Y-sort
@@ -365,16 +451,12 @@ func _aspect_fit_rect(texture: Texture2D, bounds: Rect2) -> Rect2:
     )
     return Rect2(fitted_position.round(), fitted_size.round())
 
-func _draw_hud() -> void:
-    var font := ThemeDB.fallback_font
-    draw_rect(Rect2(1180, 30, 230, 88), Color(0.05, 0.08, 0.10, 0.88))
-    draw_string(font, Vector2(1200, 60), "HASH RACE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("64ff8c"))
-    draw_string(font, Vector2(1200, 88), "Mining campus online", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color.WHITE)
-
 func _ground_foot(rect: Rect2) -> Rect2:
     return Rect2(rect.position + Vector2(rect.size.x * 0.16, rect.size.y * 0.74), Vector2(rect.size.x * 0.68, rect.size.y * 0.22))
 
 func infrastructure_rect(asset_id: String) -> Rect2:
+    if asset_id == "diesel_generator":
+        return DIESEL_SLOT
     return CAMPUS.get(asset_id, Rect2())
 
 func infrastructure_footprint(asset_id: String) -> Rect2:
@@ -384,6 +466,12 @@ func infrastructure_footprint(asset_id: String) -> Rect2:
     return _ground_foot(rect)
 
 func infrastructure_ready(asset_id: String) -> bool:
+    if asset_id == "diesel_generator":
+        var diesel = infrastructure_sprites.get(asset_id) as Sprite2D
+        return infrastructure_inventory.deployed_quantity(asset_id) > 0 \
+            and diesel != null and diesel.is_inside_tree() and diesel.visible \
+            and diesel.texture != null \
+            and not grid_nav.world_is_walkable(infrastructure_footprint(asset_id).get_center())
     var texture: Texture2D = null
     match asset_id:
         "container":
@@ -448,7 +536,7 @@ func runtime_ready() -> bool:
     for asset_id in CAMPUS.keys():
         if not infrastructure_ready(str(asset_id)):
             return false
-    return PLAYER_ART != null
+    return PLAYER_ART != null and (infrastructure_inventory.deployed_quantity("diesel_generator") == 0 or infrastructure_ready("diesel_generator"))
 
 # Compatibility names are semantic, never release-numbered.
 func debug_wind_ready() -> bool:

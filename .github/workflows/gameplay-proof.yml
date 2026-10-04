@@ -7,6 +7,7 @@ on:
 jobs:
   gameplay-proof:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,16 +21,23 @@ jobs:
           sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
       - name: Fresh import
         run: |
+          set -euo pipefail
           rm -rf Godot/.godot
           cd Godot
-          timeout 90s godot --headless --editor --path . --quit-after 120
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/gameplay-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/gameplay-import.log; then exit 1; fi
       - name: Render gameplay
         run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
           mkdir -p visual-proof
           cd Godot
-          xvfb-run -a godot --path . --script res://scripts/gameplay_capture.gd
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path . --script res://scripts/gameplay_capture.gd 2>&1 | tee /tmp/gameplay-capture.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/gameplay-capture.log; then exit 1; fi
+          grep -q "GAMEPLAY PROOF PASS" /tmp/gameplay-capture.log
           test -s ../visual-proof/gameplay-clean-runtime.png
       - uses: actions/upload-artifact@v4
         with:
           name: hashrace-clean-runtime-gameplay
+          if-no-files-found: error
           path: visual-proof/gameplay-clean-runtime.png

@@ -16,7 +16,7 @@ Reusable systems such as `grid_navigation.gd` and `infrastructure_inventory.gd` 
 
 ## Game artwork
 
-Authored PNG, JPG and SVG files under `Godot/art/` are game-source assets. Validated artwork is preserved during source refactors. Current runtime artwork includes the player sheet, mining container, ASIC artwork, transformer, solar equipment, wind equipment, terrain and road assets.
+Authored PNG, JPG and SVG files under `Godot/art/` are game-source assets. Validated artwork is preserved during source refactors. Current runtime artwork includes the player sheet, mining container, ASIC artwork, transformer, solar equipment, wind equipment, and a deployable diesel module from the existing energy atlas.
 
 An asset counts as integrated only when a fresh run of the actual game visibly renders it. Source images, concept art, imports, or code references alone are not proof.
 
@@ -35,3 +35,17 @@ Gameplay or visual changes require a fresh Godot import, actual runtime executio
 Downloads, release numbers and release notes are maintained on the GitHub Releases page:
 
 https://github.com/1freetech/HashRace/releases
+
+## Current and historical validation
+
+The current campaign world has direct wind/solar/transformer/container/ASIC
+visuals, AnimatedSprite2D walking and a deployment-backed diesel visual.
+Press E to buy/deploy/store diesel. Skin, suit and scouter color selections are
+applied at campaign start. The small campus HUD displays actual company cash,
+power and diesel inventory state.
+
+`Godot/scenes/historical_world.tscn` is a separate regression fixture for the
+preserved numbered world layers. Historical widget, energy-library and fab
+captures are labeled historical and do not establish integration in the current
+campaign. Detailed repair scope and acceptance gates are in
+[the v0.165 source report](docs/v165-source-code-readme.md).

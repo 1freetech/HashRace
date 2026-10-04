@@ -7,6 +7,7 @@ on:
 jobs:
   diesel-proof:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,16 +22,23 @@ jobs:
           sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
       - name: Fresh Godot import
         run: |
+          set -euo pipefail
           rm -rf Godot/.godot
           cd Godot
-          timeout 90s godot --headless --editor --path . --quit-after 2
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/v165-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v165-import.log; then exit 1; fi
       - name: Render actual diesel gameplay proof
         run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
           mkdir -p visual-proof
           cd Godot
-          xvfb-run -a godot --path . --script res://scripts/capture_v165_diesel.gd
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path . --script res://scripts/capture_v165_diesel.gd 2>&1 | tee /tmp/v165-capture.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v165-capture.log; then exit 1; fi
+          grep -q "V165 DIESEL PROOF PASS" /tmp/v165-capture.log
           test -s ../visual-proof/v165-diesel-overview.png
       - uses: actions/upload-artifact@v4
         with:
           name: hashrace-v165-live-diesel-proof
+          if-no-files-found: error
           path: visual-proof/v165-diesel-overview.png

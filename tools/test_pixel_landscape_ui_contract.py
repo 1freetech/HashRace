@@ -1,9 +1,10 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
-world_scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+world_scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text(encoding="utf-8")
 world_v072 = (ROOT / "Godot/scripts/world_v072.gd").read_text(encoding="utf-8")
 world_v073 = (ROOT / "Godot/scripts/world_v073.gd").read_text(encoding="utf-8")
 world_v070 = (ROOT / "Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
@@ -37,4 +38,4 @@ for marker in ['"MENU  [M]"','"CONTROL CENTER"','"COMPANY"','"BTC TREASURY"','"L
     assert marker in compact, marker
 for marker in ["_draw_site_container","_draw_micro_server_rack","_draw_transformer_bank","_draw_campus_data_bus","_draw_cable_bundle","debug_infrastructure_detail_ready"]:
     assert marker in world_v059, marker
-print("pixel landscape + compact UI + data-center and energy infrastructure contract: PASS")
+print("HISTORICAL SOURCE: pixel landscape + compact UI + data-center and energy infrastructure contract: PASS")

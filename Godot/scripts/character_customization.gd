@@ -6,7 +6,7 @@ const DEFAULT_GENDER: int = 0
 const DEFAULT_OUTFIT: int = 0
 const DEFAULT_SCOUTER_COLOR: int = 0
 const DEFAULT_SCOUTER_EYE: int = 1
-const DEFAULT_SUIT_COLOR: int = 0
+const DEFAULT_SUIT_COLOR: int = 1
 
 const SKIN_TONES: Array = [
     {"id":"deep", "name":"Deep", "skin":Color("5d3526"), "highlight":Color("875239")},

@@ -21,34 +21,14 @@ assert "ACTUAL PLAYER PREVIEW" in preview
 assert "approved_32frame_runtime_palette" in world
 assert "debug_v144_palette_key" in world
 
-# Historical regression layers are behavior contracts, not live-version locks.
-# Follow the current world inheritance chain and require v0.144 to remain in it.
-live_scene_match = re.search(
-    r'path="res://scripts/(world_v\d+\.gd)" type="Script" id="1_world"', scene
-)
-assert live_scene_match, "world.tscn must point at a versioned live world script"
-current_name = live_scene_match.group(1)
-visited = []
-while True:
-    assert current_name not in visited, f"world inheritance cycle detected at {current_name}"
-    visited.append(current_name)
-    if current_name == "world_v144.gd":
-        break
-    current_path = SCRIPTS / current_name
-    assert current_path.exists(), f"missing inherited world script: {current_name}"
-    current_source = current_path.read_text(encoding="utf-8")
-    parent_match = re.search(r'^extends\s+"res://scripts/(world_v\d+\.gd)"', current_source, re.MULTILINE)
-    assert parent_match, (
-        f"{current_name} must preserve the versioned inheritance chain back to v0.144; "
-        f"visited: {' -> '.join(visited)}"
-    )
-    current_name = parent_match.group(1)
-
-assert "world_v144.gd" in visited, (
-    "current live world must preserve v0.144 customization behavior through inheritance; "
-    f"visited: {' -> '.join(visited)}"
-)
-print(
-    "Hash Race v0.144 exact approved-sheet skin/suit customization contract: PASS "
-    f"through {' -> '.join(visited)}"
-)
+# Customization must reach the current AnimatedSprite2D at campaign start.
+live = (SCRIPTS / "world.gd").read_text(encoding="utf-8")
+assert 'res://scripts/world.gd' in scene
+for key in ["hashrace_character_skin_tone", "hashrace_character_suit_color", "hashrace_character_scouter_color"]:
+    assert key in live
+assert "PlayerSheet.build_customized_frames" in live
+assert "player_sprite.sprite_frames = frames" in live
+assert "CharacterCustomization.skin_tone(skin_idx)" in live
+assert "CharacterCustomization.suit_color(suit_idx)" in live
+assert "CharacterCustomization.scouter_lens_color(scouter_idx)" in live
+print("Current approved-sheet skin/suit/scouter startup wiring contract: PASS")

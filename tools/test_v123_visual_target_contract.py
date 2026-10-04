@@ -1,5 +1,6 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
-from world_script_contract import assert_world_inherits
+from world_script_contract import assert_historical_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -9,7 +10,7 @@ def test_v123_visual_target_contract():
     world = (ROOT / "Godot/scripts/world_v123.gd").read_text()
     hud = (ROOT / "Godot/scripts/visual_target_hud.gd").read_text()
     navigation = (ROOT / "Godot/scripts/world_v094.gd").read_text()
-    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+    scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text()
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
     spec = (ROOT / "docs/visual_target_v121.md").read_text()
 
@@ -52,7 +53,7 @@ def test_v123_visual_target_contract():
     ]:
         assert token in navigation, token
 
-    assert_world_inherits("world_v123.gd")
+    assert_historical_world_inherits("world_v123.gd")
     assert "visual_target_hud.gd" in validator
     assert "world_v122.gd" in validator
     assert "world_v123.gd" in validator
@@ -61,4 +62,4 @@ def test_v123_visual_target_contract():
 
 if __name__ == "__main__":
     test_v123_visual_target_contract()
-    print("v0.123 visual target contract: PASS")
+    print("HISTORICAL SOURCE: v0.123 visual target contract: PASS")

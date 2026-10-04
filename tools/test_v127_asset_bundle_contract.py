@@ -1,5 +1,6 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
-from world_script_contract import assert_world_inherits
+from world_script_contract import assert_historical_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,9 +18,9 @@ def main():
         assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"), asset
 
     world = (ROOT / "Godot/scripts/world_v127.gd").read_text()
-    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+    scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text()
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
-    capture = (ROOT / "Godot/scripts/capture_screenshot.gd").read_text()
+    capture = (ROOT / "Godot/scripts/capture_historical_world.gd").read_text()
     player = (ROOT / "Godot/scripts/default_player_sprite_sheet.gd").read_text()
 
     for path in [
@@ -45,7 +46,7 @@ def main():
 
     assert "_v127_draw_industrial_road" in world
     assert "_v127_draw_utility_cluster" in world
-    assert_world_inherits("world_v127.gd")
+    assert_historical_world_inherits("world_v127.gd")
     assert "FRAME_REGIONS" in player
     # Animation names are now assembled from the four facing keys so the
     # effective 16-pose runtime can reuse the exact approved 32-pose PNG.
@@ -53,7 +54,7 @@ def main():
         assert f'"{facing}"' in player, facing
     assert 'StringName("walk_" + facing)' in player
     assert 'StringName("idle_" + facing)' in player
-    print("Hash Race v0.127 live asset-bundle contract: PASS")
+    print("HISTORICAL SOURCE: Hash Race v0.127 live asset-bundle contract: PASS")
 
 if __name__ == "__main__":
     main()

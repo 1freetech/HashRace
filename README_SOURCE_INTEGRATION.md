@@ -1,3 +1,12 @@
+# Current report boundary
+
+The entries below are dated historical work logs, not a description of the current
+head. The current runtime/deployment/proof scope is documented in
+[docs/v165-source-code-readme.md](docs/v165-source-code-readme.md). PR #94 now
+includes stable runtime repairs and actual diesel integration; its title/body
+must describe that expanded scope. Fresh exact-head CI and inspected current-world
+proof remain mandatory before merge.
+
 # Hash Race source integration report
 
 ## Current proof target

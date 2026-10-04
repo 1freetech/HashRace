@@ -9,6 +9,7 @@ on:
 jobs:
   wind-proof:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out exact proposed head
         uses: actions/checkout@v4
@@ -44,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v164_wind.gd 2>&1 | tee /tmp/v164-wind.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v164_wind.gd 2>&1 | tee /tmp/v164-wind.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|V164 WIND PROOF FAIL" /tmp/v164-wind.log; then exit 1; fi
           grep -q "V164 WIND PROOF PASS" /tmp/v164-wind.log
           test -s visual-proof/v164-wind-overview.png

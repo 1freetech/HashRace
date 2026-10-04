@@ -42,9 +42,9 @@ static void require_world_inherits(const std::string& scene, const std::string& 
 int main() {
     try {
         const auto world = read_text("Godot/scripts/world_v128.gd");
-        const auto scene = read_text("Godot/scenes/world.tscn");
+        const auto scene = read_text("Godot/scenes/historical_world.tscn");
         const auto validator = read_text("Godot/scripts/validate_modular_scripts.gd");
-        const auto capture = read_text("Godot/scripts/capture_screenshot.gd");
+        const auto capture = read_text("Godot/scripts/capture_historical_world.gd");
         require_contains(world, "extends \"res://scripts/world_v127.gd\"");
         require_contains(world, "V128_CONTAINER_PATH");
         require_contains(world, "CITY_ROAD_STYLES");
@@ -57,7 +57,7 @@ int main() {
         require_contains(capture, "hashrace_v128_single_road_stack");
         require_world_inherits(scene, "world_v128.gd");
         require_contains(validator, "world_v128.gd");
-        std::cout << "Hash Race v0.128 C++ road/container behavior contract: PASS\n";
+        std::cout << "Historical fixture v0.128 C++ road/container behavior contract: PASS\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "Hash Race v0.128 C++ contract FAIL: " << error.what() << '\n';

@@ -120,7 +120,7 @@ func _run() -> void:
     var start: Vector2 = scene.get("rep_pos")
     scene.call("move_player", Vector2(12.0, 0.0))
     scene.call("_set_player_facing", Vector2.RIGHT)
-    scene.call("_update_player_animation", true)
+    scene.call("_update_player_animation", true, scene.PLAYER_SPEED)
     await process_frame
     var moved: Vector2 = scene.get("rep_pos")
     if moved.distance_to(start) < 1.0:

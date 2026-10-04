@@ -1,9 +1,10 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
-from world_script_contract import assert_world_inherits
+from world_script_contract import assert_historical_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = (ROOT / "Godot/scripts/world_v114.gd").read_text(encoding="utf-8")
-SCENE = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
+SCENE = (ROOT / "Godot/scenes/historical_world.tscn").read_text(encoding="utf-8")
 ENERGY = (ROOT / "Godot/systems/energy_visual_catalog.gd").read_text(encoding="utf-8")
 
 def main():
@@ -16,8 +17,8 @@ def main():
     assert "hundred_mw == 8" in WORLD
     assert "master_texture()" in WORLD
     assert "ENERGY_VISUALS.size() == 13" in ENERGY
-    assert_world_inherits("world_v114.gd")
-    print("v0.114 live energy art + capacity scale contract PASS")
+    assert_historical_world_inherits("world_v114.gd")
+    print("HISTORICAL SOURCE: v0.114 live energy art + capacity scale contract PASS")
 
 if __name__ == "__main__":
     main()

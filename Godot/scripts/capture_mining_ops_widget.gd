@@ -1,3 +1,4 @@
+# Historical integration fixture only; not current-world visual acceptance.
 extends SceneTree
 
 const OUTPUT_PATH := "res://../visual-proof/hashrace-mining-ops-widget.png"
@@ -14,7 +15,7 @@ func _capture() -> void:
     set_meta("hashrace_campaign_years", 4)
     set_meta("hashrace_campaign_turns", 16)
 
-    var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
+    var packed: PackedScene = load("res://scenes/historical_world.tscn") as PackedScene
     if packed == null:
         _fail("world.tscn did not load")
         return

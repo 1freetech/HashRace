@@ -1,5 +1,6 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
-from world_script_contract import assert_world_inherits
+from world_script_contract import assert_historical_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -9,9 +10,9 @@ def main():
     asset = ROOT / "Godot/art/terrain/dirt_road_tilesheet.png"
     catalog = (ROOT / "Godot/scripts/dirt_road_catalog.gd").read_text()
     world = (ROOT / "Godot/scripts/world_v125.gd").read_text()
-    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+    scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text()
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
-    capture = (ROOT / "Godot/scripts/capture_screenshot.gd").read_text()
+    capture = (ROOT / "Godot/scripts/capture_historical_world.gd").read_text()
 
     assert asset.exists() and asset.stat().st_size > 20_000
     assert asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
@@ -29,12 +30,12 @@ def main():
     ]:
         assert token in world, token
 
-    assert_world_inherits("world_v125.gd")
+    assert_historical_world_inherits("world_v125.gd")
     assert "dirt_road_catalog.gd" in validator
     assert "world_v125.gd" in validator
     assert "hashrace_v125_dirt_road_revision" in capture
 
-    print("Hash Race v0.125 dirt-road atlas contract: PASS")
+    print("HISTORICAL SOURCE: Hash Race v0.125 dirt-road atlas contract: PASS")
 
 if __name__ == "__main__":
     main()

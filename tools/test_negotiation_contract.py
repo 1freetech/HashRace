@@ -1,3 +1,4 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
 import re
 
@@ -7,7 +8,7 @@ scene_script = (ROOT / "Godot/scripts/negotiation_scene.gd").read_text()
 manager = (ROOT / "Godot/systems/negotiation_manager.gd").read_text()
 world = (ROOT / "Godot/scripts/world_v072.gd").read_text()
 computer_offer_world = (ROOT / "Godot/scripts/world_v086.gd").read_text()
-world_scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+world_scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text()
 scene = (ROOT / "Godot/scenes/NegotiationScene.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
 
@@ -95,4 +96,4 @@ while cursor and cursor not in seen:
 assert found_v086, f"Live world inheritance from {live_script} must retain v0.086 computer offers"
 assert re.fullmatch(r"v0\.\d{3}", version), version
 assert int(version.split(".")[1]) >= 86, f"computer offers require v0.086+, got {version}"
-print("Negotiation contract PASS")
+print("HISTORICAL SOURCE: Negotiation contract PASS")
