@@ -4,11 +4,11 @@ class_name HashRaceArchiveSpriteProps
 # Promoted reference sprites are support props, but they must still read at the
 # live overworld camera scale. Cells are cleaned/cropped at runtime, then fit
 # into a practical map footprint instead of being blindly crushed to 32 px.
-const LIVE_PROP_TARGET_HEIGHT_PX := 52.0
-const LIVE_PROP_MAX_WIDTH_PX := 68.0
-const LIVE_PROP_MIN_WIDTH_PX := 30.0
-const LIVE_PROP_COLLISION_HEIGHT := 12.0
-const LIVE_PROP_SPACING_PX := 80.0
+const LIVE_PROP_TARGET_HEIGHT_PX := 72.0
+const LIVE_PROP_MAX_WIDTH_PX := 96.0
+const LIVE_PROP_MIN_WIDTH_PX := 42.0
+const LIVE_PROP_COLLISION_HEIGHT := 16.0
+const LIVE_PROP_SPACING_PX := 108.0
 const BACKGROUND_ALPHA_EPSILON := 0.04
 const BACKGROUND_CHROMA_LIMIT := 0.12
 const BACKGROUND_LOCAL_DELTA := 0.10
@@ -98,7 +98,7 @@ func _build_props() -> void:
             var prop_name: String = String(names[cell_index])
             if not NONBLOCKING.has(prop_name):
                 var display_width: float = float(prepared.get_width()) * scale_factor
-                var collision_width: float = clampf(display_width * 0.72, 28.0, 56.0)
+                var collision_width: float = clampf(display_width * 0.72, 34.0, 72.0)
                 collision_footprints.append(Rect2(
                     sprite.position.x - collision_width * 0.5,
                     sprite.position.y - LIVE_PROP_COLLISION_HEIGHT,
