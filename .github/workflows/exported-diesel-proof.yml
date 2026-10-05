@@ -14,7 +14,8 @@ on:
       - 'Godot/scripts/infrastructure_inventory.gd'
       - 'Godot/scripts/world.gd'
       - 'Godot/scripts/world_overworld.gd'
-      - 'Godot/data/items/diesel_generator.tres'
+      - 'Godot/data/item_library.gd'
+      - 'Godot/data/items/**'
   workflow_dispatch:
 
 jobs:
