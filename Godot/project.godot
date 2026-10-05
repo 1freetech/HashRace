@@ -9,6 +9,7 @@ config/features=PackedStringArray("4.7")
 
 [autoload]
 SceneManager="*res://autoloads/scene_manager.gd"
+ExportedDieselProbe="*res://autoloads/exported_diesel_probe.gd"
 
 [display]
 window/size/viewport_width=1440
