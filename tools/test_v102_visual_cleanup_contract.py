@@ -1,18 +1,20 @@
 """Regression contract for Hash Race v0.102 visual cleanup."""
 from pathlib import Path
 
+from world_script_contract import active_world_scripts
+
 ROOT = Path(__file__).resolve().parents[1]
 
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 world = (ROOT / "Godot/scripts/world_v102.gd").read_text(encoding="utf-8")
-stable_world = ROOT / "Godot/scripts/world.gd"
 rack = (ROOT / "Godot/data/items/ai_rack_system.tres").read_text(encoding="utf-8")
 
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 102, version
-assert 'ext_resource path="res://scripts/world.gd" type="Script" id="1_world"' in scene
-assert stable_world.is_file(), "Live scene stable world entry point is missing"
+live_scripts = active_world_scripts()
+assert 'ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"' in scene
+assert "res://scripts/world_v102.gd" in live_scripts, "v0.102 visual/gameplay layer must remain live"
 assert 'extends "res://scripts/world_v101.gd"' in world
 
 for required in [
@@ -30,4 +32,4 @@ assert 'id = "ai_rack_system"' in rack
 assert 'visual = "ai_rack"' in rack
 assert 'effect = "uptime"' in rack
 
-print("Hash Race v0.102 visual cleanup contract passed.")
+print("Hash Race v0.102 visual cleanup contract passed through restored live chain.")
