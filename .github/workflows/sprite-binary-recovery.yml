@@ -25,11 +25,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p recovered
+          mkdir -p recovered/original
           python - <<'PY'
           from pathlib import Path
-          from PIL import Image, ImageFile, ImageOps, ImageDraw
-          import traceback
+          from PIL import Image, ImageFile, ImageDraw
+          import shutil
 
           root = Path('Godot/art/props/hr_sprite_sheets')
           names = [
@@ -41,6 +41,7 @@ jobs:
           report=[]
           for name in names:
               src=root/name
+              shutil.copyfile(src, Path('recovered/original')/name)
               out=Path('recovered')/name
               ok=False
               try:
@@ -92,7 +93,7 @@ jobs:
           test "$count" -eq 4
           pngcheck -q recovered/2026-10-04_*.png
 
-      - name: Upload recovery candidates
+      - name: Upload recovery candidates and originals
         uses: actions/upload-artifact@v4
         with:
           name: hashrace-sprite-binary-recovery-${{ github.sha }}
