@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "Godot" / "art" / "props" / "hr_sprite_sheets"
 SCRIPT = (ROOT / "Godot" / "scripts" / "archive_sprite_props.gd").read_text()
 SCENE = (ROOT / "Godot" / "scenes" / "world.tscn").read_text()
+WORLD_V165 = ROOT / "Godot" / "scripts" / "world_v165.gd"
 
 EXPECTED = {
     "2026-10-04_ats_handhole_bollards_96x32.png": (96, 32),
@@ -78,9 +79,15 @@ for marker in [
     "collision_footprints",
     "live_sprites.size() != 33",
     "loaded_sheet_count != SHEETS.size()",
+    "const LIVE_PROP_DISPLAY_PX := 32.0",
+    "LIVE_PROP_DISPLAY_PX / float(cell)",
 ]:
     assert marker in SCRIPT, marker
 
-assert 'res://scripts/archive_sprite_props.gd' in SCENE
+# Gameplay regression guard: visual sprite promotion must never replace the
+# full live simulation/world inheritance chain again.
+assert WORLD_V165.is_file(), "world_v165.gd must remain present on the live branch"
+assert 'res://scripts/world_v165.gd' in SCENE, "live world must use the v0.165 gameplay chain"
 assert '[node name="ArchiveSpriteProps" type="Node2D" parent="."]' in SCENE
-print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 CRC-valid, fully decodable PNG sheets / 33 live atlas cells")
+assert 'res://scripts/archive_sprite_props.gd' in SCENE
+print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 compact live atlas cells / v0.165 gameplay chain")
