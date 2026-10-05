@@ -292,6 +292,9 @@ func debug_ready() -> bool:
             return false
         if displayed_size.y > LIVE_PROP_TARGET_HEIGHT_PX + 1.0:
             return false
-        if displayed_size.x < 18.0 or displayed_size.y < 18.0:
+        # Some legitimate overview props are intentionally shallow (handholes,
+        # trench/drain cells) or narrow (pedestals). Reject only sprites that
+        # are tiny in both dimensions rather than invalidating their aspect ratio.
+        if displayed_size.x < 18.0 and displayed_size.y < 18.0:
             return false
     return true
