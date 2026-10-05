@@ -1,0 +1,101 @@
+name: Sprite binary recovery diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sprite-binary-recovery.yml'
+  workflow_dispatch:
+
+jobs:
+  recover-corrupt-pngs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact main head
+        uses: actions/checkout@v4
+
+      - name: Install recovery tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pngcheck imagemagick
+          python -m pip install --upgrade pillow
+
+      - name: Attempt tolerant recovery and re-encode
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p recovered
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageFile, ImageOps, ImageDraw
+          import traceback
+
+          root = Path('Godot/art/props/hr_sprite_sheets')
+          names = [
+              '2026-10-04_harmonicfilter_bench_lightning_192x64.png',
+              '2026-10-04_loadbank_eyewash_cablereel_96x32.png',
+              '2026-10-04_mvtermination_diag_weather_96x32.png',
+              '2026-10-04_telecom_air_drain_192x64.png',
+          ]
+          report=[]
+          for name in names:
+              src=root/name
+              out=Path('recovered')/name
+              ok=False
+              try:
+                  ImageFile.LOAD_TRUNCATED_IMAGES=True
+                  with Image.open(src) as im:
+                      im.load()
+                      rgba=im.convert('RGBA')
+                      rgba.save(out, format='PNG', optimize=False)
+                      report.append(f'{name}: PIL tolerant load OK {rgba.size}')
+                      ok=True
+              except Exception as exc:
+                  report.append(f'{name}: PIL tolerant load FAILED: {exc!r}')
+              if not ok:
+                  report.append(f'{name}: requires fallback decoder')
+          Path('recovered/recovery-report.txt').write_text('\n'.join(report)+'\n')
+          print('\n'.join(report))
+
+          imgs=[]
+          labels=[]
+          for name in names:
+              path=Path('recovered')/name
+              if not path.exists():
+                  continue
+              im=Image.open(path).convert('RGBA')
+              scale=4 if im.height==32 else 2
+              im=im.resize((im.width*scale,im.height*scale),Image.Resampling.NEAREST)
+              imgs.append(im)
+              labels.append(name)
+          if imgs:
+              w=max(i.width for i in imgs)
+              h=sum(i.height+28 for i in imgs)+8
+              sheet=Image.new('RGBA',(w+16,h),(24,24,24,255))
+              y=8
+              d=ImageDraw.Draw(sheet)
+              for im,label in zip(imgs,labels):
+                  sheet.alpha_composite(im,(8,y))
+                  y+=im.height+2
+                  d.text((8,y),label,fill=(255,255,255,255))
+                  y+=26
+              sheet.save('recovered/contact-sheet.png')
+          PY
+
+      - name: Validate recovered PNG streams
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat recovered/recovery-report.txt
+          count=$(find recovered -maxdepth 1 -name '2026-10-04_*.png' | wc -l)
+          test "$count" -eq 4
+          pngcheck -q recovered/2026-10-04_*.png
+
+      - name: Upload recovery candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-sprite-binary-recovery-${{ github.sha }}
+          path: recovered/
+          if-no-files-found: error
+          retention-days: 30
