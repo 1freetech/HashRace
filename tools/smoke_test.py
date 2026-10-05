@@ -60,6 +60,7 @@ def main():
     assert live_world_match, "Live scene does not reference a world script"
     live_world_path = live_world_match.group(1)
     assert Path("Godot", live_world_path.removeprefix("res://")).is_file(), f"Live world is missing: {live_world_path}"
+    assert live_world_path == "res://scripts/world_v165.gd", "Full v0.165 gameplay chain must remain the live root"
     assert 'extends "res://scripts/world_overworld.gd"' in towns
     assert 'extends "res://scripts/world_towns.gd"' in grid_world
     assert 'extends "res://scripts/world_grid.gd"' in gbc_world
@@ -114,13 +115,13 @@ def main():
     require(character_catalog, ["SKIN_TONES", "GENDERS", "OUTFITS", "SCOUTER_COLORS", "SCOUTER_EYES", "Neon Operator Armor", "Grid Runner", "Night Shift", '"cost"', 'Color("171b20")', 'Color("39ff75")', "scouter_lens_color", "scouter_scanner_side"], "Character catalog")
     require(customization, ["CHARACTER WARDROBE", "OUTFIT SKINS // BUY WITH GAME CASH", "_cycle_skin_tone", "_cycle_gender", "_cycle_scouter_color", "_cycle_scouter_eye", "_choose_outfit", "owned_outfits", "_draw_hashrace_player", "debug_character_scouter_color", "debug_character_scouter_eye", "debug_character_customization_ready", "debug_paid_outfits_use_game_cash"], "Character customization")
     require(character_detail, ["CHARACTER_DETAIL_REVISION", "_draw_detailed_character", "_draw_hashrace_player", "_draw_tech_rep", "DETAIL_VISOR_GREEN", "Headphones/ear protection", "shoulder", "knee", "gloves", "boots", "debug_character_detail_ready"], "v0.053 shared detailed character renderer")
-    require(validator, ["runtime_ready", "infrastructure_ready", "infrastructure_rect", "infrastructure_footprint", "move_player"], "Stable runtime validator")
+    require(validator, ["world_v165.gd", "debug_grid_navigation_ready", "debug_league_standings_ready", "debug_life_ops_ready", "debug_burnout_ready", "infrastructure_inventory"], "Full gameplay runtime validator")
 
     required_support = ["native/cpp/hashrace_core.cpp", "native/rust/hashrace_balance.rs", "tools/typescript/hashrace_validate.ts", "docs/LANGUAGE_STACK.md", "docs/ECONOMY_MODEL.md", "Godot/export_presets.cfg", "Godot/scripts/world_time_scale.gd", "Godot/scripts/world_company_ai.gd", "Godot/scripts/world_company_effects.gd", "Godot/scripts/world_rpg_strategy.gd", "Godot/scripts/grid_navigation.gd", "Godot/scripts/live_treasury_controls.gd", "Godot/scripts/world_texture_spacing.gd", "Godot/scripts/world_customization.gd", "Godot/scripts/world_character_detail.gd", "Godot/scripts/character_customization.gd", "Godot/scripts/character_preview.gd", "Godot/scripts/building_placer.gd", "Godot/scripts/gen2_microtile_rules.gd", "Godot/shaders/building_pixelate.gdshader", "docs/PIXEL_ART_BUILDING_PIPELINE.md", "Godot/data/item_resource.gd", "Godot/data/item_library.gd", "Godot/systems/simulation_manager.gd", "Godot/systems/physical_placement_grid.gd", "Godot/components/building/rack_slot.gd", "Godot/components/building/rack_container.gd"]
     for item in required_support:
         assert Path(item).exists(), f"Missing support file: {item}"
 
-    print("Hash Race smoke test passed: stable runtime and modular strategy systems are structurally intact.")
+    print("Hash Race smoke test passed: full gameplay runtime and modular strategy systems are structurally intact.")
 
 
 if __name__ == "__main__":
