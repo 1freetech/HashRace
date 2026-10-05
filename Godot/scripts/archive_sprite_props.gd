@@ -1,6 +1,12 @@
 extends Node2D
 class_name HashRaceArchiveSpriteProps
 
+# Promoted reference sprites are intentionally small support props. Keep every
+# atlas cell at a 32 px live-map footprint so artwork never overwhelms the
+# player, roads, containers, or interactive gameplay layers.
+const LIVE_PROP_DISPLAY_PX := 32.0
+const LIVE_PROP_COLLISION := Vector2(28.0, 8.0)
+
 const SHEETS = [
     {"path":"res://art/props/hr_sprite_sheets/2026-10-04_ats_handhole_bollards_96x32.png","cell":32,"names":["ats","handhole","bollards"]},
     {"path":"res://art/props/hr_sprite_sheets/2026-10-04_cooling_electrical_energy_96x32.png","cell":32,"names":["cooling_unit","electrical_unit","energy_unit"]},
@@ -61,22 +67,30 @@ func _build_props() -> void:
             sprite.name = "ArchiveProp_%s" % String(names[cell_index]).to_pascal_case()
             sprite.texture = region
             sprite.centered = true
+            # Offset by half the source cell before scaling. This pins the visible
+            # bottom edge exactly to sprite.position for predictable ground contact.
             sprite.offset = Vector2(0.0, -float(cell) * 0.5)
-            sprite.scale = Vector2.ONE * (2.0 if cell == 32 else 1.0)
+            sprite.scale = Vector2.ONE * (LIVE_PROP_DISPLAY_PX / float(cell))
             sprite.position = _ground_position(sheet_index, cell_index)
             sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
             sprite.set_meta("hashrace_archive_sheet", String(spec["path"]))
             sprite.set_meta("hashrace_archive_cell", cell_index)
+            sprite.set_meta("hashrace_live_display_px", LIVE_PROP_DISPLAY_PX)
             add_child(sprite)
             live_sprites.append(sprite)
 
             var prop_name: String = String(names[cell_index])
             if not NONBLOCKING.has(prop_name):
-                collision_footprints.append(Rect2(sprite.position.x - 24.0, sprite.position.y - 12.0, 48.0, 12.0))
+                collision_footprints.append(Rect2(
+                    sprite.position.x - LIVE_PROP_COLLISION.x * 0.5,
+                    sprite.position.y - LIVE_PROP_COLLISION.y,
+                    LIVE_PROP_COLLISION.x,
+                    LIVE_PROP_COLLISION.y
+                ))
 
 func _ground_position(sheet_index: int, cell_index: int) -> Vector2:
     var anchor: Vector2i = CLUSTER_ANCHORS[sheet_index]
-    return Vector2(float(anchor.x + (cell_index - 1) * 74), float(anchor.y))
+    return Vector2(float(anchor.x + (cell_index - 1) * 52), float(anchor.y))
 
 func _connect_navigation_refresh() -> void:
     var host: Node = get_parent()
@@ -113,5 +127,7 @@ func debug_ready() -> bool:
         return false
     for sprite in live_sprites:
         if sprite == null or sprite.texture == null or sprite.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
+            return false
+        if sprite.scale.x > 1.0 or sprite.scale.y > 1.0:
             return false
     return true
