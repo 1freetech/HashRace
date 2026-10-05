@@ -1,0 +1,72 @@
+name: Archive sprite live proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/archive-sprite-proof.yml'
+      - 'Godot/art/props/hr_sprite_sheets/**'
+      - 'Godot/scripts/archive_sprite_props.gd'
+      - 'Godot/scripts/capture_archive_sprite_props.gd'
+      - 'Godot/scenes/world.tscn'
+      - 'tools/test_archive_sprite_props_contract.py'
+  workflow_dispatch:
+
+jobs:
+  archive-sprite-live-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact main head
+        uses: actions/checkout@v4
+
+      - name: Validate exact promoted sprite-sheet binaries and wiring
+        run: python tools/test_archive_sprite_props_contract.py
+
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+
+      - name: Fresh import
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          timeout 120s godot --headless --editor --path Godot --import 2>&1 | tee /tmp/hashrace-archive-sprite-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-archive-sprite-import.log; then exit 1; fi
+
+      - name: Boot live world with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-archive-sprite-world.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:" /tmp/hashrace-archive-sprite-world.log; then exit 1; fi
+
+      - name: Install virtual display
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Render all 11 promoted sheets in the live world
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p visual-proof
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_archive_sprite_props.gd 2>&1 | tee /tmp/hashrace-archive-sprite-proof.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:|ARCHIVE SPRITE PROOF FAIL" /tmp/hashrace-archive-sprite-proof.log; then exit 1; fi
+          grep -q "ARCHIVE SPRITE PROOF PASS" /tmp/hashrace-archive-sprite-proof.log
+          test -s visual-proof/hashrace-archive-sprite-props.png
+
+      - name: Upload fresh archive sprite runtime proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-archive-sprite-live-proof-${{ github.sha }}
+          path: visual-proof/hashrace-archive-sprite-props.png
+          if-no-files-found: error
+          retention-days: 90
