@@ -205,9 +205,9 @@ func set_lab_focus(new_focus: String) -> void:
 func preview_next_generation() -> void:
     if not initialized_player:
         return
-    var next_hash := game.machine_hashrate_th * 2.2
-    var next_eff := game.efficiency_jth * 0.72
-    var next_uptime := game.effective_uptime()
+    var next_hash: float = float(game.machine_hashrate_th) * 2.2
+    var next_eff: float = float(game.efficiency_jth) * 0.72
+    var next_uptime: float = float(game.effective_uptime())
     if game.signed_partners.has("Semiconductor"):
         next_eff *= 0.90
     match lab_focus:
@@ -220,7 +220,7 @@ func preview_next_generation() -> void:
         "Reliability":
             next_hash *= 0.98
             next_eff *= 0.98
-            next_uptime = min(0.995, next_uptime + 0.004)
+            next_uptime = minf(0.995, next_uptime + 0.004)
     game.set_status("ASIC preview — Gen %d: %.1f TH/s, %.2f J/TH, %.1f%% uptime with %s focus." % [game.generation + 1, next_hash, next_eff, next_uptime * 100.0, lab_focus])
 
 func apply_lab_focus_to_new_generation() -> void:
@@ -238,7 +238,7 @@ func apply_lab_focus_to_new_generation() -> void:
     game.refresh_all()
 
 func create_season_objective() -> void:
-    var selector := game.season % 4
+    var selector: int = int(game.season) % 4
     match selector:
         0:
             season_objective = {
@@ -259,7 +259,7 @@ func create_season_objective() -> void:
                 "text": "Advance the ASIC program by 1 generation."
             }
         _:
-            var current_rank := game.calculate_rank()
+            var current_rank: int = int(game.calculate_rank())
             season_objective = {
                 "type": "rank",
                 "target": max(1, current_rank - 1),
