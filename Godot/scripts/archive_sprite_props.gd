@@ -2,7 +2,7 @@ extends Node2D
 class_name HashRaceArchiveSpriteProps
 
 # Promoted reference sprites are support props, but they must still read at the
-# live overworld camera scale.  Cells are cleaned/cropped at runtime, then fit
+# live overworld camera scale. Cells are cleaned/cropped at runtime, then fit
 # into a practical map footprint instead of being blindly crushed to 32 px.
 const LIVE_PROP_TARGET_HEIGHT_PX := 52.0
 const LIVE_PROP_MAX_WIDTH_PX := 68.0
@@ -62,7 +62,7 @@ func _build_props() -> void:
         if texture == null:
             push_error("HashRaceArchiveSpriteProps: could not load %s" % String(spec["path"]))
             continue
-        var atlas_image := texture.get_image()
+        var atlas_image: Image = texture.get_image()
         if atlas_image == null or atlas_image.is_empty():
             push_error("HashRaceArchiveSpriteProps: could not read %s" % String(spec["path"]))
             continue
@@ -71,18 +71,18 @@ func _build_props() -> void:
         var cell: int = int(spec["cell"])
         var names: Array = Array(spec["names"])
         for cell_index in range(names.size()):
-            var region_rect := Rect2i(cell_index * cell, 0, cell, cell)
-            var cell_image := atlas_image.get_region(region_rect)
-            var prepared := _prepare_cell_image(cell_image)
-            var cell_texture := ImageTexture.create_from_image(prepared)
+            var region_rect: Rect2i = Rect2i(cell_index * cell, 0, cell, cell)
+            var cell_image: Image = atlas_image.get_region(region_rect)
+            var prepared: Image = _prepare_cell_image(cell_image)
+            var cell_texture: ImageTexture = ImageTexture.create_from_image(prepared)
 
             var sprite := Sprite2D.new()
             sprite.name = "ArchiveProp_%s" % String(names[cell_index]).to_pascal_case()
             sprite.texture = cell_texture
             sprite.centered = true
-            var scale_factor := _display_scale_for(prepared.get_size())
+            var scale_factor: float = _display_scale_for(prepared.get_size())
             sprite.scale = Vector2.ONE * scale_factor
-            # Position is the ground contact.  Cropping transparent/background
+            # Position is the ground contact. Cropping transparent/background
             # pixels first keeps the visible bottom edge pinned to that point.
             sprite.offset = Vector2(0.0, -float(prepared.get_height()) * 0.5)
             sprite.position = _ground_position(sheet_index, cell_index)
@@ -97,8 +97,8 @@ func _build_props() -> void:
 
             var prop_name: String = String(names[cell_index])
             if not NONBLOCKING.has(prop_name):
-                var display_width := float(prepared.get_width()) * scale_factor
-                var collision_width := clampf(display_width * 0.72, 28.0, 56.0)
+                var display_width: float = float(prepared.get_width()) * scale_factor
+                var collision_width: float = clampf(display_width * 0.72, 28.0, 56.0)
                 collision_footprints.append(Rect2(
                     sprite.position.x - collision_width * 0.5,
                     sprite.position.y - LIVE_PROP_COLLISION_HEIGHT,
@@ -107,74 +107,75 @@ func _build_props() -> void:
                 ))
 
 func _prepare_cell_image(source: Image) -> Image:
-    var image := source.duplicate()
+    var image: Image = source.duplicate()
     image.convert(Image.FORMAT_RGBA8)
     if _has_opaque_neutral_corner_background(image):
         _clear_connected_neutral_background(image)
         cleaned_cell_count += 1
-    var bounds := _visible_bounds(image)
+    var bounds: Rect2i = _visible_bounds(image)
     if bounds.size.x <= 0 or bounds.size.y <= 0:
         return image
     # Keep one source pixel of breathing room when available so outlines are not
     # shaved by an exact alpha-bound crop.
-    var left := maxi(0, bounds.position.x - 1)
-    var top := maxi(0, bounds.position.y - 1)
-    var right := mini(image.get_width(), bounds.end.x + 1)
-    var bottom := mini(image.get_height(), bounds.end.y + 1)
+    var left: int = maxi(0, bounds.position.x - 1)
+    var top: int = maxi(0, bounds.position.y - 1)
+    var right: int = mini(image.get_width(), bounds.end.x + 1)
+    var bottom: int = mini(image.get_height(), bounds.end.y + 1)
     return image.get_region(Rect2i(left, top, right - left, bottom - top))
 
 func _has_opaque_neutral_corner_background(image: Image) -> bool:
     if image.is_empty():
         return false
-    var w := image.get_width()
-    var h := image.get_height()
-    var corners := [
+    var w: int = image.get_width()
+    var h: int = image.get_height()
+    var corners: Array[Vector2i] = [
         Vector2i(0, 0), Vector2i(w - 1, 0),
         Vector2i(0, h - 1), Vector2i(w - 1, h - 1),
     ]
-    var opaque_neutral := 0
+    var opaque_neutral: int = 0
     for point in corners:
-        var color := image.get_pixel(point.x, point.y)
+        var color: Color = image.get_pixel(point.x, point.y)
         if color.a >= 0.90 and _chroma(color) <= BACKGROUND_CHROMA_LIMIT:
             opaque_neutral += 1
     return opaque_neutral >= 3
 
 func _clear_connected_neutral_background(image: Image) -> void:
-    var w := image.get_width()
-    var h := image.get_height()
+    var w: int = image.get_width()
+    var h: int = image.get_height()
     if w <= 0 or h <= 0:
         return
-    var reference := _corner_reference_color(image)
-    var reference_luma := _luma(reference)
+    var reference: Color = _corner_reference_color(image)
+    var reference_luma: float = _luma(reference)
     var visited := PackedByteArray()
     visited.resize(w * h)
     var queue: Array[Vector2i] = []
-    var seeds := [
+    var seeds: Array[Vector2i] = [
         Vector2i(0, 0), Vector2i(w - 1, 0),
         Vector2i(0, h - 1), Vector2i(w - 1, h - 1),
     ]
     for seed in seeds:
-        var index := seed.y * w + seed.x
+        var index: int = seed.y * w + seed.x
         if visited[index] == 0:
             visited[index] = 1
             queue.append(seed)
 
-    var cursor := 0
+    var directions: Array[Vector2i] = [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+    var cursor: int = 0
     while cursor < queue.size():
-        var point := queue[cursor]
+        var point: Vector2i = queue[cursor]
         cursor += 1
-        var current := image.get_pixel(point.x, point.y)
+        var current: Color = image.get_pixel(point.x, point.y)
         if not _is_background_pixel(current, reference_luma):
             continue
         image.set_pixel(point.x, point.y, Color(current.r, current.g, current.b, 0.0))
-        for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-            var neighbor := point + direction
+        for direction in directions:
+            var neighbor: Vector2i = point + direction
             if neighbor.x < 0 or neighbor.y < 0 or neighbor.x >= w or neighbor.y >= h:
                 continue
-            var neighbor_index := neighbor.y * w + neighbor.x
+            var neighbor_index: int = neighbor.y * w + neighbor.x
             if visited[neighbor_index] != 0:
                 continue
-            var candidate := image.get_pixel(neighbor.x, neighbor.y)
+            var candidate: Color = image.get_pixel(neighbor.x, neighbor.y)
             visited[neighbor_index] = 1
             if candidate.a <= BACKGROUND_ALPHA_EPSILON:
                 queue.append(neighbor)
@@ -187,14 +188,14 @@ func _clear_connected_neutral_background(image: Image) -> void:
                 queue.append(neighbor)
 
 func _corner_reference_color(image: Image) -> Color:
-    var w := image.get_width()
-    var h := image.get_height()
-    var corners := [
+    var w: int = image.get_width()
+    var h: int = image.get_height()
+    var corners: Array[Color] = [
         image.get_pixel(0, 0), image.get_pixel(w - 1, 0),
         image.get_pixel(0, h - 1), image.get_pixel(w - 1, h - 1),
     ]
     var total := Color(0.0, 0.0, 0.0, 0.0)
-    var count := 0.0
+    var count: float = 0.0
     for color in corners:
         if color.a >= 0.90 and _chroma(color) <= BACKGROUND_CHROMA_LIMIT:
             total += color
@@ -209,10 +210,10 @@ func _is_background_pixel(color: Color, reference_luma: float) -> bool:
         and absf(_luma(color) - reference_luma) <= BACKGROUND_REFERENCE_LUMA_DELTA
 
 func _visible_bounds(image: Image) -> Rect2i:
-    var min_x := image.get_width()
-    var min_y := image.get_height()
-    var max_x := -1
-    var max_y := -1
+    var min_x: int = image.get_width()
+    var min_y: int = image.get_height()
+    var max_x: int = -1
+    var max_y: int = -1
     for y in range(image.get_height()):
         for x in range(image.get_width()):
             if image.get_pixel(x, y).a <= BACKGROUND_ALPHA_EPSILON:
@@ -228,12 +229,13 @@ func _visible_bounds(image: Image) -> Rect2i:
 func _display_scale_for(size: Vector2i) -> float:
     if size.x <= 0 or size.y <= 0:
         return 1.0
-    var height_scale := LIVE_PROP_TARGET_HEIGHT_PX / float(size.y)
-    var width_scale := LIVE_PROP_MAX_WIDTH_PX / float(size.x)
-    var scale_factor := minf(height_scale, width_scale)
-    var projected_width := float(size.x) * scale_factor
-    if projected_width < LIVE_PROP_MIN_WIDTH_PX:
-        scale_factor = minf(LIVE_PROP_MAX_WIDTH_PX / float(size.x), LIVE_PROP_MIN_WIDTH_PX / float(size.x))
+    var height_scale: float = LIVE_PROP_TARGET_HEIGHT_PX / float(size.y)
+    var width_scale: float = LIVE_PROP_MAX_WIDTH_PX / float(size.x)
+    var scale_factor: float = minf(height_scale, width_scale)
+    var projected_width: float = float(size.x) * scale_factor
+    var minimum_width_scale: float = LIVE_PROP_MIN_WIDTH_PX / float(size.x)
+    if projected_width < LIVE_PROP_MIN_WIDTH_PX and float(size.y) * minimum_width_scale <= LIVE_PROP_TARGET_HEIGHT_PX:
+        scale_factor = minf(width_scale, minimum_width_scale)
     return scale_factor
 
 func _chroma(color: Color) -> float:
@@ -285,7 +287,7 @@ func debug_ready() -> bool:
     for sprite in live_sprites:
         if sprite == null or sprite.texture == null or sprite.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
             return false
-        var displayed_size := sprite.texture.get_size() * sprite.scale
+        var displayed_size: Vector2 = sprite.texture.get_size() * sprite.scale
         if displayed_size.x > LIVE_PROP_MAX_WIDTH_PX + 1.0:
             return false
         if displayed_size.y > LIVE_PROP_TARGET_HEIGHT_PX + 1.0:
