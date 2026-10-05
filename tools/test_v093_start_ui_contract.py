@@ -2,6 +2,8 @@
 from pathlib import Path
 import re
 
+from world_script_contract import active_world_scripts
+
 ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
@@ -16,13 +18,13 @@ release = (ROOT / "Godot/scripts/world_v093.gd").read_text(encoding="utf-8")
 assert re.fullmatch(r"v0\.\d{3}", version), version
 version_number = int(version.rsplit(".", 1)[1])
 assert version_number >= 93, f"v0.093 feature contract requires v0.093 or newer, got {version}"
-assert 'ext_resource path="res://scripts/world.gd" type="Script" id="1_world"' in scene, \
-    "Live scene must use the stable res://scripts/world.gd gameplay entry point"
-assert (ROOT / "Godot/scripts/world_v093.gd").is_file(), "v0.093 feature layer must remain in the release chain"
+live_scripts = active_world_scripts()
+assert 'ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"' in scene
+assert "res://scripts/world_v093.gd" in live_scripts, "v0.093 start/UI gameplay must remain live"
 assert 'preload("res://scripts/character_preview.gd")' in setup
 assert 'character_preview.name = "CharacterPreview"' in setup
 assert "character_preview.set_character(" in setup
-assert "scouter_color_idx" in setup and "scouter_eye_idx" in setup, "Live preview must include current scouter customization"
+assert "scouter_color_idx" in setup and "scouter_eye_idx" in setup
 assert "ACTUAL PLAYER PREVIEW" in preview
 assert "func set_character(" in preview
 assert "CharacterCustomization.skin_tone" in preview
