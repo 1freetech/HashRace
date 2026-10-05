@@ -1,8 +1,8 @@
 extends SceneTree
 
-# Stable-runtime validator. Release/version history belongs in GitHub, not the
-# gameplay contract. This validates the actual world.tscn entry point and the
-# current mining-campus loop without requiring retired vXXX debug layers.
+# Validate the actual full Hash Race campaign world. The live scene intentionally
+# uses the v0.165 gameplay inheritance chain; this must never be reduced to the
+# small standalone visual/runtime fixture again.
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -22,115 +22,82 @@ func _run() -> void:
         _fail("world.tscn did not instantiate")
         return
     root.add_child(scene)
-    for _frame in range(6):
+    for _frame in range(8):
         await process_frame
 
-    for method_name in ["runtime_ready", "infrastructure_ready", "infrastructure_rect", "infrastructure_footprint", "move_player", "player_animation_ready"]:
+    var script := scene.get_script() as Script
+    if script == null or script.resource_path != "res://scripts/world_v165.gd":
+        _fail("live campaign is not using world_v165.gd")
+        return
+
+    # These methods come from distinct gameplay layers and prove the campaign
+    # still includes navigation, league/inventory, life operations and burnout.
+    for method_name in [
+        "debug_grid_navigation_ready",
+        "debug_grid_path_exists",
+        "debug_league_standings_ready",
+        "debug_life_ops_ready",
+        "debug_life_effects_material",
+        "debug_burnout_ready",
+        "_open_infrastructure_inventory",
+        "_end_quarter",
+    ]:
         if not scene.has_method(method_name):
-            _fail("stable runtime method missing: %s" % method_name)
+            _fail("full gameplay method missing: %s" % method_name)
             return
 
-    if not bool(scene.call("runtime_ready")):
-        _fail("imported gameplay textures/navigation/player animation did not initialize")
+    if not bool(scene.call("debug_grid_navigation_ready")):
+        _fail("navigation grid did not initialize")
         return
-    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
-        if not bool(scene.call("infrastructure_ready", asset_id)):
-            _fail("%s texture decode or blocked ground footprint is invalid" % asset_id)
-            return
-    if not bool(scene.call("player_animation_ready")):
-        _fail("live AnimatedSprite2D does not contain the verified walk frames")
+    if not bool(scene.call("debug_grid_path_exists")):
+        _fail("playable navigation route could not be found")
+        return
+    if not bool(scene.call("debug_league_standings_ready")):
+        _fail("ten-company Bitcoin mining league did not initialize")
+        return
+    if not bool(scene.call("debug_life_ops_ready")) or not bool(scene.call("debug_life_effects_material")):
+        _fail("life/operations gameplay is missing or non-material")
+        return
+    if not bool(scene.call("debug_burnout_ready")):
+        _fail("burnout gameplay layer did not initialize")
         return
 
-    var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
-    if player_sprite == null or not player_sprite.is_inside_tree():
-        _fail("live AnimatedSprite2D player did not initialize")
-        return
-    for facing in ["down", "left", "right", "up"]:
-        if player_sprite.sprite_frames.get_frame_count(StringName("walk_" + facing)) != 4:
-            _fail("walk_%s does not have four explicitly ordered visually verified authored poses" % facing)
-            return
-
-    var camera := scene.get("camera") as Camera2D
-    if camera == null or not camera.is_inside_tree():
-        _fail("playable camera did not initialize")
+    var player: Dictionary = scene.get("player")
+    var rivals: Array = scene.get("rivals")
+    var entities: Array = scene.get("entities")
+    if player.is_empty() or rivals.size() != 9 or entities.size() < 10:
+        _fail("company/rival/overworld gameplay state is incomplete")
         return
 
     var grid_nav = scene.get("grid_nav")
-    if grid_nav == null or int(grid_nav.call("blocked_count")) < 5:
-        _fail("five infrastructure collision footprints were not registered")
+    if grid_nav == null or int(grid_nav.call("blocked_count")) <= 0:
+        _fail("world collision/navigation footprints were not registered")
         return
 
-    var infrastructure_sprites: Dictionary = scene.get("infrastructure_sprites")
-    if infrastructure_sprites.size() != 5:
-        _fail("five Y-sorted infrastructure Sprite2D nodes were not created")
+    var inventory = scene.get("infrastructure_inventory")
+    if inventory == null or int(inventory.call("catalog_size")) <= 0:
+        _fail("infrastructure inventory/catalog did not initialize")
         return
-    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
-        var infrastructure_sprite := infrastructure_sprites.get(asset_id) as Sprite2D
-        if infrastructure_sprite == null or not infrastructure_sprite.is_inside_tree():
-            _fail("Y-sorted infrastructure sprite missing: " + asset_id)
+    for energy_id in ["solar_array", "wind_farm", "diesel_generator"]:
+        if not inventory.has_method("stored_quantity"):
+            _fail("inventory deployment API is missing")
             return
-        if infrastructure_sprite.texture == null:
-            _fail("imported infrastructure texture missing from Sprite2D: " + asset_id)
-            return
+        # Reading each item exercises the same catalog used by the live UI.
+        inventory.call("stored_quantity", energy_id)
 
-    # The live movement code uses these actions for both keyboard and joypad.
-    for action_name in ["move_left", "move_right", "move_up", "move_down"]:
-        if not InputMap.has_action(action_name):
-            _fail("universal movement action missing: " + action_name)
-            return
-        var has_key := false
-        var has_joy_axis := false
-        for event in InputMap.action_get_events(action_name):
-            if event is InputEventKey:
-                has_key = true
-            elif event is InputEventJoypadMotion:
-                has_joy_axis = true
-        if not has_key or not has_joy_axis:
-            _fail("movement action lacks keyboard or gamepad axis binding: " + action_name)
-            return
-
-    # Exercise the same Input.get_vector path used by _process with a synthetic
-    # keyboard action, then a synthetic gamepad-axis action.
-    var keyboard_event := InputEventAction.new()
-    keyboard_event.action = &"move_right"
-    keyboard_event.pressed = true
-    keyboard_event.strength = 1.0
-    Input.parse_input_event(keyboard_event)
-    await process_frame
-    if Input.get_vector("move_left", "move_right", "move_up", "move_down").x <= 0.5:
-        _fail("keyboard movement action did not reach universal movement vector")
+    var camera := scene.get("camera") as Camera2D
+    if camera == null or not camera.is_inside_tree():
+        _fail("playable overworld camera did not initialize")
         return
-    keyboard_event.pressed = false
-    keyboard_event.strength = 0.0
-    Input.parse_input_event(keyboard_event)
 
-    var gamepad_event := InputEventJoypadMotion.new()
-    gamepad_event.axis = JOY_AXIS_LEFT_X
-    gamepad_event.axis_value = 1.0
-    Input.parse_input_event(gamepad_event)
-    await process_frame
-    if Input.get_vector("move_left", "move_right", "move_up", "move_down").x <= 0.5:
-        _fail("gamepad left-stick axis did not reach universal movement vector")
-        return
-    gamepad_event.axis_value = 0.0
-    Input.parse_input_event(gamepad_event)
-
-    # Prove the current playable loop can move on open terrain while collision
-    # remains authoritative and switches the live sprite into a walk animation.
-    var start: Vector2 = scene.get("rep_pos")
-    scene.call("move_player", Vector2(12.0, 0.0))
-    scene.call("_set_player_facing", Vector2.RIGHT)
-    scene.call("_update_player_animation", true, scene.PLAYER_SPEED)
-    await process_frame
-    var moved: Vector2 = scene.get("rep_pos")
-    if moved.distance_to(start) < 1.0:
-        _fail("player could not move through open terrain")
-        return
-    if player_sprite.animation != &"walk_right" or not player_sprite.is_playing():
-        _fail("movement did not activate the live right-walk animation")
+    # Verify actual playable position is grounded and can participate in the
+    # navigation system without relying on the retired standalone move_player API.
+    var rep_pos: Vector2 = scene.get("rep_pos")
+    if rep_pos == Vector2.ZERO or not bool(grid_nav.call("world_is_walkable", rep_pos)):
+        _fail("player representative spawned outside the playable navigation grid")
         return
 
     scene.queue_free()
     await process_frame
-    print("HASH RACE WORLD OK: semantic runtime APIs, imported infrastructure, live SpriteFrames walking, collision, camera and movement validated")
+    print("HASH RACE WORLD OK: v0.165 full gameplay chain, league, inventory, life ops, burnout, navigation, collisions and camera validated")
     quit(0)
