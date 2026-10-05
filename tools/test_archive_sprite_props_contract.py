@@ -72,15 +72,22 @@ for name, dims in EXPECTED.items():
     validate_png(path, dims)
     assert name in SCRIPT, f"{name} is not wired into archive_sprite_props.gd"
 
+# Live rendering contract: preserve nearest-neighbor pixel art, but crop each
+# atlas cell to its visible bounds and strip only neutral edge-connected
+# backgrounds before fitting it to a larger readable overworld footprint.
 for marker in [
-    "AtlasTexture.new()",
+    "ImageTexture.create_from_image",
+    "_prepare_cell_image",
+    "_clear_connected_neutral_background",
+    "_visible_bounds",
     "CanvasItem.TEXTURE_FILTER_NEAREST",
     "y_sort_enabled = true",
     "collision_footprints",
     "live_sprites.size() != 33",
     "loaded_sheet_count != SHEETS.size()",
-    "const LIVE_PROP_DISPLAY_PX := 32.0",
-    "LIVE_PROP_DISPLAY_PX / float(cell)",
+    "const LIVE_PROP_TARGET_HEIGHT_PX := 52.0",
+    "const LIVE_PROP_MAX_WIDTH_PX := 68.0",
+    "sprite.offset = Vector2(0.0, -float(prepared.get_height()) * 0.5)",
 ]:
     assert marker in SCRIPT, marker
 
@@ -90,4 +97,4 @@ assert WORLD_V165.is_file(), "world_v165.gd must remain present on the live bran
 assert 'res://scripts/world_v165.gd' in SCENE, "live world must use the v0.165 gameplay chain"
 assert '[node name="ArchiveSpriteProps" type="Node2D" parent="."]' in SCENE
 assert 'res://scripts/archive_sprite_props.gd' in SCENE
-print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 compact live atlas cells / v0.165 gameplay chain")
+print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 cropped readable live cells / v0.165 gameplay chain")
