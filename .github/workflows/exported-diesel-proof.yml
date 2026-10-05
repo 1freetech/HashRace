@@ -12,6 +12,8 @@ on:
       - 'Godot/systems/energy_visual_catalog.gd'
       - 'Godot/scripts/capture_v165_diesel.gd'
       - 'Godot/scripts/infrastructure_inventory.gd'
+      - 'Godot/scripts/main.gd'
+      - 'Godot/scripts/strategy_layer.gd'
       - 'Godot/scripts/world.gd'
       - 'Godot/scripts/world_overworld.gd'
       - 'Godot/data/item_library.gd'
@@ -53,6 +55,7 @@ jobs:
           set -euo pipefail
           mkdir -p build/linux
           godot --headless --path Godot --export-release "Linux" "$GITHUB_WORKSPACE/build/linux/HashRace.x86_64" 2>&1 | tee /tmp/hashrace-exported-diesel-export.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-exported-diesel-export.log; then exit 1; fi
           test -s build/linux/HashRace.x86_64
           chmod +x build/linux/HashRace.x86_64
 
