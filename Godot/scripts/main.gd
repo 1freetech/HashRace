@@ -219,7 +219,7 @@ func fund_research() -> void:
     if cash <= 0.0:
         set_status("No cash available for R&D.")
         return
-    var spend := min(cash, max(1000.0, research_target * 0.20))
+    var spend: float = minf(float(cash), maxf(1000.0, float(research_target) * 0.20))
     var multiplier := 1.0 + float(player.rd_bonus)
     if signed_partners.has("AI"):
         multiplier += 0.30
@@ -247,7 +247,7 @@ func expand_site() -> void:
         site_bonus += 0.30
     if signed_partners.has("Infrastructure"):
         site_bonus += 0.35
-    var cost := base_cost * max(0.45, 1.0 - site_bonus * 0.35)
+    var cost: float = float(base_cost) * maxf(0.45, 1.0 - site_bonus * 0.35)
     if cash < cost:
         set_status("Need $%d to expand the site." % int(cost))
         return
@@ -294,7 +294,7 @@ func try_acquire(rival: Dictionary) -> void:
     var discount := float(player.acquisition_discount)
     if signed_partners.has("Finance"):
         discount += 0.20
-    var price := rival.value * 1.15 * max(0.55, 1.0 - discount)
+    var price: float = float(rival.value) * 1.15 * maxf(0.55, 1.0 - discount)
     if cash < price:
         set_status("Need $%d to acquire %s." % [int(price), rival.name])
         return
