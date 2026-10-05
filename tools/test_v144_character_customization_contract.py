@@ -1,7 +1,8 @@
 """v0.144 exact-sheet character customization regression contract."""
-import re
 from hashlib import sha256
 from pathlib import Path
+
+from world_script_contract import active_world_scripts
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "Godot/scripts"
@@ -21,14 +22,15 @@ assert "ACTUAL PLAYER PREVIEW" in preview
 assert "approved_32frame_runtime_palette" in world
 assert "debug_v144_palette_key" in world
 
-# Customization must reach the current AnimatedSprite2D at campaign start.
-live = (SCRIPTS / "world.gd").read_text(encoding="utf-8")
-assert 'res://scripts/world.gd' in scene
-for key in ["hashrace_character_skin_tone", "hashrace_character_suit_color", "hashrace_character_scouter_color"]:
-    assert key in live
-assert "PlayerSheet.build_customized_frames" in live
-assert "player_sprite.sprite_frames = frames" in live
-assert "CharacterCustomization.skin_tone(skin_idx)" in live
-assert "CharacterCustomization.suit_color(suit_idx)" in live
-assert "CharacterCustomization.scouter_lens_color(scouter_idx)" in live
-print("Current approved-sheet skin/suit/scouter startup wiring contract: PASS")
+assert 'res://scripts/world_v165.gd' in scene
+assert "res://scripts/world_v144.gd" in active_world_scripts(), "character customization must remain in live gameplay inheritance"
+for marker in [
+    "skin_tone_idx", "suit_color_idx", "scouter_color_idx",
+    "CharacterCustomization.skin_tone(skin_idx)",
+    "CharacterCustomization.suit_color(suit_idx)",
+    "CharacterCustomization.scouter_lens_color(scouter_idx)",
+    "DefaultPlayerSheetV144.build_customized_texture",
+    "draw_texture_rect_region(v144_player_texture",
+]:
+    assert marker in world, f"Live v0.144 customization marker missing: {marker}"
+print("Current approved-sheet skin/suit/scouter full-gameplay startup wiring contract: PASS")
