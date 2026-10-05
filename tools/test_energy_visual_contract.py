@@ -59,7 +59,7 @@ for texture_path in [
 ]:
     assert (ROOT / texture_path).is_file(), f"Live imported texture missing: {texture_path}"
 
-assert 'V160Transformer' in world_v160 and 'grid_nav.block_rect' in world_v160
+assert 'V160SubstationSprite' in world_v160 and 'grid_nav.block_rect(foot)' in world_v160
 assert 'V161Solar' in world_v161 and 'asset_id != "solar_array"' in world_v161 and 'grid_nav.block_rect(foot)' in world_v161
 assert 'V164Wind' in world_v164 and 'asset_id != "wind_farm"' in world_v164 and 'grid_nav.block_rect(foot)' in world_v164
 assert 'V165_DIESEL_ASSET_ID := "diesel_generator"' in world_v165
