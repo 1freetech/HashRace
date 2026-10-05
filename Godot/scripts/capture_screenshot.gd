@@ -10,96 +10,108 @@ func _fail(message: String) -> void:
     quit(1)
 
 func _capture() -> void:
-    var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
+    var packed := load("res://scenes/world.tscn") as PackedScene
     if packed == null:
         _fail("world.tscn did not load")
         return
-    var scene: Node = packed.instantiate()
+    var scene := packed.instantiate()
     if scene == null:
         _fail("world.tscn did not instantiate")
         return
     root.add_child(scene)
 
-    # Reproduce the proven wind-proof cadence: let _ready(), imported textures,
-    # collision footprints and camera settle before reading viewport pixels.
-    for _frame in range(12):
+    # Let the real v0.165 campaign, imported textures, navigation, UI and camera settle.
+    for _frame in range(14):
         await process_frame
-    if not scene.has_method("runtime_ready") or not bool(scene.call("runtime_ready")):
-        _fail("stable runtime resources/collision/camera are not ready")
+
+    var live_script := scene.get_script() as Script
+    if live_script == null or live_script.resource_path != "res://scripts/world_v165.gd":
+        _fail("full v0.165 gameplay world is not live")
         return
-    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
-        if not bool(scene.call("infrastructure_ready", asset_id)):
-            _fail("authored infrastructure is not live and grounded: " + asset_id)
+    for method_name in [
+        "debug_grid_navigation_ready",
+        "debug_grid_path_exists",
+        "debug_league_standings_ready",
+        "debug_life_ops_ready",
+        "debug_burnout_ready",
+    ]:
+        if not scene.has_method(method_name) or not bool(scene.call(method_name)):
+            _fail("gameplay subsystem is not ready: %s" % method_name)
             return
 
-    # Put the actual live AnimatedSprite2D into a verified walk animation before
-    # capture. A static idle screenshot cannot prove the 34-point walking fix.
-    var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
-    if player_sprite == null:
-        _fail("live AnimatedSprite2D player is missing")
+    var camera := scene.get("camera") as Camera2D
+    var grid_nav = scene.get("grid_nav")
+    var inventory = scene.get("infrastructure_inventory")
+    if camera == null or grid_nav == null or inventory == null:
+        _fail("camera/navigation/inventory did not initialize")
         return
-    var captured_walk_frames: Dictionary = {}
+
+    var archive_props := scene.get_node_or_null("ArchiveSpriteProps")
+    if archive_props == null or not archive_props.has_method("debug_ready") or not bool(archive_props.call("debug_ready")):
+        _fail("compact promoted sprite props are not loaded at their live-map scale")
+        return
+    if int(archive_props.call("live_sprite_count")) != 33:
+        _fail("expected 33 compact promoted sprite cells")
+        return
+
+    # Exercise the real input-driven overworld movement before capture. The live
+    # player is canvas-rendered by the v0.144+ gameplay chain rather than the
+    # retired standalone AnimatedSprite2D fixture.
     var start_position: Vector2 = scene.get("rep_pos")
-    var movement_actions := {
-        "move_right": &"walk_right",
-        "move_left": &"walk_left",
-        "move_down": &"walk_down",
-        "move_up": &"walk_up",
-    }
-    # Prove the animation through real displacement, but do not assume the
-    # representative's right-hand tile is open. Try each gameplay direction
-    # until navigation permits movement and two authored frames are observed.
-    for action_name in movement_actions:
-        captured_walk_frames.clear()
+    var moved := false
+    var observed_phases: Dictionary = {}
+    for action_name in ["move_right", "move_down", "move_left", "move_up"]:
         var attempt_start: Vector2 = scene.get("rep_pos")
         Input.action_press(action_name)
-        for _frame in range(24):
+        for _frame in range(18):
             await process_frame
-            if player_sprite.animation == movement_actions[action_name] and player_sprite.is_playing():
-                captured_walk_frames[player_sprite.frame] = true
+            var phase: float = float(scene.get("rep_step_phase"))
+            observed_phases[snappedf(phase, 0.01)] = true
         Input.action_release(action_name)
         await process_frame
         var attempt_end: Vector2 = scene.get("rep_pos")
-        if attempt_end.distance_to(attempt_start) > 1.0 and captured_walk_frames.size() >= 2:
+        if attempt_end.distance_to(attempt_start) > 1.0:
+            moved = true
             break
-    var end_position: Vector2 = scene.get("rep_pos")
-    if end_position.distance_to(start_position) <= 1.0 or captured_walk_frames.size() < 2:
-        _fail("walking proof did not combine real displacement with at least two authored frames")
+    if not moved or Vector2(scene.get("rep_pos")).distance_to(start_position) <= 1.0:
+        _fail("real overworld movement did not advance the player")
+        return
+    if observed_phases.size() < 2:
+        _fail("walk phase did not advance while moving")
         return
 
     scene.queue_redraw()
     for _frame in range(12):
         await process_frame
-    await create_timer(0.25).timeout
+    await create_timer(0.20).timeout
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
         return
 
-    var output_dir: String = ProjectSettings.globalize_path("res://../visual-proof")
+    var output_dir := ProjectSettings.globalize_path("res://../visual-proof")
     DirAccess.make_dir_recursive_absolute(output_dir)
-    var output_file: String = ProjectSettings.globalize_path(OUTPUT_PATH)
-    var save_error: Error = image.save_png(output_file)
+    var output_file := ProjectSettings.globalize_path(OUTPUT_PATH)
+    var save_error := image.save_png(output_file)
     if save_error != OK:
         _fail("could not save screenshot PNG: %s" % error_string(save_error))
         return
 
     var histogram: Dictionary = {}
-    var sampled: int = 0
-    var step_x: int = maxi(1, int(image.get_width() / 90.0))
-    var step_y: int = maxi(1, int(image.get_height() / 56.0))
+    var sampled := 0
+    var step_x := maxi(1, int(image.get_width() / 90.0))
+    var step_y := maxi(1, int(image.get_height() / 56.0))
     for y in range(0, image.get_height(), step_y):
         for x in range(0, image.get_width(), step_x):
-            var pixel: Color = image.get_pixel(x, y)
-            var key: String = pixel.to_html(false)
+            var key := image.get_pixel(x, y).to_html(false)
             histogram[key] = int(histogram.get(key, 0)) + 1
             sampled += 1
 
-    var dominant_count: int = 0
+    var dominant_count := 0
     for raw_count in histogram.values():
         dominant_count = maxi(dominant_count, int(raw_count))
-    var dominant_ratio: float = float(dominant_count) / maxf(1.0, float(sampled))
+    var dominant_ratio := float(dominant_count) / maxf(1.0, float(sampled))
     if histogram.size() < 18:
         _fail("screenshot is too visually empty: only %d sampled colors" % histogram.size())
         return
@@ -107,5 +119,5 @@ func _capture() -> void:
         _fail("screenshot is dominated by one color: %.1f%%" % (dominant_ratio * 100.0))
         return
 
-    print("HASH RACE SCREENSHOT CAPTURE PASS: stable semantic runtime; live walk advanced through %d frames; %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [captured_walk_frames.size(), image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
+    print("HASH RACE SCREENSHOT CAPTURE PASS: full v0.165 gameplay; 33 compact sprite cells; live movement phases=%d; %dx%d PNG; %d sampled colors; dominant %.1f%%. Saved %s" % [observed_phases.size(), image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
     quit(0)
