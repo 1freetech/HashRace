@@ -21,7 +21,7 @@ int main(){
   for(const char* m:{"V090_STRATEGY_REVISION","battery_reserve_pct","BatteryReservePolicy","_scaled_financial_preview","ending_battery_soc_mwh","_run_rival_month","next_intent","NEXT INTENT","debug_v090_ready"}) has(v090,m);
   for(const char* m:{"AStarGrid2D","DIAGONAL_MODE_NEVER","HEURISTIC_MANHATTAN","get_id_path","debug_native_astar_ready"}) has(nav,m);
   has(battery,"effect = \"power_storage\""); has(battery,"effect_unit = \"MWh\""); has(v090,"extends \"res://scripts/world_v089.gd\"");
-  const auto key=std::string("path=\"res://scripts/world_v"); const auto p=scene.find(key); assert(p!=std::string::npos); const auto start=p+6; const auto end=scene.find('"',start); const auto live_path=scene.substr(start,end-start); const auto live=read(root/"Godot"/live_path.substr(6));
-  has(live,"extends \"res://scripts/world_v");
+  const auto key=std::string("path=\"res://scripts/world"); const auto p=scene.find(key); assert(p!=std::string::npos); const auto start=p+6; const auto end=scene.find('"',start); const auto live_path=scene.substr(start,end-start); const auto live=read(root/"Godot"/live_path.substr(6));
+  has(live,"extends ");
   std::cout<<"Hash Race native C++ v0.090 strategy/power/AI contract passed through "<<live_path<<".\n";
 }

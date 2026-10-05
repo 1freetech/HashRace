@@ -9,21 +9,17 @@ life_ops = Path("Godot/scripts/world_life_ops.gd").read_text(encoding="utf-8")
 profiles = Path("Godot/scripts/company_profiles.gd").read_text(encoding="utf-8")
 release_world = Path("Godot/scripts/world_v070.gd").read_text(encoding="utf-8")
 modular_world = Path("Godot/scripts/world_v068.gd").read_text(encoding="utf-8")
-version = Path("VERSION").read_text(encoding="utf-8").strip()
 
+# Release identifiers belong in GitHub Releases. The live scene may use the
+# stable world.gd entry point or a historical numbered world layer.
 live_match = re.search(
-    r'ext_resource path="res://scripts/(world_v(\d+)\.gd)" type="Script" id="1_world"',
+    r'ext_resource path="res://scripts/(world(?:_v\d+)?\.gd)" type="Script" id="1_world"',
     scene,
 )
-assert live_match, "Live Godot world scene must declare a versioned world_v###.gd gameplay script"
+assert live_match, "Live Godot world scene must declare world.gd or a historical world_v###.gd gameplay script"
 live_script = live_match.group(1)
-live_number = int(live_match.group(2))
 live_path = Path("Godot/scripts") / live_script
 assert live_path.is_file(), f"Live Godot world script does not exist: {live_script}"
-expected_version = f"v0.{live_number:03d}"
-assert version == expected_version, (
-    f"VERSION ({version}) must match the live Godot world layer ({expected_version})"
-)
 
 assert 'extends "res://scripts/world_v068.gd"' in release_world
 assert 'extends "res://scripts/world_v067.gd"' in modular_world
@@ -38,6 +34,6 @@ for company in companies:
 
 assert profiles.count('"name"') >= 10, "League needs ten mining-company profiles"
 print(
-    f"Hash Race league contract passed: {version} boots {live_script}; "
+    f"Hash Race league contract passed: live scene boots {live_script}; "
     "ten Bitcoin mining companies feed the live standings layer and existing gameplay inheritance remains intact."
 )

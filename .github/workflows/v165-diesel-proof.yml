@@ -1,0 +1,44 @@
+name: v0.165 diesel gameplay proof
+on:
+  push:
+    branches: [automation/v164-wind-forward-port]
+  pull_request:
+    branches: [main]
+jobs:
+  diesel-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Assert exact head
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Install Godot 4.7.2
+        run: |
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Fresh Godot import
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          cd Godot
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/v165-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v165-import.log; then exit 1; fi
+      - name: Render actual diesel gameplay proof
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+          mkdir -p visual-proof
+          cd Godot
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path . --script res://scripts/capture_v165_diesel.gd 2>&1 | tee /tmp/v165-capture.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v165-capture.log; then exit 1; fi
+          grep -q "V165 DIESEL PROOF PASS" /tmp/v165-capture.log
+          test -s ../visual-proof/v165-diesel-overview.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-v165-live-diesel-proof
+          if-no-files-found: error
+          path: visual-proof/v165-diesel-overview.png

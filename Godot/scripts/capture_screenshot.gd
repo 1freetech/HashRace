@@ -10,10 +10,6 @@ func _fail(message: String) -> void:
     quit(1)
 
 func _capture() -> void:
-    set_meta("hashrace_company_idx", 0)
-    set_meta("hashrace_campaign_years", 4)
-    set_meta("hashrace_campaign_turns", 16)
-
     var packed: PackedScene = load("res://scenes/world.tscn") as PackedScene
     if packed == null:
         _fail("world.tscn did not load")
@@ -24,42 +20,57 @@ func _capture() -> void:
         return
     root.add_child(scene)
 
-    for _frame in range(10):
+    # Reproduce the proven wind-proof cadence: let _ready(), imported textures,
+    # collision footprints and camera settle before reading viewport pixels.
+    for _frame in range(12):
         await process_frame
-    await create_timer(0.20).timeout
-
-    if scene.get_node_or_null("BootFallback") != null:
-        _fail("loading fallback is still covering the game")
+    if not scene.has_method("runtime_ready") or not bool(scene.call("runtime_ready")):
+        _fail("stable runtime resources/collision/camera are not ready")
         return
-    if int(scene.get_meta("hashrace_v124_visual_target_revision", 0)) != 1:
-        _fail("v0.124 visual-target layer is not live beneath the recovery world")
-        return
-    if not bool(scene.get_meta("hashrace_v138_recovery_live", false)):
-        _fail("v0.138 recovery world is not live")
-        return
-    if not scene.has_method("debug_v138_ready") or not bool(scene.call("debug_v138_ready")):
-        _fail("current recovery world runtime contract failed")
-        return
-    if int(scene.get_meta("hashrace_v128_road_cleanup_revision", 0)) != 1:
-        _fail("v0.128 road/container cleanup layer is not live")
-        return
-    if not bool(scene.get_meta("hashrace_v128_single_road_stack", false)):
-        _fail("v0.128 single-road-stack contract is not active")
-        return
-    if int(scene.get_meta("hashrace_v127_asset_bundle_revision", 0)) != 1:
-        _fail("v0.127 asset-bundle layer is not live")
-        return
-    if int(scene.get_meta("hashrace_v126_grass_terrain_revision", 0)) != 1:
-        _fail("v0.126 grass-terrain layer is not live")
-        return
-    if int(scene.get_meta("hashrace_v125_dirt_road_revision", 0)) != 1:
-        _fail("v0.125 dirt-road layer is not live beneath v0.126")
-        return
-
-    for asset_key in ["hashrace_player_32frame_asset_live", "hashrace_dirt_road_asset_live", "hashrace_grass_terrain_asset_live", "hashrace_v128_container_asset_live", "hashrace_industrial_road_live", "hashrace_utility_props_live", "hashrace_wind_turbine_live", "hashrace_asic_air_live"]:
-        if not bool(scene.get_meta(asset_key, false)):
-            _fail("required authored image is missing: " + asset_key)
+    for asset_id in ["container", "solar", "transformer", "asic", "wind"]:
+        if not bool(scene.call("infrastructure_ready", asset_id)):
+            _fail("authored infrastructure is not live and grounded: " + asset_id)
             return
+
+    # Put the actual live AnimatedSprite2D into a verified walk animation before
+    # capture. A static idle screenshot cannot prove the 34-point walking fix.
+    var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
+    if player_sprite == null:
+        _fail("live AnimatedSprite2D player is missing")
+        return
+    var captured_walk_frames: Dictionary = {}
+    var start_position: Vector2 = scene.get("rep_pos")
+    var movement_actions := {
+        "move_right": &"walk_right",
+        "move_left": &"walk_left",
+        "move_down": &"walk_down",
+        "move_up": &"walk_up",
+    }
+    # Prove the animation through real displacement, but do not assume the
+    # representative's right-hand tile is open. Try each gameplay direction
+    # until navigation permits movement and two authored frames are observed.
+    for action_name in movement_actions:
+        captured_walk_frames.clear()
+        var attempt_start: Vector2 = scene.get("rep_pos")
+        Input.action_press(action_name)
+        for _frame in range(24):
+            await process_frame
+            if player_sprite.animation == movement_actions[action_name] and player_sprite.is_playing():
+                captured_walk_frames[player_sprite.frame] = true
+        Input.action_release(action_name)
+        await process_frame
+        var attempt_end: Vector2 = scene.get("rep_pos")
+        if attempt_end.distance_to(attempt_start) > 1.0 and captured_walk_frames.size() >= 2:
+            break
+    var end_position: Vector2 = scene.get("rep_pos")
+    if end_position.distance_to(start_position) <= 1.0 or captured_walk_frames.size() < 2:
+        _fail("walking proof did not combine real displacement with at least two authored frames")
+        return
+
+    scene.queue_redraw()
+    for _frame in range(12):
+        await process_frame
+    await create_timer(0.25).timeout
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
@@ -74,7 +85,6 @@ func _capture() -> void:
         _fail("could not save screenshot PNG: %s" % error_string(save_error))
         return
 
-    # Both required authored textures and a nonblank live frame must pass.
     var histogram: Dictionary = {}
     var sampled: int = 0
     var step_x: int = maxi(1, int(image.get_width() / 90.0))
@@ -97,5 +107,5 @@ func _capture() -> void:
         _fail("screenshot is dominated by one color: %.1f%%" % (dominant_ratio * 100.0))
         return
 
-    print("HASH RACE SCREENSHOT CAPTURE PASS: %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
+    print("HASH RACE SCREENSHOT CAPTURE PASS: stable semantic runtime; live walk advanced through %d frames; %dx%d PNG, %d sampled colors, dominant color %.1f%%. Saved %s" % [captured_walk_frames.size(), image.get_width(), image.get_height(), histogram.size(), dominant_ratio * 100.0, output_file])
     quit(0)

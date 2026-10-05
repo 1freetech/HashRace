@@ -1,0 +1,43 @@
+name: Clean runtime gameplay proof
+on:
+  push:
+    branches: [automation/v164-wind-forward-port]
+  pull_request:
+    branches: [main]
+jobs:
+  gameplay-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Assert exact head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Install Godot 4.7.2
+        run: |
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Fresh import
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          cd Godot
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/gameplay-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/gameplay-import.log; then exit 1; fi
+      - name: Render gameplay
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+          mkdir -p visual-proof
+          cd Godot
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path . --script res://scripts/gameplay_capture.gd 2>&1 | tee /tmp/gameplay-capture.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/gameplay-capture.log; then exit 1; fi
+          grep -q "GAMEPLAY PROOF PASS" /tmp/gameplay-capture.log
+          test -s ../visual-proof/gameplay-clean-runtime.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-clean-runtime-gameplay
+          if-no-files-found: error
+          path: visual-proof/gameplay-clean-runtime.png

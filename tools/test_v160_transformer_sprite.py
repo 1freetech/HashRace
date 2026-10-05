@@ -57,24 +57,16 @@ def check_runtime() -> None:
     assert "draw_texture_rect(v160_transformer_texture" in world
     assert "substation_transformer_rear.png" in catalog
     assert "GROUND_CONTACT" in catalog and "sort_y" in catalog
-    # The current scene advances by inheritance. Never pin regression coverage
-    # to v0.160 forever: require its real implementation in the live chain.
-    import re
-    scene_source = SCENE.read_text(encoding="utf-8")
-    match = re.search(r'res://scripts/(world_v\d+\.gd)', scene_source)
-    assert match, "live scene has no versioned world"
-    current = match.group(1)
-    seen = set()
-    while current != "world_v160.gd":
-        assert current not in seen, "cycle in live world inheritance chain"
-        seen.add(current)
-        source_path = ROOT / "Godot/scripts" / current
-        assert source_path.is_file(), f"missing live layer {current}"
-        parent = re.search(r'^extends "res://scripts/(world_v\d+\.gd)"',
-                           source_path.read_text(encoding="utf-8"), re.MULTILINE)
-        assert parent, f"v0.160 no longer inherited from live {current}"
-        current = parent.group(1)
-    assert "debug_v160_transformer_ready" in ENERGY_PROOF.read_text(encoding="utf-8")
+    # Require the actual imported-resource Sprite2D path in the current world.
+    live = (ROOT / "Godot/scripts/world.gd").read_text(encoding="utf-8")
+    assert 'res://scripts/world.gd' in SCENE.read_text(encoding="utf-8")
+    assert 'preload("res://art/electrical/substation_transformer_rear.png")' in live
+    assert '"transformer": TRANSFORMER_ART' in live
+    assert 'sprite.texture = texture' in live
+    assert '_aspect_fit_rect(texture, bounds)' in live
+    assert 'sprite.position = Vector2(fitted.position.x, fitted.end.y)' in live
+    assert 'grid_nav.block_rect(_ground_foot(rect))' in live
+
 
 
 if __name__ == "__main__":

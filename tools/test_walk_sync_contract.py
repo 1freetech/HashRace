@@ -27,7 +27,9 @@ def main():
     assert "WALK_FPS := 8.0" in sheet
     assert "EFFECTIVE_FRAME_COUNT := 20" in sheet
     assert "EFFECTIVE_SOURCE_INDICES := [0, 1, 3, 5, 7]" in sheet
-    assert "var walk_regions: Array = [regions[1], regions[3], regions[5], regions[7]]" in sheet
+    for facing in ["down", "left", "right", "up"]:
+        assert f'"{facing}": [1, 3, 5, 7]' in sheet
+    assert "for source_index in WALK_SOURCE_ORDER[facing]:" in sheet
     # Four poses at eight frames per second give a 0.5 s cycle.
     # At 144 pixels/second the distance per cycle is 72 px, not guessed.
     assert 4 / 8 == 72 / 144
@@ -37,12 +39,18 @@ def main():
     assert "DefaultPlayerSheet.walk_frame(moving, rep_step_phase)" in world_player
     assert "DefaultPlayerSheetV144.walk_frame(moving, rep_step_phase)" in palette_player
     assert "var built: SpriteFrames = DefaultPlayerSheet.build_frames()" in visual
-    assert "for frame in range(5):" in capture
-    assert "motion-" in capture and "advance_step_phase" in capture
+    assert "for pose in range(5):" in capture
+    assert "motion-" in capture and 'scene.call("move_player"' in capture
     assert "HASH RACE WALK MOTION PASS" in validator
-    assert_world_inherits("world_v121.gd")
-    assert_world_inherits("world_v144.gd")
-    print("HASH RACE WALK CONTRACT PASS: live 144 px/s, four authored walk poses, 8 FPS, 72 px, current renderer inheritance")
+    live = read("world.gd")
+    assert "const PLAYER_SPEED := 144.0" in live
+    assert "const WALK_CYCLE_DISTANCE := 72.0" in live
+    assert "_update_player_animation(moving, player_ground_speed)" in live
+    assert "ground_speed / authored_stride_speed" in live
+    assert "player_sprite = AnimatedSprite2D.new()" in live
+    assert 'res://scripts/world.gd' in (ROOT / "Godot/scenes/world.tscn").read_text()
+
+    print("HASH RACE WALK CONTRACT PASS: live 144 px/s, four authored walk poses, 8 FPS, 72 px, stable SpriteFrames renderer")
 
 if __name__ == "__main__":
     main()

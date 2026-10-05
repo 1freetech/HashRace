@@ -5,8 +5,8 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def active_world_scripts():
-    scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+def active_world_scripts(scene_path="Godot/scenes/world.tscn"):
+    scene = (ROOT / scene_path).read_text()
     root_script = re.search(r'^script = ExtResource\("([^"]+)"\)', scene, re.M)
     assert root_script, "Live world root has no script"
     resources = {}
@@ -29,3 +29,13 @@ def active_world_scripts():
 
 def assert_world_inherits(filename):
     assert "res://scripts/" + filename in active_world_scripts(), filename + " is not in the live world inheritance chain"
+
+
+def assert_historical_world_inherits(filename):
+    """Require preserved behavior in the explicit historical integration fixture.
+
+    This is source regression coverage, never evidence of live integration.
+    assert_world_inherits remains strict for the actual campaign scene.
+    """
+    scripts = active_world_scripts("Godot/scenes/historical_world.tscn")
+    assert "res://scripts/" + filename in scripts, filename + " missing from historical fixture"

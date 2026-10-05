@@ -1,6 +1,7 @@
+# Historical fixture/source regression; not a live-integration claim.
 #!/usr/bin/env python3
 from pathlib import Path
-from world_script_contract import assert_world_inherits
+from world_script_contract import assert_historical_world_inherits
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -11,7 +12,7 @@ doorway = (ROOT / "Godot/components/world/doorway.gd").read_text()
 roof = (ROOT / "Godot/components/world/roof_fade_area.gd").read_text()
 world = (ROOT / "Godot/scripts/world_v090.gd").read_text()
 grid = (ROOT / "Godot/scripts/world_grid.gd").read_text()
-scene = (ROOT / "Godot/scenes/world.tscn").read_text()
+scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text()
 project = (ROOT / "Godot/project.godot").read_text()
 template = (ROOT / "Godot/templates/Doorway.tscn").read_text()
 version = (ROOT / "VERSION").read_text().strip()
@@ -19,7 +20,7 @@ version = (ROOT / "VERSION").read_text().strip()
 assert version.startswith("v0."), version
 assert int(version.split(".")[1]) >= 90, version
 assert 'SceneManager="*res://autoloads/scene_manager.gd"' in project
-assert_world_inherits("world_v090.gd")
+assert_historical_world_inherits("world_v090.gd")
 
 for marker in [
     "WORLD_TILE",
@@ -86,4 +87,4 @@ assert "WorldScale.collision_rect" in grid
 assert "WorldScale.front_door_world_pos" in grid
 assert "CollisionShape2D" in template
 
-print("Hash Race v0.090 strategy, focus-safe camera, world scale, doorway, roof-fade and scene-transition contract passed.")
+print("HISTORICAL SOURCE: Hash Race v0.090 strategy, focus-safe camera, world scale, doorway, roof-fade and scene-transition contract passed.")

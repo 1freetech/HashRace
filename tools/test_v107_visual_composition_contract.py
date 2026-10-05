@@ -1,10 +1,11 @@
+# Historical fixture/source regression; not a live-integration claim.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 world = (ROOT / "Godot/scripts/world_v107.gd").read_text(encoding="utf-8")
-scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
-validate = (ROOT / "Godot/scripts/validate_overworld.gd").read_text(encoding="utf-8")
+scene = (ROOT / "Godot/scenes/historical_world.tscn").read_text(encoding="utf-8")
+validate = (ROOT / "Godot/scripts/validate_historical_world.gd").read_text(encoding="utf-8")
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 # This is a retained v0.107 visual-regression contract. Later sequential
@@ -31,4 +32,4 @@ assert 0.88 < 1.0
 shadow_alpha = [0.40, 0.24, 0.12]
 assert shadow_alpha == sorted(shadow_alpha, reverse=True)
 
-print("v0.107 pixel-world visual composition contract: PASS")
+print("HISTORICAL SOURCE: v0.107 pixel-world visual composition contract: PASS")

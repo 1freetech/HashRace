@@ -7,9 +7,12 @@ on:
 jobs:
   godot-world-boot:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Godot 4.7.2
         uses: chickensoft-games/setup-godot@v2
         with:
@@ -61,14 +64,19 @@ jobs:
           set -euo pipefail
           godot --headless --path Godot --script res://scripts/validate_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-validate.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION FAIL" /tmp/hashrace-negotiation-validate.log; then exit 1; fi
-      - name: Boot real company town network with strict script-error gate
+      - name: Boot current mining campus with strict script-error gate
         shell: bash
         run: |
           set -euo pipefail
           godot --headless --path Godot res://scenes/world.tscn --quit-after 3 2>&1 | tee /tmp/hashrace-world.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script" /tmp/hashrace-world.log; then exit 1; fi
-      - name: Validate selected-company transition and playable town loop
-        run: godot --headless --path Godot --script res://scripts/validate_overworld.gd
+      - name: Validate current playable campus loop
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s godot --headless --path Godot --script res://scripts/validate_overworld.gd 2>&1 | tee /tmp/hashrace-overworld.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-overworld.log; then exit 1; fi
+          grep -q "HASH RACE WORLD OK" /tmp/hashrace-overworld.log
       - name: Install virtual display for real rendered-frame proof
         shell: bash
         run: |
@@ -77,14 +85,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_screenshot.gd 2>&1 | tee /tmp/hashrace-visual.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SCREENSHOT CAPTURE FAIL" /tmp/hashrace-visual.log; then exit 1; fi
           test -s visual-proof/hashrace-screenshot.png
-      - name: Render and inspect genuine v0.161 solar asset in live site
+      - name: Render actual permanent solar Sprite2D in current world
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v161_solar.gd 2>&1 | tee /tmp/hashrace-v161-solar.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v161_solar.gd 2>&1 | tee /tmp/hashrace-v161-solar.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|V161 SOLAR PROOF FAIL" /tmp/hashrace-v161-solar.log; then exit 1; fi
           test -s visual-proof/v161-solar-overview.png
       - name: Upload v0.161 real solar in-game proof
@@ -97,7 +105,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-render.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_player_sprite.gd 2>&1 | tee /tmp/hashrace-player-render.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|PLAYER RENDER FAIL" /tmp/hashrace-player-render.log; then exit 1; fi
           for direction in down left right up; do
             test -s "visual-proof/player/${direction}-idle.png"
@@ -112,32 +120,32 @@ jobs:
           name: hashrace-player-32frame-proof
           path: visual-proof/player/*.png
           if-no-files-found: warn
-      - name: Render and validate close-up 2D detail frame
+      - name: Historical fixture - Render and validate close-up 2D detail frame
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-2d-detail.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_2d_detail.gd 2>&1 | tee /tmp/hashrace-2d-detail.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|2D DETAIL PROOF FAIL" /tmp/hashrace-2d-detail.log; then exit 1; fi
           test -s visual-proof/hashrace-2d-detail.png
-      - name: Render and validate live Mining Ops widget proof
+      - name: Historical fixture - Render and validate live Mining Ops widget proof
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd 2>&1 | tee /tmp/hashrace-mining-ops-widget.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_mining_ops_widget.gd 2>&1 | tee /tmp/hashrace-mining-ops-widget.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|MINING OPS WIDGET PROOF FAIL" /tmp/hashrace-mining-ops-widget.log; then exit 1; fi
           test -s visual-proof/hashrace-mining-ops-widget.png
       - name: Render and validate negotiation scene proof
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-proof.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_negotiation_scene.gd 2>&1 | tee /tmp/hashrace-negotiation-proof.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|HASH RACE NEGOTIATION PROOF FAIL" /tmp/hashrace-negotiation-proof.log; then exit 1; fi
           test -s visual-proof/hashrace-negotiation-scene.png
-      - name: Render and validate live energy-site proof
+      - name: Historical fixture - Render and validate live energy-site proof
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-energy-site.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_energy_site.gd 2>&1 | tee /tmp/hashrace-energy-site.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ENERGY SITE PROOF FAIL" /tmp/hashrace-energy-site.log; then exit 1; fi
           test -s visual-proof/hashrace-energy-site.png
       - name: Upload gameplay screenshot
@@ -146,35 +154,35 @@ jobs:
           name: hashrace-gameplay-screenshot
           path: visual-proof/hashrace-screenshot.png
           if-no-files-found: error
-      - name: Render and validate semiconductor-fab proof
+      - name: Historical fixture - Render and validate semiconductor-fab proof
         shell: bash
         run: |
           set -euo pipefail
-          xvfb-run -a godot --path Godot --rendering-method gl_compatibility --script res://scripts/capture_semiconductor_fab.gd 2>&1 | tee /tmp/hashrace-semiconductor-fab.log
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_semiconductor_fab.gd 2>&1 | tee /tmp/hashrace-semiconductor-fab.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|SEMICONDUCTOR FAB PROOF FAIL" /tmp/hashrace-semiconductor-fab.log; then exit 1; fi
           test -s visual-proof/hashrace-semiconductor-fab.png
       - name: Upload live energy-site proof
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-energy-site-proof
+          name: historical-hashrace-energy-site-proof
           path: visual-proof/hashrace-energy-site.png
           if-no-files-found: error
       - name: Upload semiconductor-fab proof
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-semiconductor-fab-proof
+          name: historical-hashrace-semiconductor-fab-proof
           path: visual-proof/hashrace-semiconductor-fab.png
           if-no-files-found: error
       - name: Upload close-up 2D detail proof
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-2d-detail-visual-proof
+          name: historical-hashrace-2d-detail-visual-proof
           path: visual-proof/hashrace-2d-detail.png
           if-no-files-found: error
       - name: Upload Mining Ops widget proof
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-mining-ops-widget-proof
+          name: historical-hashrace-mining-ops-widget-proof
           path: visual-proof/hashrace-mining-ops-widget.png
           if-no-files-found: error
       - name: Upload negotiation scene proof
@@ -186,9 +194,12 @@ jobs:
 
   python-contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -217,31 +228,31 @@ jobs:
         run: python tools/test_v102_visual_cleanup_contract.py
       - name: Test v0.103 intentional-world composition contract
         run: python tools/test_v103_composition_contract.py
-      - name: Test v0.107 pixel-world composition contract
+      - name: Historical source fixture - Test v0.107 pixel-world composition contract
         run: python tools/test_v107_visual_composition_contract.py
-      - name: Test v0.112 imported-art integration contract
+      - name: Historical source fixture - Test v0.112 imported-art integration contract
         run: python tools/test_v112_imported_art_contract.py
-      - name: Test v0.113 industrial-site replacement contract
+      - name: Historical source fixture - Test v0.113 industrial-site replacement contract
         run: python tools/test_v113_industrial_site_contract.py
-      - name: Test v0.114 live energy-site scaling contract
+      - name: Historical source fixture - Test v0.114 live energy-site scaling contract
         run: python tools/test_v114_energy_site_contract.py
-      - name: Test v0.115 direct live mining-site contract
+      - name: Historical source fixture - Test v0.115 direct live mining-site contract
         run: python tools/test_v115_direct_site_contract.py
-      - name: Test v0.116 exact semiconductor-fab asset contract
+      - name: Historical source fixture - Test v0.116 exact semiconductor-fab asset contract
         run: python tools/test_v116_fab_asset_contract.py
-      - name: Test v0.117 complete energy library and district compression contract
+      - name: Historical source fixture - Test v0.117 complete energy library and district compression contract
         run: python tools/test_v117_energy_library_contract.py
-      - name: Test v0.123 locked visual-target contract
+      - name: Historical source fixture - Test v0.123 locked visual-target contract
         run: python tools/test_v123_visual_target_contract.py
-      - name: Test v0.124 screenshot-match environment contract
+      - name: Historical source fixture - Test v0.124 screenshot-match environment contract
         run: python tools/test_v124_visual_target_contract.py
-      - name: Test v0.125 authored dirt-road atlas contract
+      - name: Historical source fixture - Test v0.125 authored dirt-road atlas contract
         run: python tools/test_v125_dirt_road_contract.py
-      - name: Test v0.126 authored grass-terrain atlas contract
+      - name: Historical source fixture - Test v0.126 authored grass-terrain atlas contract
         run: python tools/test_v126_grass_terrain_contract.py
-      - name: Test v0.127 live uploaded-asset bundle contract
+      - name: Historical source fixture - Test v0.127 live uploaded-asset bundle contract
         run: python tools/test_v127_asset_bundle_contract.py
-      - name: Test v0.128 road de-clutter and C-01 container contract
+      - name: Historical source fixture - Test v0.128 road de-clutter and C-01 container contract
         run: python tools/test_v128_road_container_contract.py
       - name: Validate v0.160 extracted real transformer PNG and runtime wiring
         run: python tools/test_v160_transformer_sprite.py
@@ -262,9 +273,12 @@ jobs:
 
   cpp-core:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Compile C++ simulation, inventory, catalogs and core checks
         run: >-
           g++ -std=c++20 -O2 -Wall -Wextra -Werror -pedantic
@@ -277,9 +291,12 @@ jobs:
 
   rust-balance:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Run Rust balance unit tests
         run: rustc --edition=2021 --test native/rust/hashrace_balance.rs -o /tmp/hashrace_rust_tests && /tmp/hashrace_rust_tests
       - name: Run Rust one-year balance probe
@@ -287,9 +304,12 @@ jobs:
 
   typescript-content:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out Hash Race
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
