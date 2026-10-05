@@ -1,11 +1,14 @@
-"""Check that the cropped, transparent solar image is a genuine repo PNG.
+"""Check that the cropped transparent solar PNG is genuine and live in gameplay.
 
-Godot import and the live screenshot are separate mandatory gates.
+The live campaign now uses the full v0.165 inheritance chain; v0.161 solar must
+remain inside that chain instead of forcing the stripped stable-world fixture.
 """
 from pathlib import Path
 import hashlib
 import struct
 import zlib
+
+from world_script_contract import active_world_scripts
 
 ROOT = Path(__file__).resolve().parents[1]
 PNG = ROOT / "Godot/art/energy/solar_array_overview.png"
@@ -44,25 +47,23 @@ def test_png():
 
 def test_live():
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    stable_world = ROOT / "Godot/scripts/world.gd"
+    assert 'path="res://scripts/world_v165.gd" type="Script"' in scene
 
-    # The current scene has one stable entry point and one semantic infrastructure
-    # API. Release-numbered catalogs/capture scripts are historical evidence only.
-    assert 'path="res://scripts/world.gd" type="Script"' in scene
-    assert stable_world.exists()
-    live = stable_world.read_text()
-    assert 'const SOLAR_ART := preload("res://art/energy/solar_array_overview.png")' in live
-    assert '"solar": Rect2(' in live
-    assert '"solar": SOLAR_ART' in live
-    assert 'sprite.texture = texture' in live
-    assert 'infrastructure_sprites[asset_id] = sprite' in live
-    assert 'grid_nav.block_rect(_ground_foot(rect))' in live
-    assert 'func infrastructure_ready(asset_id: String) -> bool:' in live
-    assert '"solar":\n            texture = SOLAR_ART' in live
-    assert 'return not grid_nav.world_is_walkable(foot.get_center())' in live
+    live_chain = active_world_scripts()
+    assert "res://scripts/world_v165.gd" in live_chain
+    assert "res://scripts/world_v161.gd" in live_chain
+
+    solar_world = (ROOT / "Godot/scripts/world_v161.gd").read_text()
+    solar_sprite = (ROOT / "Godot/scripts/v161_solar_overview_sprite.gd").read_text()
+    assert 'const V161Solar = preload("res://scripts/v161_solar_overview_sprite.gd")' in solar_world
+    assert 'asset_id != "solar_array"' in solar_world
+    assert 'draw_texture_rect(v161_solar_texture, dest, false)' in solar_world
+    assert 'grid_nav.block_rect(foot)' in solar_world
+    assert 'func debug_v161_solar_ready() -> bool:' in solar_world
+    assert 'TEXTURE_PATH := "res://art/energy/solar_array_overview.png"' in solar_sprite
 
 
 if __name__ == "__main__":
     test_png()
     test_live()
-    print("solar PNG CRC/alpha/hash and semantic stable-runtime wiring passed")
+    print("solar PNG CRC/alpha/hash and v0.165 gameplay-chain wiring passed")
