@@ -1,0 +1,92 @@
+name: Exported diesel deployment proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/exported-diesel-proof.yml'
+      - 'Godot/export_presets.cfg'
+      - 'Godot/assets/energy/atlas_parts/**'
+      - 'Godot/systems/energy_visual_catalog.gd'
+      - 'Godot/scripts/capture_v165_diesel.gd'
+      - 'Godot/scripts/infrastructure_inventory.gd'
+      - 'Godot/scripts/world.gd'
+      - 'Godot/scripts/world_overworld.gd'
+      - 'Godot/data/items/diesel_generator.tres'
+  workflow_dispatch:
+
+jobs:
+  exported-linux-diesel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact main head
+        uses: actions/checkout@v4
+
+      - name: Assert both export presets include b64 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -c '^include_filter="\*.b64"$' Godot/export_presets.cfg)" -eq 2
+
+      - name: Set up Godot 4.7.2 with export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+
+      - name: Fresh import
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          timeout 120s godot --headless --editor --path Godot --import 2>&1 | tee /tmp/hashrace-exported-diesel-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-exported-diesel-import.log; then exit 1; fi
+
+      - name: Export Linux target
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/linux
+          godot --headless --path Godot --export-release "Linux" "$GITHUB_WORKSPACE/build/linux/HashRace.x86_64"
+          test -s build/linux/HashRace.x86_64
+          chmod +x build/linux/HashRace.x86_64
+
+      - name: Install virtual display
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+
+      - name: Verify diesel deployment inside exported build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p visual-proof
+          timeout 90s xvfb-run -a build/linux/HashRace.x86_64 \
+            --audio-driver Dummy \
+            --rendering-method gl_compatibility \
+            --script res://scripts/capture_v165_diesel.gd 2>&1 | tee /tmp/hashrace-exported-diesel.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|V165 DIESEL PROOF FAIL" /tmp/hashrace-exported-diesel.log; then exit 1; fi
+          grep -q "V165 DIESEL PROOF PASS" /tmp/hashrace-exported-diesel.log
+          find . -path '*visual-proof/v165-diesel-overview.png' -type f -size +0c -print -quit | grep -q .
+
+      - name: Package validated exported build
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf HashRace-exported-diesel-linux-x64.tar.gz -C build/linux HashRace.x86_64
+
+      - name: Upload exported diesel proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: HashRace-exported-diesel-proof-${{ github.sha }}
+          path: |
+            HashRace-exported-diesel-linux-x64.tar.gz
+            visual-proof/v165-diesel-overview.png
+            build/visual-proof/v165-diesel-overview.png
+          if-no-files-found: warn
+          retention-days: 90
