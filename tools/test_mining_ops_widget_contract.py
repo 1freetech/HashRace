@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
-"""Stable compact consolidated Mining Ops widget contract.
-
-Release identifiers belong to Git history. This contract follows the actual
-world.tscn -> world.gd runtime and verifies the live widget behavior without
-requiring retired world_vXXX inheritance.
-"""
+"""Compact consolidated Mining Ops widget contract for the full live campaign."""
 from pathlib import Path
+
+from world_script_contract import active_world_scripts
 
 root = Path(__file__).resolve().parents[1]
 scene = (root / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
-world = (root / "Godot/scripts/world.gd").read_text(encoding="utf-8")
 widget = (root / "Godot/scripts/mining_ops_widget.gd").read_text(encoding="utf-8")
 capture = (root / "Godot/scripts/capture_mining_ops_widget.gd").read_text(encoding="utf-8")
 
-assert 'path="res://scripts/world.gd"' in scene, "Live scene must use stable world.gd"
-for marker in [
-    "func runtime_ready()", "func infrastructure_ready(", "func move_player(",
-    "func player_animation_ready()", "AnimatedSprite2D",
+live_scripts = active_world_scripts()
+assert 'path="res://scripts/world_v165.gd"' in scene, "Live scene must use the restored v0.165 gameplay chain"
+for required in [
+    "res://scripts/world_v165.gd",
+    "res://scripts/world_league_standings.gd",
+    "res://scripts/world_overworld.gd",
 ]:
-    assert marker in world, f"Missing stable runtime marker: {marker}"
+    assert required in live_scripts, f"Missing live gameplay layer: {required}"
 
 for marker in [
     '"HASHRATE"', '"POWER"', '"EFFICIENCY"', '"UPTIME"', '"BTC TREASURY"', '"USD CASH"',
@@ -47,4 +45,4 @@ assert 'responsive Mining Ops widget did not grow after resize' in capture
 assert 'const BASE_SIZE := Vector2(528.0, 248.0)' in widget
 assert 'const MIN_SIZE := Vector2(420.0, 208.0)' in widget
 assert 'var mount_slot: int = 1' in widget
-print("Hash Race stable consolidated upper-right Mining Ops widget contract passed.")
+print("Hash Race full-gameplay consolidated upper-right Mining Ops widget contract passed.")
