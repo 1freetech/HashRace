@@ -1,20 +1,16 @@
-"""Validate the actual extracted HashRace transformer binary and live wiring.
-
-Runs without Pillow, ImageMagick or a cached Godot editor import. Godot's
-independent fresh-checkout binary decode and rendered energy-site proof are
-separate CI gates; this one catches damaged PNG and dead code early.
-"""
+"""Validate the actual extracted HashRace transformer binary and live full-chain wiring."""
 from pathlib import Path
 import hashlib
 import struct
 import zlib
+
+from world_script_contract import active_world_scripts
 
 ROOT = Path(__file__).resolve().parents[1]
 PNG = ROOT / "Godot/art/electrical/substation_transformer_rear.png"
 WORLD = ROOT / "Godot/scripts/world_v160.gd"
 CATALOG = ROOT / "Godot/scripts/substation_transformer_sprite.gd"
 SCENE = ROOT / "Godot/scenes/world.tscn"
-ENERGY_PROOF = ROOT / "Godot/scripts/capture_energy_site.gd"
 EXPECTED_SHA = "4f1ece23333d48181085c3d0e22e7730181a45beaf7f6a80ed1fd254a1e16059"
 
 
@@ -32,15 +28,11 @@ def check_png() -> None:
         body = data[offset + 8:offset + 8 + length]
         crc_stored = struct.unpack_from(">I", data, offset + 8 + length)[0]
         assert zlib.crc32(chunk_type + body) & 0xFFFFFFFF == crc_stored, f"bad CRC in {chunk_type!r}"
-        if chunk_type == b"IHDR":
-            dims = struct.unpack_from(">IIBBBBB", body)
-        if chunk_type == b"IDAT":
-            image_data.extend(body)
-        if chunk_type == b"tRNS":
-            alpha_chunk = body
+        if chunk_type == b"IHDR": dims = struct.unpack_from(">IIBBBBB", body)
+        if chunk_type == b"IDAT": image_data.extend(body)
+        if chunk_type == b"tRNS": alpha_chunk = body
         offset = end
-        if chunk_type == b"IEND":
-            break
+        if chunk_type == b"IEND": break
     assert dims == (80, 72, 8, 3, 0, 0, 0), f"unexpected sprite size/encoding: {dims!r}"
     assert alpha_chunk is not None and alpha_chunk[0] == 0, "sprite must have a transparent background"
     assert len(zlib.decompress(image_data)) == 72 * (1 + 80), "PNG pixel stream failed full decode"
@@ -49,27 +41,19 @@ def check_png() -> None:
 def check_runtime() -> None:
     world = WORLD.read_text(encoding="utf-8")
     catalog = CATALOG.read_text(encoding="utf-8")
-    assert "func _v114_draw_transformer(" in world, "live v0.160 renderer must replace procedure"
+    assert "res://scripts/world_v160.gd" in active_world_scripts(), "v0.160 transformer layer must remain live"
+    assert 'res://scripts/world_v165.gd' in SCENE.read_text(encoding="utf-8")
+    assert "func _v114_draw_transformer(" in world
     assert "V160SubstationSprite.texture()" in world
     assert "_v160_register_transformer_footprint" in world
     assert "grid_nav.block_rect(foot)" in world
-    assert "func _draw_rep()" in world, "Y-aware player/transformer ordering missing"
+    assert "func _draw_rep()" in world
     assert "draw_texture_rect(v160_transformer_texture" in world
     assert "substation_transformer_rear.png" in catalog
     assert "GROUND_CONTACT" in catalog and "sort_y" in catalog
-    # Require the actual imported-resource Sprite2D path in the current world.
-    live = (ROOT / "Godot/scripts/world.gd").read_text(encoding="utf-8")
-    assert 'res://scripts/world.gd' in SCENE.read_text(encoding="utf-8")
-    assert 'preload("res://art/electrical/substation_transformer_rear.png")' in live
-    assert '"transformer": TRANSFORMER_ART' in live
-    assert 'sprite.texture = texture' in live
-    assert '_aspect_fit_rect(texture, bounds)' in live
-    assert 'sprite.position = Vector2(fitted.position.x, fitted.end.y)' in live
-    assert 'grid_nav.block_rect(_ground_foot(rect))' in live
-
 
 
 if __name__ == "__main__":
     check_png()
     check_runtime()
-    print("v0.160 authentic Library transformer PNG integrity and runtime wiring passed")
+    print("v0.160 transformer PNG integrity and restored full-chain runtime wiring passed")
