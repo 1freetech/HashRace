@@ -3,24 +3,24 @@
 from pathlib import Path
 import re
 
+from world_script_contract import active_world_scripts
+
 life = Path("Godot/scripts/world_life_ops.gd").read_text(encoding="utf-8")
 burnout = Path("Godot/scripts/world_burnout.gd").read_text(encoding="utf-8")
 visual_detail = Path("Godot/scripts/world_visual_detail.gd").read_text(encoding="utf-8")
 scene = Path("Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = Path("VERSION").read_text().strip()
-runtime_world = Path("Godot/scripts/world.gd").read_text(encoding="utf-8")
 
 assert re.fullmatch(r"v0\.\d{3}", version), "Life + Operations requires a valid public version"
-live_match = re.search(
-    r'ext_resource path="res://scripts/(world(?:_v[0-9]+)?[.]gd)" type="Script" id="1_world"',
-    scene,
-)
-assert live_match, "Live scene must declare a world.gd gameplay script"
-live_script = live_match.group(1)
-assert (Path("Godot/scripts") / live_script).is_file(), f"Live scene script is missing: {live_script}"
-assert live_script == "world.gd", "Current runtime must use the stable unnumbered world.gd entry point"
-for marker in ["runtime_ready", "infrastructure_ready", "move_player"]:
-    assert marker in runtime_world, f"Stable runtime API missing: {marker}"
+live_scripts = active_world_scripts()
+assert "res://scripts/world_v165.gd" in live_scripts, "Live campaign must retain the full v0.165 gameplay chain"
+for required in [
+    "res://scripts/world_life_ops.gd",
+    "res://scripts/world_burnout.gd",
+    "res://scripts/world_visual_detail.gd",
+    "res://scripts/world_league_standings.gd",
+]:
+    assert required in live_scripts, f"Live gameplay chain is missing {required}"
 assert 'extends "res://scripts/world_burnout.gd"' in visual_detail, "Current visual/gameplay chain must retain burnout and life operations"
 assert 'extends "res://scripts/world_life_ops.gd"' in burnout
 assert 'extends "res://scripts/world_league_standings.gd"' in life
@@ -65,4 +65,4 @@ assert burnout.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < burnout.index(
 train_override = burnout.split("func _train_operator", 1)[1].split("func _open_life_overview", 1)[0]
 assert train_override.index("if _burnout_risk() >= HIGH_BURNOUT_RISK") < train_override.index("return super._train_operator(silent)")
 
-print(f"Hash Race {version} life + operations contract passed: manual and automatic routines protect company cash, elapsed-time normalization holds, and burnout safety remains active.")
+print(f"Hash Race {version} life + operations contract passed: full live gameplay inheritance, cash-safe routines, elapsed-time normalization, and burnout safety remain active.")
