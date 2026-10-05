@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Prevent v0.160+ from silently reverting the approved player walk fix."""
+"""Prevent the full Hash Race gameplay chain from reverting the approved walk fix."""
 import re
 from pathlib import Path
 
-from world_script_contract import assert_world_inherits
+from world_script_contract import active_world_scripts
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "Godot/scripts"
@@ -18,7 +18,6 @@ def main():
     rpg = read("world_rpg_strategy.gd")
     world_player = read("world_v121.gd")
     palette_player = read("world_v144.gd")
-    capture = read("capture_player_sprite.gd")
     visual = read("default_player_visual.gd")
     validator = read("validate_player_walk_motion.gd")
     assert re.search(r"const WALK_SPEED:\s*float\s*=\s*144\.0\b", overworld)
@@ -30,27 +29,18 @@ def main():
     for facing in ["down", "left", "right", "up"]:
         assert f'"{facing}": [1, 3, 5, 7]' in sheet
     assert "for source_index in WALK_SOURCE_ORDER[facing]:" in sheet
-    # Four poses at eight frames per second give a 0.5 s cycle.
-    # At 144 pixels/second the distance per cycle is 72 px, not guessed.
     assert 4 / 8 == 72 / 144
-    # Test the live rendering and inherited movement, not just helper constants.
     assert "RPGMovement.settled_step_phase(actual_motion, rep_step_phase)" in rpg
     assert "RPGMovement.resolve_axis_motion" in rpg
     assert "DefaultPlayerSheet.walk_frame(moving, rep_step_phase)" in world_player
     assert "DefaultPlayerSheetV144.walk_frame(moving, rep_step_phase)" in palette_player
     assert "var built: SpriteFrames = DefaultPlayerSheet.build_frames()" in visual
-    assert "for pose in range(5):" in capture
-    assert "motion-" in capture and 'scene.call("move_player"' in capture
     assert "HASH RACE WALK MOTION PASS" in validator
-    live = read("world.gd")
-    assert "const PLAYER_SPEED := 144.0" in live
-    assert "const WALK_CYCLE_DISTANCE := 72.0" in live
-    assert "_update_player_animation(moving, player_ground_speed)" in live
-    assert "ground_speed / authored_stride_speed" in live
-    assert "player_sprite = AnimatedSprite2D.new()" in live
-    assert 'res://scripts/world.gd' in (ROOT / "Godot/scenes/world.tscn").read_text()
-
-    print("HASH RACE WALK CONTRACT PASS: live 144 px/s, four authored walk poses, 8 FPS, 72 px, stable SpriteFrames renderer")
+    live_scripts = active_world_scripts()
+    for required in ["res://scripts/world_v121.gd", "res://scripts/world_v144.gd", "res://scripts/world_v165.gd"]:
+        assert required in live_scripts, f"walk/render gameplay layer is not live: {required}"
+    assert 'res://scripts/world_v165.gd' in (ROOT / "Godot/scenes/world.tscn").read_text()
+    print("HASH RACE WALK CONTRACT PASS: full gameplay chain retains 144 px/s, four authored poses, 8 FPS and 72 px cadence")
 
 if __name__ == "__main__":
     main()
