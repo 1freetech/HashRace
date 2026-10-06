@@ -75,13 +75,25 @@ func _ready() -> void:
     prompt.visible = false
     prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
     prompt.z_index = 60
-    prompt.size = Vector2(260.0, 50.0)
+    prompt.size = Vector2(290.0, 58.0)
     prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    prompt.add_theme_font_size_override("font_size", 11)
+    prompt.add_theme_font_size_override("font_size", 12)
     prompt.add_theme_color_override("font_color", Color("8affbd"))
     prompt.add_theme_color_override("font_outline_color", Color("102019"))
-    prompt.add_theme_constant_override("outline_size", 4)
+    prompt.add_theme_constant_override("outline_size", 3)
+    var prompt_box := StyleBoxFlat.new()
+    prompt_box.bg_color = Color("07110edb")
+    prompt_box.border_color = Color("315b43")
+    prompt_box.border_width_left = 2
+    prompt_box.border_width_top = 2
+    prompt_box.border_width_right = 2
+    prompt_box.border_width_bottom = 2
+    prompt_box.corner_radius_top_left = 5
+    prompt_box.corner_radius_top_right = 5
+    prompt_box.corner_radius_bottom_left = 5
+    prompt_box.corner_radius_bottom_right = 5
+    prompt.add_theme_stylebox_override("normal", prompt_box)
     add_child(prompt)
     # Children become ready before the world root; defer restore until campaign
     # setup has initialized the authoritative player state.
@@ -272,7 +284,8 @@ func _update_reliability_clock() -> void:
     candidates.sort()
     if candidates.is_empty():
         return
-    var key := String(candidates[posmod(seed / 7 + int(round(elapsed)), candidates.size())])
+    var candidate_idx := posmod(int(seed / 7) + int(round(elapsed)), candidates.size())
+    var key := String(candidates[candidate_idx])
     var severity_roll := posmod(seed * 37 + int(round(elapsed * 11.0)), 1000)
     var severity := 0
     if severity_roll >= 900:
@@ -469,7 +482,7 @@ func _update_prompt() -> void:
     var label := String(info.get("label", "EQUIPMENT")).to_upper()
     if key == active_fault_key:
         prompt.add_theme_color_override("font_color", Color("ffb7a4"))
-        prompt.text = "[R] REPAIR • %s\n%s • -%.1f%% UPTIME • $%d" % [
+        prompt.text = "FAULT • [R] REPAIR • %s\n%s • -%.1f%% UPTIME • $%d" % [
             label,
             String(FAULT_SEVERITY_LABELS[fault_severity]),
             float(FAULT_UPTIME_PENALTIES[fault_severity]) * 100.0,
@@ -479,7 +492,7 @@ func _update_prompt() -> void:
         prompt.add_theme_color_override("font_color", Color("8affbd"))
         var state := "SURVEYED" if inspected.has(key) else "NEW"
         prompt.text = "[E/F] INSPECT • %s\n%s • %d/%d" % [label, state, inspected.size(), EQUIPMENT_INFO.size()]
-    prompt.position = target.position + Vector2(-130.0, -108.0)
+    prompt.position = target.position + Vector2(-145.0, -118.0)
     prompt.visible = true
 
 func nearest_equipment_name() -> String:
