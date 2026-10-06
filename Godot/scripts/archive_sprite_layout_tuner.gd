@@ -7,40 +7,47 @@ class_name HashRaceArchiveSpriteLayoutTuner
 # functional campus service zones, and rebuilds navigation from the final ground
 # contacts. The source PNGs and archive-sprite renderer remain untouched.
 
+# Two deliberate service verges use the negative space between the authored
+# building rows and roads. Equipment is grouped by function, with small y offsets
+# so the campus reads as operating infrastructure rather than a sprite lineup.
 const POSITION_BY_NODE := {
-    "ArchiveProp_Ats": Vector2(170, 705),
-    "ArchiveProp_Handhole": Vector2(260, 727),
-    "ArchiveProp_Bollards": Vector2(345, 695),
-    "ArchiveProp_CoolingUnit": Vector2(490, 720),
-    "ArchiveProp_ElectricalUnit": Vector2(590, 700),
-    "ArchiveProp_EnergyUnit": Vector2(685, 732),
-    "ArchiveProp_HarmonicFilter": Vector2(820, 708),
-    "ArchiveProp_Bench": Vector2(925, 738),
-    "ArchiveProp_LightningProtection": Vector2(1025, 696),
-    "ArchiveProp_LoadBank": Vector2(1180, 730),
-    "ArchiveProp_Eyewash": Vector2(1285, 706),
-    "ArchiveProp_CableReel": Vector2(1380, 742),
-    "ArchiveProp_MvEquipment": Vector2(1515, 704),
-    "ArchiveProp_Hydrant": Vector2(1610, 735),
-    "ArchiveProp_TruckScale": Vector2(1700, 692),
-    "ArchiveProp_MvTermination": Vector2(190, 850),
-    "ArchiveProp_DiagnosticStation": Vector2(305, 822),
-    "ArchiveProp_WeatherStation": Vector2(410, 858),
-    "ArchiveProp_PowerService": Vector2(565, 842),
-    "ArchiveProp_CoolingService": Vector2(665, 870),
-    "ArchiveProp_WashdownStation": Vector2(775, 832),
-    "ArchiveProp_Pump": Vector2(930, 858),
-    "ArchiveProp_SaltStorage": Vector2(1038, 826),
-    "ArchiveProp_Trench": Vector2(1148, 872),
-    "ArchiveProp_SecurityFirewall": Vector2(1295, 830),
-    "ArchiveProp_Cctv": Vector2(1405, 866),
-    "ArchiveProp_OilWaterSeparator": Vector2(1518, 820),
-    "ArchiveProp_Statcom": Vector2(1650, 858),
-    "ArchiveProp_FiberPedestal": Vector2(1710, 905),
-    "ArchiveProp_GateControl": Vector2(1590, 936),
-    "ArchiveProp_Telecom": Vector2(430, 995),
-    "ArchiveProp_CompressedAir": Vector2(565, 1020),
-    "ArchiveProp_Drain": Vector2(700, 988),
+    # Upper service verge: transfer / electrical / commissioning / logistics.
+    "ArchiveProp_Ats": Vector2(245, 632),
+    "ArchiveProp_Handhole": Vector2(318, 648),
+    "ArchiveProp_Bollards": Vector2(392, 626),
+    "ArchiveProp_CoolingUnit": Vector2(510, 636),
+    "ArchiveProp_ElectricalUnit": Vector2(592, 622),
+    "ArchiveProp_EnergyUnit": Vector2(676, 646),
+    "ArchiveProp_HarmonicFilter": Vector2(790, 630),
+    "ArchiveProp_Bench": Vector2(870, 650),
+    "ArchiveProp_LightningProtection": Vector2(958, 622),
+    "ArchiveProp_LoadBank": Vector2(1085, 642),
+    "ArchiveProp_Eyewash": Vector2(1170, 625),
+    "ArchiveProp_CableReel": Vector2(1252, 650),
+    "ArchiveProp_MvEquipment": Vector2(1390, 628),
+    "ArchiveProp_Hydrant": Vector2(1470, 650),
+    "ArchiveProp_TruckScale": Vector2(1572, 620),
+    "ArchiveProp_Telecom": Vector2(1660, 646),
+
+    # Lower service verge: move off the roadway into the grass/service strip
+    # between the road and the next building row.
+    "ArchiveProp_MvTermination": Vector2(245, 1038),
+    "ArchiveProp_DiagnosticStation": Vector2(325, 1062),
+    "ArchiveProp_WeatherStation": Vector2(407, 1030),
+    "ArchiveProp_PowerService": Vector2(515, 1052),
+    "ArchiveProp_CoolingService": Vector2(600, 1030),
+    "ArchiveProp_WashdownStation": Vector2(687, 1064),
+    "ArchiveProp_Pump": Vector2(810, 1038),
+    "ArchiveProp_SaltStorage": Vector2(895, 1062),
+    "ArchiveProp_Trench": Vector2(982, 1030),
+    "ArchiveProp_SecurityFirewall": Vector2(1095, 1056),
+    "ArchiveProp_Cctv": Vector2(1175, 1030),
+    "ArchiveProp_OilWaterSeparator": Vector2(1260, 1066),
+    "ArchiveProp_Statcom": Vector2(1385, 1036),
+    "ArchiveProp_FiberPedestal": Vector2(1465, 1062),
+    "ArchiveProp_GateControl": Vector2(1548, 1030),
+    "ArchiveProp_CompressedAir": Vector2(1640, 1060),
+    "ArchiveProp_Drain": Vector2(1710, 1030),
 }
 
 # The archive renderer deliberately gives every crop enough pixels to be legible.
@@ -75,19 +82,24 @@ const NONBLOCKING_NODES := {
     "ArchiveProp_Drain": true,
 }
 
-# A few restrained service pads visually tie the heaviest support equipment into
-# the existing campus without adding a second road system or carpeting the grass.
+# Pads sit in the grass service verges, above the terrain draw but below their
+# y-sorted equipment. Gaps preserve the existing campus grass texture.
 const SERVICE_PADS := [
-    Rect2(450, 676, 275, 88),
-    Rect2(790, 674, 275, 92),
-    Rect2(1148, 682, 278, 92),
-    Rect2(1500, 674, 245, 98),
-    Rect2(530, 808, 280, 92),
-    Rect2(895, 808, 285, 102),
+    Rect2(480, 592, 225, 82),
+    Rect2(758, 590, 230, 86),
+    Rect2(1055, 592, 230, 84),
+    Rect2(1360, 590, 245, 88),
+    Rect2(485, 1004, 230, 78),
+    Rect2(780, 1004, 230, 80),
+    Rect2(1065, 1004, 225, 80),
+    Rect2(1355, 1004, 230, 80),
 ]
 
 func _ready() -> void:
-    z_index = -2
+    # Keep the pads at normal canvas depth. ArchiveSpriteProps is created after
+    # the root world draw, and its y-sorted children then render equipment over
+    # these pads. A negative z-index hid the pads behind the terrain.
+    z_index = 0
     call_deferred("_apply_layout")
     queue_redraw()
 

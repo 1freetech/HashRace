@@ -6,6 +6,7 @@ import zlib
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "Godot" / "art" / "props" / "hr_sprite_sheets"
 SCRIPT = (ROOT / "Godot" / "scripts" / "archive_sprite_props.gd").read_text()
+INTERACTION = (ROOT / "Godot" / "scripts" / "archive_sprite_interaction.gd").read_text()
 SCENE = (ROOT / "Godot" / "scenes" / "world.tscn").read_text()
 WORLD_V165 = ROOT / "Godot" / "scripts" / "world_v165.gd"
 
@@ -92,10 +93,26 @@ for marker in [
 ]:
     assert marker in SCRIPT, marker
 
-# Gameplay regression guard: visual sprite promotion must never replace the
-# full live simulation/world inheritance chain again.
+# Promoted props are now gameplay objects too: nearby E/F inspection, persistent
+# survey progress, restrained Operations progression, and visible target feedback.
+for marker in [
+    "const INSPECT_RANGE := 82.0",
+    "const HIGHLIGHT_RANGE := 126.0",
+    "const SURVEY_MILESTONE_SIZE := 6",
+    "const MAX_OPERATIONS_BONUS := 5",
+    "equipment_surveys",
+    "_award_operations_point",
+    "[E/F] INSPECT",
+    "EQUIPMENT_INFO.size() != 33",
+]:
+    assert marker in INTERACTION, marker
+
+# Gameplay regression guard: sprite promotion and inspection must never replace
+# the full live simulation/world inheritance chain.
 assert WORLD_V165.is_file(), "world_v165.gd must remain present on the live branch"
 assert 'res://scripts/world_v165.gd' in SCENE, "live world must use the v0.165 gameplay chain"
 assert '[node name="ArchiveSpriteProps" type="Node2D" parent="."]' in SCENE
 assert 'res://scripts/archive_sprite_props.gd' in SCENE
-print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 cropped readable live cells / larger live scale / v0.165 gameplay chain")
+assert 'res://scripts/archive_sprite_interaction.gd' in SCENE
+assert '[node name="EquipmentSurvey" type="Node2D" parent="ArchiveSpriteProps"]' in SCENE
+print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 readable live cells / tuned layout / inspectable equipment progression / v0.165 gameplay chain")
