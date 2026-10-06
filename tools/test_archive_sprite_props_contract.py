@@ -9,6 +9,7 @@ SCRIPT = (ROOT / "Godot" / "scripts" / "archive_sprite_props.gd").read_text()
 INTERACTION = (ROOT / "Godot" / "scripts" / "archive_sprite_interaction.gd").read_text()
 SCENE = (ROOT / "Godot" / "scenes" / "world.tscn").read_text()
 WORLD_V165 = ROOT / "Godot" / "scripts" / "world_v165.gd"
+WORLD_V165_TEXT = WORLD_V165.read_text()
 
 EXPECTED = {
     "2026-10-04_ats_handhole_bollards_96x32.png": (96, 32),
@@ -93,26 +94,50 @@ for marker in [
 ]:
     assert marker in SCRIPT, marker
 
-# Promoted props are now gameplay objects too: nearby E/F inspection, persistent
-# survey progress, restrained Operations progression, and visible target feedback.
+# Promoted props are gameplay objects: survey progress, deterministic turn-scaled
+# reliability events, on-site R repairs, real cash costs, and persistent fault state.
 for marker in [
     "const INSPECT_RANGE := 82.0",
     "const HIGHLIGHT_RANGE := 126.0",
+    "const REPAIR_RANGE := 92.0",
     "const SURVEY_MILESTONE_SIZE := 6",
     "const MAX_OPERATIONS_BONUS := 5",
+    "const FAULT_CHECK_DAYS := 30.4375",
+    "const FAULT_BASE_MONTHLY_CHANCE := 0.18",
+    "FAULT_UPTIME_PENALTIES",
+    "FAULT_BASE_REPAIR_COSTS",
     "equipment_surveys",
+    "equipment_fault_key",
+    "equipment_uptime_penalty",
+    "equipment_faults_resolved",
     "_award_operations_point",
+    "_update_reliability_clock",
+    "_trigger_fault",
+    "_repair_active_fault",
+    "debug_force_fault",
     "[E/F] INSPECT",
+    "[R] REPAIR",
     "EQUIPMENT_INFO.size() != 33",
 ]:
     assert marker in INTERACTION, marker
 
-# Gameplay regression guard: sprite promotion and inspection must never replace
-# the full live simulation/world inheritance chain.
+# The reliability penalty must enter the same uptime path used by the established
+# v0.090 power-dispatch financial preview; source-only fault state is not enough.
+for marker in [
+    "func _equipment_uptime_penalty() -> float:",
+    'player.get("equipment_uptime_penalty", 0.0)',
+    "func _uptime_without_grid_penalty() -> float:",
+    "super._uptime_without_grid_penalty()",
+    "base - _equipment_uptime_penalty()",
+]:
+    assert marker in WORLD_V165_TEXT, marker
+
+# Gameplay regression guard: sprite promotion/reliability must never replace the
+# full live simulation/world inheritance chain.
 assert WORLD_V165.is_file(), "world_v165.gd must remain present on the live branch"
 assert 'res://scripts/world_v165.gd' in SCENE, "live world must use the v0.165 gameplay chain"
 assert '[node name="ArchiveSpriteProps" type="Node2D" parent="."]' in SCENE
 assert 'res://scripts/archive_sprite_props.gd' in SCENE
 assert 'res://scripts/archive_sprite_interaction.gd' in SCENE
 assert '[node name="EquipmentSurvey" type="Node2D" parent="ArchiveSpriteProps"]' in SCENE
-print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 readable live cells / tuned layout / inspectable equipment progression / v0.165 gameplay chain")
+print("HASH RACE ARCHIVE SPRITE CONTRACT OK: 11 PNG sheets / 33 readable live cells / inspect + fault + repair operations gameplay / uptime economics / v0.165 chain")
