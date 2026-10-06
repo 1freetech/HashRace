@@ -36,7 +36,7 @@ func _capture() -> void:
         return
     var survey: Node = props.get_node_or_null("EquipmentSurvey")
     if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
-        _fail("live equipment survey gameplay is missing or invalid")
+        _fail("live equipment survey/reliability gameplay is missing or invalid")
         return
 
     scene.set("rep_pos", PROOF_CENTER)
@@ -62,6 +62,28 @@ func _capture() -> void:
     var inspect_prompt := survey.get_node_or_null("EquipmentInspectPrompt") as Label
     if inspect_prompt == null or not inspect_prompt.visible or "[E/F] INSPECT" not in inspect_prompt.text:
         _fail("equipment survey prompt is not visibly rendered near the player")
+        return
+
+    var uptime_before := float(scene.call("_uptime_without_grid_penalty"))
+    if not survey.has_method("debug_force_fault") or not bool(survey.call("debug_force_fault", nearest_name, 1)):
+        _fail("could not force the nearby surveyed equipment into a major fault")
+        return
+    for _frame in range(8):
+        await process_frame
+
+    if String(survey.call("active_fault_name")) != nearest_name:
+        _fail("forced equipment fault did not persist on the promoted prop")
+        return
+    if inspect_prompt == null or not inspect_prompt.visible or "[R] REPAIR" not in inspect_prompt.text or "MAJOR" not in inspect_prompt.text:
+        _fail("live repair prompt is not visibly rendered on the failed equipment")
+        return
+    var player_value: Variant = scene.get("player")
+    if not player_value is Dictionary or float(player_value.get("equipment_uptime_penalty", 0.0)) <= 0.0:
+        _fail("equipment fault did not persist a mining-uptime penalty in live player state")
+        return
+    var uptime_after := float(scene.call("_uptime_without_grid_penalty"))
+    if uptime_after >= uptime_before - 0.02:
+        _fail("equipment fault did not materially lower the live mining uptime")
         return
 
     var image: Image = root.get_texture().get_image()
@@ -95,5 +117,5 @@ func _capture() -> void:
         _fail("proof frame is visually empty or dominated by one color")
         return
 
-    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, tuned campus layout, nearest-neighbor filtering, navigation footprints, and visible nearby-equipment inspection prompt (%s); %dx%d PNG saved %s" % [nearest_name, image.get_width(), image.get_height(), output_file])
+    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, tuned layout, visible inspection + repair gameplay, and a material uptime penalty on failed equipment (%s %.3f -> %.3f); %dx%d PNG saved %s" % [nearest_name, uptime_before, uptime_after, image.get_width(), image.get_height(), output_file])
     quit(0)
