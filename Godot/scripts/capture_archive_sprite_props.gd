@@ -38,6 +38,15 @@ func _capture() -> void:
     if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
         _fail("live equipment survey/reliability gameplay is missing or invalid")
         return
+    var treasury: Node = scene.get_node_or_null("LiveTreasuryControls")
+    if treasury == null or not treasury.has_method("debug_live_treasury_ready") or not bool(treasury.call("debug_live_treasury_ready")):
+        _fail("live treasury controls are missing or not initialized in the current world")
+        return
+    var treasury_before: String = String(treasury.call("debug_live_treasury_status"))
+    if "Reliability: NOMINAL" not in treasury_before:
+        _fail("treasury did not start with nominal equipment reliability")
+        return
+    var projected_profit_before: float = float(treasury.call("debug_projected_turn_profit"))
 
     scene.set("rep_pos", PROOF_CENTER)
     var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
@@ -68,8 +77,9 @@ func _capture() -> void:
     if not survey.has_method("debug_force_fault") or not bool(survey.call("debug_force_fault", nearest_name, 1)):
         _fail("could not force the nearby surveyed equipment into a major fault")
         return
-    for _frame in range(8):
+    for _frame in range(20):
         await process_frame
+    await create_timer(0.30).timeout
 
     if String(survey.call("active_fault_name")) != nearest_name:
         _fail("forced equipment fault did not persist on the promoted prop")
@@ -86,8 +96,42 @@ func _capture() -> void:
         _fail("equipment fault did not materially lower the live mining uptime")
         return
 
+    var treasury_fault: String = String(treasury.call("debug_live_treasury_status"))
+    if not bool(treasury.call("debug_fault_indicator_ready")):
+        _fail("treasury did not synchronize the active equipment fault")
+        return
+    if "Reliability: FAULT" not in treasury_fault or "-3.5% uptime" not in treasury_fault or "repair $" not in treasury_fault:
+        _fail("treasury fault line is missing the live major-fault uptime or repair consequence")
+        return
+    var projected_profit_fault: float = float(treasury.call("debug_projected_turn_profit"))
+    if projected_profit_fault >= projected_profit_before - 1.0:
+        _fail("treasury projected turn profit did not fall after the live equipment uptime fault")
+        return
+
+    # The compact HUD intentionally hides detail modules until selected. Open the
+    # real BTC Treasury module through that shipped UI path so the screenshot
+    # visibly proves the synchronized reliability/economics state without making
+    # the default map permanently cluttered.
+    if not scene.has_method("_show_named_module"):
+        _fail("compact Control Center cannot open the live treasury module")
+        return
+    scene.call("_show_named_module", "LiveTreasuryLayer")
+    for _frame in range(6):
+        await process_frame
+    var treasury_layer := scene.get_node_or_null("LiveTreasuryLayer") as CanvasLayer
+    var treasury_status_label := scene.get_node_or_null("LiveTreasuryLayer/TreasuryPanel/TreasuryStatus") as Label
+    if treasury_layer == null or not treasury_layer.visible:
+        _fail("BTC Treasury module did not become visible through the compact UI path")
+        return
+    if treasury_status_label == null or not treasury_status_label.is_visible_in_tree():
+        _fail("treasury reliability status is not visibly rendered in the opened module")
+        return
+    if "Reliability: FAULT" not in treasury_status_label.text or "-3.5% uptime" not in treasury_status_label.text:
+        _fail("visible treasury module does not show the active reliability penalty")
+        return
+
     # Capture the fault state before repairing it so the artifact visibly proves
-    # the highlighted failed unit and the on-site R repair prompt.
+    # the highlighted failed unit, repair prompt, and synchronized treasury risk.
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
@@ -122,19 +166,20 @@ func _capture() -> void:
     # Exercise the other half of the gameplay loop after the screenshot: repair
     # on site, spend the quoted cash, clear the fault state and restore uptime.
     var repair_player: Dictionary = scene.get("player")
-    var repair_cost := float(repair_player.get("equipment_fault_repair_cost", 0.0))
+    var repair_cost: float = float(repair_player.get("equipment_fault_repair_cost", 0.0))
     if repair_cost <= 0.0:
         _fail("fault repair cost was not materialized in live player state")
         return
     if float(repair_player.get("cash", 0.0)) < repair_cost:
         repair_player["cash"] = repair_cost + 50000.0
         scene.set("player", repair_player)
-    var cash_before_repair := float(repair_player.get("cash", 0.0))
+    var cash_before_repair: float = float(repair_player.get("cash", 0.0))
     if not bool(survey.call("_repair_active_fault")):
         _fail("on-site equipment repair action did not execute")
         return
-    for _frame in range(4):
+    for _frame in range(20):
         await process_frame
+    await create_timer(0.30).timeout
     var repaired_player: Dictionary = scene.get("player")
     if not String(survey.call("active_fault_name")).is_empty():
         _fail("repair did not clear the active equipment fault")
@@ -149,6 +194,14 @@ func _capture() -> void:
     if uptime_restored < uptime_before - 0.001:
         _fail("repair did not restore live mining uptime")
         return
+    var treasury_restored: String = String(treasury.call("debug_live_treasury_status"))
+    if "Reliability: NOMINAL" not in treasury_restored or not bool(treasury.call("debug_fault_indicator_ready")):
+        _fail("treasury did not return to nominal reliability after the on-site repair")
+        return
+    var projected_profit_restored: float = float(treasury.call("debug_projected_turn_profit"))
+    if projected_profit_restored < projected_profit_before - 1.0:
+        _fail("treasury turn projection did not recover after equipment repair")
+        return
 
-    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, visible inspection + fault + repair gameplay, material uptime loss %.3f -> %.3f, repair $%d, restored %.3f (%s); %dx%d PNG saved %s" % [uptime_before, uptime_after, int(repair_cost), uptime_restored, nearest_name, image.get_width(), image.get_height(), output_file])
+    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, visible inspection + fault + repair gameplay, visible treasury fault sync %.0f -> %.0f -> %.0f, uptime %.3f -> %.3f, repair $%d, restored %.3f (%s); %dx%d PNG saved %s" % [projected_profit_before, projected_profit_fault, projected_profit_restored, uptime_before, uptime_after, int(repair_cost), uptime_restored, nearest_name, image.get_width(), image.get_height(), output_file])
     quit(0)
