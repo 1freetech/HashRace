@@ -26,7 +26,8 @@ func _capture() -> void:
         _fail("world_v165 is not the live gameplay head")
         return
     if not scene.has_method("debug_v165_runtime_ready") or not bool(scene.call("debug_v165_runtime_ready")):
-        _fail("current v0.165 runtime validation failed")
+        var runtime_state := scene.call("debug_v165_runtime_state") if scene.has_method("debug_v165_runtime_state") else {}
+        _fail("current v0.165 runtime validation failed: %s" % str(runtime_state))
         return
     var props := scene.get_node_or_null("ArchiveSpriteProps")
     if props == null or not props.has_method("debug_ready") or not bool(props.call("debug_ready")):
