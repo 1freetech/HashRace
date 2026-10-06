@@ -108,6 +108,28 @@ func _capture() -> void:
         _fail("treasury projected turn profit did not fall after the live equipment uptime fault")
         return
 
+    # The compact HUD intentionally hides detail modules until selected. Open the
+    # real BTC Treasury module through that shipped UI path so the screenshot
+    # visibly proves the synchronized reliability/economics state without making
+    # the default map permanently cluttered.
+    if not scene.has_method("_show_named_module"):
+        _fail("compact Control Center cannot open the live treasury module")
+        return
+    scene.call("_show_named_module", "LiveTreasuryLayer")
+    for _frame in range(6):
+        await process_frame
+    var treasury_layer := scene.get_node_or_null("LiveTreasuryLayer") as CanvasLayer
+    var treasury_status_label := scene.get_node_or_null("LiveTreasuryLayer/TreasuryPanel/TreasuryStatus") as Label
+    if treasury_layer == null or not treasury_layer.visible:
+        _fail("BTC Treasury module did not become visible through the compact UI path")
+        return
+    if treasury_status_label == null or not treasury_status_label.is_visible_in_tree():
+        _fail("treasury reliability status is not visibly rendered in the opened module")
+        return
+    if "Reliability: FAULT" not in treasury_status_label.text or "-3.5% uptime" not in treasury_status_label.text:
+        _fail("visible treasury module does not show the active reliability penalty")
+        return
+
     # Capture the fault state before repairing it so the artifact visibly proves
     # the highlighted failed unit, repair prompt, and synchronized treasury risk.
     var image: Image = root.get_texture().get_image()
@@ -181,5 +203,5 @@ func _capture() -> void:
         _fail("treasury turn projection did not recover after equipment repair")
         return
 
-    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, visible inspection + fault + repair gameplay, treasury fault sync %.0f -> %.0f -> %.0f, uptime %.3f -> %.3f, repair $%d, restored %.3f (%s); %dx%d PNG saved %s" % [projected_profit_before, projected_profit_fault, projected_profit_restored, uptime_before, uptime_after, int(repair_cost), uptime_restored, nearest_name, image.get_width(), image.get_height(), output_file])
+    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, visible inspection + fault + repair gameplay, visible treasury fault sync %.0f -> %.0f -> %.0f, uptime %.3f -> %.3f, repair $%d, restored %.3f (%s); %dx%d PNG saved %s" % [projected_profit_before, projected_profit_fault, projected_profit_restored, uptime_before, uptime_after, int(repair_cost), uptime_restored, nearest_name, image.get_width(), image.get_height(), output_file])
     quit(0)
