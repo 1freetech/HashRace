@@ -1,7 +1,7 @@
 extends Node2D
 class_name HashRaceArchiveSpriteLayoutTuner
 
-# Keep every promoted sprite-sheet object in the live world, but stop presenting
+# Keep every promoted sprite-sheet object in the live world while avoiding
 # them as a rigid proof grid. This helper runs after ArchiveSpriteProps builds its
 # 33 Sprite2D children, applies authored relative scale, hand-places them into
 # functional campus service zones, and rebuilds navigation from the final ground
