@@ -1,7 +1,7 @@
 extends SceneTree
 
 const OUTPUT_PATH := "res://../visual-proof/hashrace-archive-sprite-props.png"
-const PROOF_CENTER := Vector2(900.0, 820.0)
+const PROOF_CENTER := Vector2(900.0, 940.0)
 
 func _initialize() -> void:
     call_deferred("_capture")
