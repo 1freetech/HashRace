@@ -7,6 +7,8 @@ on:
       - '.github/workflows/archive-sprite-proof.yml'
       - 'Godot/art/props/hr_sprite_sheets/**'
       - 'Godot/scripts/archive_sprite_props.gd'
+      - 'Godot/scripts/archive_sprite_layout_tuner.gd'
+      - 'Godot/scripts/archive_sprite_interaction.gd'
       - 'Godot/scripts/capture_archive_sprite_props.gd'
       - 'Godot/scenes/world.tscn'
       - 'tools/test_archive_sprite_props_contract.py'
@@ -20,7 +22,7 @@ jobs:
       - name: Check out exact main head
         uses: actions/checkout@v4
 
-      - name: Validate exact promoted sprite-sheet binaries and wiring
+      - name: Validate promoted sprite binaries, wiring, and inspection contract
         run: python tools/test_archive_sprite_props_contract.py
 
       - name: Set up Godot 4.7.2
@@ -53,7 +55,7 @@ jobs:
             sudo apt-get install -y xvfb
           fi
 
-      - name: Render all 11 promoted sheets in the live world
+      - name: Render promoted sheets and equipment survey prompt in live world
         shell: bash
         run: |
           set -euo pipefail
