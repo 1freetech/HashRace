@@ -12,6 +12,17 @@ on:
       - 'Godot/scripts/capture_archive_sprite_props.gd'
       - 'Godot/scenes/world.tscn'
       - 'tools/test_archive_sprite_props_contract.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/archive-sprite-proof.yml'
+      - 'Godot/art/props/hr_sprite_sheets/**'
+      - 'Godot/scripts/archive_sprite_props.gd'
+      - 'Godot/scripts/archive_sprite_layout_tuner.gd'
+      - 'Godot/scripts/archive_sprite_interaction.gd'
+      - 'Godot/scripts/capture_archive_sprite_props.gd'
+      - 'Godot/scenes/world.tscn'
+      - 'tools/test_archive_sprite_props_contract.py'
   workflow_dispatch:
 
 jobs:
@@ -19,8 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out exact main head
+      - name: Check out exact proposed head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact head
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          echo "exact-head=$EXPECTED"
 
       - name: Validate promoted sprite binaries, wiring, and inspection contract
         run: python tools/test_archive_sprite_props_contract.py
@@ -68,7 +89,7 @@ jobs:
       - name: Upload fresh archive sprite runtime proof
         uses: actions/upload-artifact@v4
         with:
-          name: hashrace-archive-sprite-live-proof-${{ github.sha }}
+          name: hashrace-archive-sprite-live-proof-${{ github.event.pull_request.head.sha || github.sha }}
           path: visual-proof/hashrace-archive-sprite-props.png
           if-no-files-found: error
           retention-days: 90
