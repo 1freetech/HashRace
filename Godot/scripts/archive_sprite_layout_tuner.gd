@@ -82,17 +82,19 @@ const NONBLOCKING_NODES := {
     "ArchiveProp_Drain": true,
 }
 
-# Pads sit in the grass service verges, above the terrain draw but below their
-# y-sorted equipment. Gaps preserve the existing campus grass texture.
+# Small semi-transparent gravel/concrete islands keep equipment grounded without
+# reading like giant proof rectangles or visually painting over nearby buildings.
+# Gaps preserve the authored grass texture and make the infrastructure feel placed
+# into the campus rather than laid on top of it.
 const SERVICE_PADS := [
-    Rect2(480, 592, 225, 82),
-    Rect2(758, 590, 230, 86),
-    Rect2(1055, 592, 230, 84),
-    Rect2(1360, 590, 245, 88),
-    Rect2(485, 1004, 230, 78),
-    Rect2(780, 1004, 230, 80),
-    Rect2(1065, 1004, 225, 80),
-    Rect2(1355, 1004, 230, 80),
+    Rect2(500, 604, 190, 48),
+    Rect2(785, 604, 190, 48),
+    Rect2(1080, 604, 190, 48),
+    Rect2(1380, 604, 200, 48),
+    Rect2(500, 1016, 190, 48),
+    Rect2(800, 1016, 190, 48),
+    Rect2(1080, 1016, 190, 48),
+    Rect2(1375, 1016, 190, 48),
 ]
 
 func _ready() -> void:
@@ -105,8 +107,8 @@ func _ready() -> void:
 
 func _draw() -> void:
     for pad in SERVICE_PADS:
-        draw_rect(pad, Color("667460"))
-        draw_rect(pad, Color("7b8875"), false, 2.0)
+        draw_rect(pad, Color("66746070"))
+        draw_rect(pad, Color("8a968188"), false, 1.0)
 
 func _apply_layout() -> void:
     var props := get_parent()
