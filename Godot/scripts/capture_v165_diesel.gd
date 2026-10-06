@@ -24,7 +24,8 @@ func _capture() -> void:
         _fail("world_v165 is not the live gameplay head")
         return
     if not scene.has_method("debug_v165_runtime_ready") or not bool(scene.call("debug_v165_runtime_ready")):
-        _fail("live v0.165 runtime did not initialize")
+        var runtime_state := scene.call("debug_v165_runtime_state") if scene.has_method("debug_v165_runtime_state") else {}
+        _fail("live v0.165 runtime did not initialize: %s" % str(runtime_state))
         return
 
     var inventory = scene.get("infrastructure_inventory")
