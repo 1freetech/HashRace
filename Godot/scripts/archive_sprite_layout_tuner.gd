@@ -11,23 +11,24 @@ class_name HashRaceArchiveSpriteLayoutTuner
 # building rows and roads. Equipment is grouped by function, with small y offsets
 # so the campus reads as operating infrastructure rather than a sprite lineup.
 const POSITION_BY_NODE := {
-    # Upper service verge: transfer / electrical / commissioning / logistics.
-    "ArchiveProp_Ats": Vector2(245, 632),
-    "ArchiveProp_Handhole": Vector2(318, 648),
-    "ArchiveProp_Bollards": Vector2(392, 626),
-    "ArchiveProp_CoolingUnit": Vector2(510, 636),
-    "ArchiveProp_ElectricalUnit": Vector2(592, 622),
-    "ArchiveProp_EnergyUnit": Vector2(676, 646),
-    "ArchiveProp_HarmonicFilter": Vector2(790, 630),
-    "ArchiveProp_Bench": Vector2(870, 650),
-    "ArchiveProp_LightningProtection": Vector2(958, 622),
-    "ArchiveProp_LoadBank": Vector2(1085, 642),
-    "ArchiveProp_Eyewash": Vector2(1170, 625),
-    "ArchiveProp_CableReel": Vector2(1252, 650),
-    "ArchiveProp_MvEquipment": Vector2(1390, 628),
-    "ArchiveProp_Hydrant": Vector2(1470, 650),
-    "ArchiveProp_TruckScale": Vector2(1572, 620),
-    "ArchiveProp_Telecom": Vector2(1660, 646),
+    # Upper service verge: keep ground contacts north of the building roof line
+    # so these later-added child sprites never paint over the root-drawn buildings.
+    "ArchiveProp_Ats": Vector2(245, 572),
+    "ArchiveProp_Handhole": Vector2(318, 588),
+    "ArchiveProp_Bollards": Vector2(392, 566),
+    "ArchiveProp_CoolingUnit": Vector2(510, 576),
+    "ArchiveProp_ElectricalUnit": Vector2(592, 562),
+    "ArchiveProp_EnergyUnit": Vector2(676, 586),
+    "ArchiveProp_HarmonicFilter": Vector2(790, 570),
+    "ArchiveProp_Bench": Vector2(870, 590),
+    "ArchiveProp_LightningProtection": Vector2(958, 562),
+    "ArchiveProp_LoadBank": Vector2(1085, 582),
+    "ArchiveProp_Eyewash": Vector2(1170, 565),
+    "ArchiveProp_CableReel": Vector2(1252, 590),
+    "ArchiveProp_MvEquipment": Vector2(1390, 568),
+    "ArchiveProp_Hydrant": Vector2(1470, 590),
+    "ArchiveProp_TruckScale": Vector2(1572, 560),
+    "ArchiveProp_Telecom": Vector2(1660, 586),
 
     # Lower service verge: move off the roadway into the grass/service strip
     # between the road and the next building row.
@@ -87,10 +88,10 @@ const NONBLOCKING_NODES := {
 # Gaps preserve the authored grass texture and make the infrastructure feel placed
 # into the campus rather than laid on top of it.
 const SERVICE_PADS := [
-    Rect2(500, 604, 190, 48),
-    Rect2(785, 604, 190, 48),
-    Rect2(1080, 604, 190, 48),
-    Rect2(1380, 604, 200, 48),
+    Rect2(500, 544, 190, 48),
+    Rect2(785, 544, 190, 48),
+    Rect2(1080, 544, 190, 48),
+    Rect2(1380, 544, 200, 48),
     Rect2(500, 1016, 190, 48),
     Rect2(800, 1016, 190, 48),
     Rect2(1080, 1016, 190, 48),
