@@ -12,10 +12,21 @@ on:
       - 'Godot/systems/energy_visual_catalog.gd'
       - 'Godot/scripts/capture_v165_diesel.gd'
       - 'Godot/scripts/infrastructure_inventory.gd'
-      - 'Godot/scripts/main.gd'
-      - 'Godot/scripts/strategy_layer.gd'
-      - 'Godot/scripts/world.gd'
-      - 'Godot/scripts/world_overworld.gd'
+      - 'Godot/scripts/world_v165.gd'
+      - 'Godot/data/item_library.gd'
+      - 'Godot/data/items/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/exported-diesel-proof.yml'
+      - 'Godot/export_presets.cfg'
+      - 'Godot/project.godot'
+      - 'Godot/autoloads/exported_diesel_probe.gd'
+      - 'Godot/assets/energy/atlas_parts/**'
+      - 'Godot/systems/energy_visual_catalog.gd'
+      - 'Godot/scripts/capture_v165_diesel.gd'
+      - 'Godot/scripts/infrastructure_inventory.gd'
+      - 'Godot/scripts/world_v165.gd'
       - 'Godot/data/item_library.gd'
       - 'Godot/data/items/**'
   workflow_dispatch:
@@ -25,8 +36,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out exact main head
+      - name: Check out exact proposed head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact head
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          echo "exact-head=$EXPECTED"
 
       - name: Assert both export presets include b64 files
         shell: bash
@@ -67,7 +88,7 @@ jobs:
             sudo apt-get install -y xvfb
           fi
 
-      - name: Verify diesel deployment inside exported build
+      - name: Verify full diesel lifecycle inside exported build
         shell: bash
         run: |
           set -euo pipefail
@@ -91,7 +112,7 @@ jobs:
       - name: Upload exported diesel proof
         uses: actions/upload-artifact@v4
         with:
-          name: HashRace-exported-diesel-proof-${{ github.sha }}
+          name: HashRace-exported-diesel-proof-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             HashRace-exported-diesel-linux-x64.tar.gz
             visual-proof/v165-diesel-overview.png
