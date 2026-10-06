@@ -62,8 +62,23 @@ for texture_path in [
 assert 'V160SubstationSprite' in world_v160 and 'grid_nav.block_rect(foot)' in world_v160
 assert 'V161Solar' in world_v161 and 'asset_id != "solar_array"' in world_v161 and 'grid_nav.block_rect(foot)' in world_v161
 assert 'V164Wind' in world_v164 and 'asset_id != "wind_farm"' in world_v164 and 'grid_nav.block_rect(foot)' in world_v164
-assert 'V165_DIESEL_ASSET_ID := "diesel_generator"' in world_v165
-assert 'infrastructure_inventory.deployed_quantity(V165_DIESEL_ASSET_ID)' in world_v165
-assert 'grid_nav.block_rect(foot)' in world_v165
 
-print("Hash Race full gameplay energy/deployment contract passed.")
+# v0.165 diesel is dynamic inventory-backed infrastructure, so it must own and
+# release only the navigation cells it introduced. Requiring the old raw
+# block_rect() call here would reintroduce the invisible-obstacle undeploy bug.
+for marker in [
+    'V165_DIESEL_ASSET_ID := "diesel_generator"',
+    'infrastructure_inventory.deployed_quantity(V165_DIESEL_ASSET_ID)',
+    'infrastructure_inventory.deployment_changed.connect(_v165_on_deployment_changed)',
+    'var v165_diesel_owned_blocked_cells: Array[Vector2i] = []',
+    'func _v165_block_diesel_collision(foot: Rect2) -> void:',
+    'func _v165_clear_diesel_collision() -> void:',
+    'if grid_nav.is_walkable(cell):',
+    'grid_nav.set_blocked(cell, true)',
+    'grid_nav.set_blocked(cell, false)',
+    'func debug_v165_runtime_state() -> Dictionary:',
+    'func debug_v165_diesel_ready() -> bool:',
+]:
+    assert marker in world_v165, f"v0.165 dynamic diesel contract missing: {marker}"
+
+print("Hash Race full gameplay energy/deployment contract passed with ownership-safe diesel collision cleanup.")

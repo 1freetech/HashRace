@@ -36,7 +36,7 @@ func _capture() -> void:
         return
     var survey: Node = props.get_node_or_null("EquipmentSurvey")
     if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
-        _fail("live equipment survey gameplay is missing or invalid")
+        _fail("live equipment survey/reliability gameplay is missing or invalid")
         return
 
     scene.set("rep_pos", PROOF_CENTER)
@@ -64,6 +64,30 @@ func _capture() -> void:
         _fail("equipment survey prompt is not visibly rendered near the player")
         return
 
+    var uptime_before := float(scene.call("_uptime_without_grid_penalty"))
+    if not survey.has_method("debug_force_fault") or not bool(survey.call("debug_force_fault", nearest_name, 1)):
+        _fail("could not force the nearby surveyed equipment into a major fault")
+        return
+    for _frame in range(8):
+        await process_frame
+
+    if String(survey.call("active_fault_name")) != nearest_name:
+        _fail("forced equipment fault did not persist on the promoted prop")
+        return
+    if inspect_prompt == null or not inspect_prompt.visible or "[R] REPAIR" not in inspect_prompt.text or "MAJOR" not in inspect_prompt.text:
+        _fail("live repair prompt is not visibly rendered on the failed equipment")
+        return
+    var player_value: Variant = scene.get("player")
+    if not player_value is Dictionary or float(player_value.get("equipment_uptime_penalty", 0.0)) <= 0.0:
+        _fail("equipment fault did not persist a mining-uptime penalty in live player state")
+        return
+    var uptime_after := float(scene.call("_uptime_without_grid_penalty"))
+    if uptime_after >= uptime_before - 0.02:
+        _fail("equipment fault did not materially lower the live mining uptime")
+        return
+
+    # Capture the fault state before repairing it so the artifact visibly proves
+    # the highlighted failed unit and the on-site R repair prompt.
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
         _fail("viewport produced no image")
@@ -95,5 +119,36 @@ func _capture() -> void:
         _fail("proof frame is visually empty or dominated by one color")
         return
 
-    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, tuned campus layout, nearest-neighbor filtering, navigation footprints, and visible nearby-equipment inspection prompt (%s); %dx%d PNG saved %s" % [nearest_name, image.get_width(), image.get_height(), output_file])
+    # Exercise the other half of the gameplay loop after the screenshot: repair
+    # on site, spend the quoted cash, clear the fault state and restore uptime.
+    var repair_player: Dictionary = scene.get("player")
+    var repair_cost := float(repair_player.get("equipment_fault_repair_cost", 0.0))
+    if repair_cost <= 0.0:
+        _fail("fault repair cost was not materialized in live player state")
+        return
+    if float(repair_player.get("cash", 0.0)) < repair_cost:
+        repair_player["cash"] = repair_cost + 50000.0
+        scene.set("player", repair_player)
+    var cash_before_repair := float(repair_player.get("cash", 0.0))
+    if not bool(survey.call("_repair_active_fault")):
+        _fail("on-site equipment repair action did not execute")
+        return
+    for _frame in range(4):
+        await process_frame
+    var repaired_player: Dictionary = scene.get("player")
+    if not String(survey.call("active_fault_name")).is_empty():
+        _fail("repair did not clear the active equipment fault")
+        return
+    if absf(float(repaired_player.get("cash", 0.0)) - (cash_before_repair - repair_cost)) > 1.0:
+        _fail("repair did not deduct the quoted cash cost")
+        return
+    if float(repaired_player.get("equipment_uptime_penalty", 0.0)) > 0.0001:
+        _fail("repair did not clear the persisted equipment uptime penalty")
+        return
+    var uptime_restored := float(scene.call("_uptime_without_grid_penalty"))
+    if uptime_restored < uptime_before - 0.001:
+        _fail("repair did not restore live mining uptime")
+        return
+
+    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, visible inspection + fault + repair gameplay, material uptime loss %.3f -> %.3f, repair $%d, restored %.3f (%s); %dx%d PNG saved %s" % [uptime_before, uptime_after, int(repair_cost), uptime_restored, nearest_name, image.get_width(), image.get_height(), output_file])
     quit(0)
