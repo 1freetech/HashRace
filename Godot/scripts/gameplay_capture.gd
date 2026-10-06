@@ -17,14 +17,24 @@ func _capture() -> void:
     var scene := packed.instantiate()
     root.add_child(scene)
 
-    # Reproduce the exact capture cadence already proven green by
-    # capture_v164_wind.gd on this branch. Do not add a second renderer wait:
-    # settle 12 process frames, validate live runtime state, redraw, settle 12
-    # more frames plus 0.25 s, then read the root viewport.
+    # Settle the exact live scene, then validate the current gameplay head rather
+    # than the retired world.gd compatibility renderer.
     for _frame in range(12):
         await process_frame
-    if not scene.has_method("debug_runtime_ready") or not scene.call("debug_runtime_ready"):
-        _fail("clean runtime validation failed")
+    var live_script := scene.get_script() as Script
+    if live_script == null or live_script.resource_path != "res://scripts/world_v165.gd":
+        _fail("world_v165 is not the live gameplay head")
+        return
+    if not scene.has_method("debug_v165_runtime_ready") or not bool(scene.call("debug_v165_runtime_ready")):
+        _fail("current v0.165 runtime validation failed")
+        return
+    var props := scene.get_node_or_null("ArchiveSpriteProps")
+    if props == null or not props.has_method("debug_ready") or not bool(props.call("debug_ready")):
+        _fail("promoted campus equipment layer is not live")
+        return
+    var survey := props.get_node_or_null("EquipmentSurvey")
+    if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
+        _fail("equipment operations gameplay is not live")
         return
 
     scene.queue_redraw()
@@ -41,5 +51,5 @@ func _capture() -> void:
     if image.save_png(ProjectSettings.globalize_path(OUTPUT)) != OK:
         _fail("screenshot save failed")
         return
-    print("GAMEPLAY PROOF PASS: " + ProjectSettings.globalize_path(OUTPUT))
+    print("GAMEPLAY PROOF PASS: live world_v165 runtime + equipment operations layer; " + ProjectSettings.globalize_path(OUTPUT))
     quit(0)
