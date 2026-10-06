@@ -34,6 +34,10 @@ func _capture() -> void:
     if int(props.call("live_sheet_count")) != 11 or int(props.call("live_sprite_count")) != 33:
         _fail("expected 11 live sheets and 33 live atlas sprites")
         return
+    var survey: Node = props.get_node_or_null("EquipmentSurvey")
+    if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
+        _fail("live equipment survey gameplay is missing or invalid")
+        return
 
     scene.set("rep_pos", PROOF_CENTER)
     var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
@@ -50,6 +54,15 @@ func _capture() -> void:
     for _frame in range(12):
         await process_frame
     await create_timer(0.25).timeout
+
+    var nearest_name := String(survey.call("nearest_equipment_name"))
+    if nearest_name.is_empty():
+        _fail("equipment survey did not acquire a nearby promoted prop")
+        return
+    var inspect_prompt := survey.get_node_or_null("EquipmentInspectPrompt") as Label
+    if inspect_prompt == null or not inspect_prompt.visible or "[E/F] INSPECT" not in inspect_prompt.text:
+        _fail("equipment survey prompt is not visibly rendered near the player")
+        return
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
@@ -82,5 +95,5 @@ func _capture() -> void:
         _fail("proof frame is visually empty or dominated by one color")
         return
 
-    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 live AtlasTexture Sprite2D props, nearest-neighbor filtering, ground anchors, Y-sort and navigation footprints; %dx%d PNG saved %s" % [image.get_width(), image.get_height(), output_file])
+    print("ARCHIVE SPRITE PROOF PASS: 11 exact sheets, 33 grounded live props, tuned campus layout, nearest-neighbor filtering, navigation footprints, and visible nearby-equipment inspection prompt (%s); %dx%d PNG saved %s" % [nearest_name, image.get_width(), image.get_height(), output_file])
     quit(0)
