@@ -53,6 +53,12 @@ func _uptime_without_grid_penalty() -> float:
     var base := super._uptime_without_grid_penalty()
     return clampf(base - _equipment_uptime_penalty(), 0.60, 0.999)
 
+# Compatibility entry point consumed by the clean-runtime and diesel proof harnesses.
+# Keep it at the live world head so inherited gameplay validation remains intact while
+# newer world revisions add their own readiness contracts.
+func debug_runtime_ready() -> bool:
+    return debug_v165_diesel_ready()
+
 func debug_v165_diesel_ready() -> bool:
     return V165_DIESEL_REVISION == 1 \
         and v165_diesel_drawn \
