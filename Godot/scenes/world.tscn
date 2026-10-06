@@ -1,10 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 ; Live campaign uses the full v0.165 gameplay inheritance chain.
 [ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"]
 [ext_resource path="res://scripts/live_treasury_controls.gd" type="Script" id="2_treasury"]
 [ext_resource path="res://scripts/archive_sprite_props.gd" type="Script" id="3_archive_props"]
 [ext_resource path="res://scripts/archive_sprite_layout_tuner.gd" type="Script" id="4_archive_layout"]
+[ext_resource path="res://scripts/archive_sprite_interaction.gd" type="Script" id="5_archive_interaction"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
 script = ExtResource("1_world")
@@ -14,6 +15,9 @@ script = ExtResource("3_archive_props")
 
 [node name="LayoutTuner" type="Node2D" parent="ArchiveSpriteProps"]
 script = ExtResource("4_archive_layout")
+
+[node name="EquipmentSurvey" type="Node2D" parent="ArchiveSpriteProps"]
+script = ExtResource("5_archive_interaction")
 
 [node name="LiveTreasuryControls" type="Control" parent="."]
 layout_mode = 3
