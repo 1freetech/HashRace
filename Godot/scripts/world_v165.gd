@@ -109,21 +109,31 @@ func _uptime_without_grid_penalty() -> float:
     var base := super._uptime_without_grid_penalty()
     return clampf(base - _equipment_uptime_penalty(), 0.60, 0.999)
 
-# Current-world readiness is intentionally independent of whether diesel or wind
-# is selected right now. It validates the actual live v0.165 chain, native
-# navigation/inventory, the inherited v0.163 physical world, and v0.164's asset
-# and visual-cleanup contracts without demanding mutually exclusive generators.
+# Current-world readiness is semantic rather than a chain of historical visual
+# proof functions. Dedicated v0.163/v0.164 workflows still validate their exact
+# render contracts; this state answers whether the actual live v0.165 gameplay
+# world is initialized and safe to exercise.
+func debug_v165_runtime_state() -> Dictionary:
+    return {
+        "revision": V165_DIESEL_REVISION == 2,
+        "inventory": infrastructure_inventory != null,
+        "catalog": infrastructure_inventory != null and infrastructure_inventory.debug_resource_catalog_ready(),
+        "navigation": grid_nav != null and grid_nav.debug_native_astar_ready(),
+        "player": not player.is_empty(),
+        "camera": camera != null and camera.is_inside_tree(),
+        "entities": not entities.is_empty(),
+        "energy_atlas": v114_energy_texture != null,
+        "wind_asset": V164Wind.debug_ready(),
+        "v164_cleanup": bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)),
+        "clean_equipment_uptime": _equipment_uptime_penalty() == 0.0,
+    }
+
 func debug_v165_runtime_ready() -> bool:
-    return V165_DIESEL_REVISION == 2 \
-        and infrastructure_inventory != null \
-        and infrastructure_inventory.debug_resource_catalog_ready() \
-        and grid_nav != null \
-        and grid_nav.debug_native_astar_ready() \
-        and not player.is_empty() \
-        and _equipment_uptime_penalty() == 0.0 \
-        and V164Wind.debug_ready() \
-        and bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)) \
-        and debug_v163_ready()
+    var state := debug_v165_runtime_state()
+    for ready in state.values():
+        if not bool(ready):
+            return false
+    return true
 
 func debug_v165_diesel_ready() -> bool:
     if infrastructure_inventory == null or infrastructure_inventory.deployed_quantity(V165_DIESEL_ASSET_ID) <= 0:
@@ -137,5 +147,4 @@ func debug_v165_diesel_ready() -> bool:
         and not v165_diesel_owned_blocked_cells.is_empty() \
         and not grid_nav.world_is_walkable(v165_diesel_footprint.get_center()) \
         and V164Wind.debug_ready() \
-        and bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)) \
-        and debug_v163_ready()
+        and bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false))
