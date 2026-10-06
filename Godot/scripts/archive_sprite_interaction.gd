@@ -56,7 +56,6 @@ var prompt: Label
 func _ready() -> void:
     set_process(true)
     set_process_unhandled_input(true)
-    _restore_progress()
     prompt = Label.new()
     prompt.name = "EquipmentInspectPrompt"
     prompt.visible = false
@@ -67,12 +66,15 @@ func _ready() -> void:
     prompt.add_theme_color_override("font_outline_color", Color("102019"))
     prompt.add_theme_constant_override("outline_size", 4)
     add_child(prompt)
+    # Children become ready before the world root; defer restore until campaign
+    # setup has had a chance to initialize/load the authoritative player state.
+    call_deferred("_restore_progress")
 
 func _process(_delta: float) -> void:
-    var next := _nearest_equipment(HIGHLIGHT_RANGE)
-    if next != highlighted:
+    var next_target := _nearest_equipment(HIGHLIGHT_RANGE)
+    if next_target != highlighted:
         _apply_resting_tint(highlighted)
-        highlighted = next
+        highlighted = next_target
     if highlighted != null:
         highlighted.self_modulate = HIGHLIGHT_TINT
     _update_prompt()
@@ -84,16 +86,8 @@ func _unhandled_input(event: InputEvent) -> void:
     if not key_event.pressed or key_event.echo or key_event.keycode not in [KEY_E, KEY_F]:
         return
     var host := _world()
-    if host == null or get_viewport().gui_get_focus_owner() != null:
+    if host == null or get_viewport().gui_get_focus_owner() != null or _entity_claims_interaction(host):
         return
-    if int(host.get("pending_interaction_idx")) >= 0:
-        return
-    # Preserve existing company/NPC interactions when they are actually in
-    # interaction range. Equipment only takes E/F when it is the local target.
-    if host.has_method("_nearest_entity") and host.has_method("_entity_in_interact_range"):
-        var entity_idx := int(host.call("_nearest_entity"))
-        if entity_idx >= 0 and bool(host.call("_entity_in_interact_range", entity_idx)):
-            return
     var target := _nearest_equipment(INSPECT_RANGE)
     if target == null:
         return
@@ -110,6 +104,19 @@ func _props() -> Node:
 func _rep_position() -> Vector2:
     var host := _world()
     return host.get("rep_pos") if host != null else Vector2.ZERO
+
+func _entity_claims_interaction(host: Node) -> bool:
+    if host == null:
+        return false
+    if int(host.get("pending_interaction_idx")) >= 0:
+        return true
+    # Keep existing company/NPC interaction priority when that target is already
+    # close enough to interact. Equipment remains available when companies are
+    # merely visible or quick-route eligible farther away.
+    if host.has_method("_nearest_entity") and host.has_method("_entity_in_interact_range"):
+        var entity_idx := int(host.call("_nearest_entity"))
+        return entity_idx >= 0 and bool(host.call("_entity_in_interact_range", entity_idx))
+    return false
 
 func _nearest_equipment(max_distance: float) -> Sprite2D:
     var props := _props()
@@ -185,6 +192,14 @@ func _restore_progress() -> void:
             var key := String(raw_key)
             if EQUIPMENT_INFO.has(key):
                 inspected[key] = true
+    var props := _props()
+    if props != null:
+        var items: Variant = props.get("live_sprites")
+        if items is Array:
+            for item in items:
+                var sprite := item as Sprite2D
+                if sprite != null:
+                    _apply_resting_tint(sprite)
 
 func _persist_progress() -> void:
     var host := _world()
@@ -204,6 +219,10 @@ func _apply_resting_tint(sprite: Sprite2D) -> void:
 
 func _update_prompt() -> void:
     if prompt == null:
+        return
+    var host := _world()
+    if host == null or get_viewport().gui_get_focus_owner() != null or _entity_claims_interaction(host):
+        prompt.visible = false
         return
     var target := _nearest_equipment(INSPECT_RANGE)
     if target == null:
