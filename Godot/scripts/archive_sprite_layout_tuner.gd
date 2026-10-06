@@ -29,24 +29,25 @@ const POSITION_BY_NODE := {
     "ArchiveProp_TruckScale": Vector2(1572, 620),
     "ArchiveProp_Telecom": Vector2(1660, 646),
 
-    # Lower service verge: diagnostics / utilities / environmental / security.
-    "ArchiveProp_MvTermination": Vector2(245, 958),
-    "ArchiveProp_DiagnosticStation": Vector2(325, 982),
-    "ArchiveProp_WeatherStation": Vector2(407, 950),
-    "ArchiveProp_PowerService": Vector2(515, 972),
-    "ArchiveProp_CoolingService": Vector2(600, 950),
-    "ArchiveProp_WashdownStation": Vector2(687, 984),
-    "ArchiveProp_Pump": Vector2(810, 958),
-    "ArchiveProp_SaltStorage": Vector2(895, 982),
-    "ArchiveProp_Trench": Vector2(982, 950),
-    "ArchiveProp_SecurityFirewall": Vector2(1095, 976),
-    "ArchiveProp_Cctv": Vector2(1175, 950),
-    "ArchiveProp_OilWaterSeparator": Vector2(1260, 986),
-    "ArchiveProp_Statcom": Vector2(1385, 956),
-    "ArchiveProp_FiberPedestal": Vector2(1465, 982),
-    "ArchiveProp_GateControl": Vector2(1548, 950),
-    "ArchiveProp_CompressedAir": Vector2(1640, 980),
-    "ArchiveProp_Drain": Vector2(1710, 950),
+    # Lower service verge: move off the roadway into the grass/service strip
+    # between the road and the next building row.
+    "ArchiveProp_MvTermination": Vector2(245, 1038),
+    "ArchiveProp_DiagnosticStation": Vector2(325, 1062),
+    "ArchiveProp_WeatherStation": Vector2(407, 1030),
+    "ArchiveProp_PowerService": Vector2(515, 1052),
+    "ArchiveProp_CoolingService": Vector2(600, 1030),
+    "ArchiveProp_WashdownStation": Vector2(687, 1064),
+    "ArchiveProp_Pump": Vector2(810, 1038),
+    "ArchiveProp_SaltStorage": Vector2(895, 1062),
+    "ArchiveProp_Trench": Vector2(982, 1030),
+    "ArchiveProp_SecurityFirewall": Vector2(1095, 1056),
+    "ArchiveProp_Cctv": Vector2(1175, 1030),
+    "ArchiveProp_OilWaterSeparator": Vector2(1260, 1066),
+    "ArchiveProp_Statcom": Vector2(1385, 1036),
+    "ArchiveProp_FiberPedestal": Vector2(1465, 1062),
+    "ArchiveProp_GateControl": Vector2(1548, 1030),
+    "ArchiveProp_CompressedAir": Vector2(1640, 1060),
+    "ArchiveProp_Drain": Vector2(1710, 1030),
 }
 
 # The archive renderer deliberately gives every crop enough pixels to be legible.
@@ -81,21 +82,24 @@ const NONBLOCKING_NODES := {
     "ArchiveProp_Drain": true,
 }
 
-# Pads sit entirely in the service verges rather than underneath authored
-# buildings. Small gaps between pads preserve grass and break up the silhouette.
+# Pads sit in the grass service verges, above the terrain draw but below their
+# y-sorted equipment. Gaps preserve the existing campus grass texture.
 const SERVICE_PADS := [
     Rect2(480, 592, 225, 82),
     Rect2(758, 590, 230, 86),
     Rect2(1055, 592, 230, 84),
     Rect2(1360, 590, 245, 88),
-    Rect2(485, 922, 230, 98),
-    Rect2(780, 922, 230, 100),
-    Rect2(1065, 922, 225, 100),
-    Rect2(1355, 922, 230, 100),
+    Rect2(485, 1004, 230, 78),
+    Rect2(780, 1004, 230, 80),
+    Rect2(1065, 1004, 225, 80),
+    Rect2(1355, 1004, 230, 80),
 ]
 
 func _ready() -> void:
-    z_index = -2
+    # Keep the pads at normal canvas depth. ArchiveSpriteProps is created after
+    # the root world draw, and its y-sorted children then render equipment over
+    # these pads. A negative z-index hid the pads behind the terrain.
+    z_index = 0
     call_deferred("_apply_layout")
     queue_redraw()
 
