@@ -61,7 +61,10 @@ func _ready() -> void:
     prompt.visible = false
     prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
     prompt.z_index = 60
-    prompt.add_theme_font_size_override("font_size", 12)
+    prompt.size = Vector2(210.0, 42.0)
+    prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    prompt.add_theme_font_size_override("font_size", 11)
     prompt.add_theme_color_override("font_color", Color("8affbd"))
     prompt.add_theme_color_override("font_outline_color", Color("102019"))
     prompt.add_theme_constant_override("outline_size", 4)
@@ -231,8 +234,8 @@ func _update_prompt() -> void:
     var info: Dictionary = EQUIPMENT_INFO.get(String(target.name), {})
     var label := String(info.get("label", "EQUIPMENT")).to_upper()
     var state := "SURVEYED" if inspected.has(String(target.name)) else "NEW"
-    prompt.text = "[E/F] INSPECT  •  %s  •  %s  •  %d/%d" % [label, state, inspected.size(), EQUIPMENT_INFO.size()]
-    prompt.position = target.position + Vector2(-72.0, -86.0)
+    prompt.text = "[E/F] INSPECT • %s\n%s • %d/%d" % [label, state, inspected.size(), EQUIPMENT_INFO.size()]
+    prompt.position = target.position + Vector2(-105.0, -104.0)
     prompt.visible = true
 
 func nearest_equipment_name() -> String:
