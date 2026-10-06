@@ -10,6 +10,7 @@ var v165_diesel_footprint := Rect2()
 # Track only cells that were open before diesel occupied them so undeployment
 # can remove this layer's collision without carving through inherited buildings.
 var v165_diesel_owned_blocked_cells: Array[Vector2i] = []
+var v165_diesel_collision_rect := Rect2()
 
 func _ready() -> void:
     super._ready()
@@ -65,14 +66,13 @@ func _v114_draw_energy_source(asset_id: String, pos: Vector2, capacity_mw: float
 func _v165_block_diesel_collision(foot: Rect2) -> void:
     if grid_nav == null or foot.size == Vector2.ZERO:
         return
-    # If the renderer moves because site capacity changes, release only cells
-    # previously owned by this diesel layer before registering the new footprint.
-    if not v165_diesel_owned_blocked_cells.is_empty():
-        var current_cells := _v165_cells_for_rect(foot)
-        if current_cells != v165_diesel_owned_blocked_cells:
-            _v165_clear_diesel_collision()
+    # If capacity/placement moves the generator, release only cells previously
+    # owned by this layer before registering the new footprint.
+    if not v165_diesel_owned_blocked_cells.is_empty() and v165_diesel_collision_rect != foot:
+        _v165_clear_diesel_collision()
     if not v165_diesel_owned_blocked_cells.is_empty():
         return
+    v165_diesel_collision_rect = foot
     for cell in _v165_cells_for_rect(foot):
         if grid_nav.is_walkable(cell):
             v165_diesel_owned_blocked_cells.append(cell)
@@ -83,6 +83,7 @@ func _v165_clear_diesel_collision() -> void:
         for cell in v165_diesel_owned_blocked_cells:
             grid_nav.set_blocked(cell, false)
     v165_diesel_owned_blocked_cells.clear()
+    v165_diesel_collision_rect = Rect2()
 
 func _v165_cells_for_rect(rect: Rect2) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
