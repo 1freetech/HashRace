@@ -74,30 +74,34 @@ func _build_props() -> void:
             var region_rect: Rect2i = Rect2i(cell_index * cell, 0, cell, cell)
             var cell_image: Image = atlas_image.get_region(region_rect)
             var prepared: Image = _prepare_cell_image(cell_image)
-            var cell_texture: ImageTexture = ImageTexture.create_from_image(prepared)
+            var scale_factor: float = _display_scale_for(prepared.get_size())
+            var pixel_art: Image = _resize_nearest_for_world(prepared, scale_factor)
+            var cell_texture: ImageTexture = ImageTexture.create_from_image(pixel_art)
 
             var sprite := Sprite2D.new()
             sprite.name = "ArchiveProp_%s" % String(names[cell_index]).to_pascal_case()
             sprite.texture = cell_texture
             sprite.centered = true
-            var scale_factor: float = _display_scale_for(prepared.get_size())
-            sprite.scale = Vector2.ONE * scale_factor
-            # Position is the ground contact. Cropping transparent/background
-            # pixels first keeps the visible bottom edge pinned to that point.
-            sprite.offset = Vector2(0.0, -float(prepared.get_height()) * 0.5)
+            # Bake the display size into integer nearest-neighbor pixels instead
+            # of fractional Sprite2D transforms. This keeps sheet props crisp
+            # beside the character art while retaining their shared ground line.
+            sprite.scale = Vector2.ONE
+            sprite.offset = Vector2(0.0, -float(pixel_art.get_height()) * 0.5)
             sprite.position = _ground_position(sheet_index, cell_index)
             sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
             sprite.set_meta("hashrace_archive_sheet", String(spec["path"]))
+            sprite.set_meta("hashrace_archive_sheet_index", sheet_index)
             sprite.set_meta("hashrace_archive_cell", cell_index)
             sprite.set_meta("hashrace_source_cell_px", cell)
             sprite.set_meta("hashrace_prepared_size", prepared.get_size())
-            sprite.set_meta("hashrace_live_display_height_px", float(prepared.get_height()) * scale_factor)
+            sprite.set_meta("hashrace_pixel_grid_size", pixel_art.get_size())
+            sprite.set_meta("hashrace_live_display_height_px", float(pixel_art.get_height()))
             add_child(sprite)
             live_sprites.append(sprite)
 
             var prop_name: String = String(names[cell_index])
             if not NONBLOCKING.has(prop_name):
-                var display_width: float = float(prepared.get_width()) * scale_factor
+                var display_width: float = float(pixel_art.get_width())
                 var collision_width: float = clampf(display_width * 0.72, 34.0, 72.0)
                 collision_footprints.append(Rect2(
                     sprite.position.x - collision_width * 0.5,
@@ -238,6 +242,15 @@ func _display_scale_for(size: Vector2i) -> float:
         scale_factor = minf(width_scale, minimum_width_scale)
     return scale_factor
 
+func _resize_nearest_for_world(source: Image, scale_factor: float) -> Image:
+    var result: Image = source.duplicate()
+    var target := Vector2i(
+        maxi(1, roundi(float(source.get_width()) * scale_factor)),
+        maxi(1, roundi(float(source.get_height()) * scale_factor))
+    )
+    result.resize(target.x, target.y, Image.INTERPOLATE_NEAREST)
+    return result
+
 func _chroma(color: Color) -> float:
     return maxf(color.r, maxf(color.g, color.b)) - minf(color.r, minf(color.g, color.b))
 
@@ -288,6 +301,8 @@ func debug_ready() -> bool:
         if sprite == null or sprite.texture == null or sprite.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
             return false
         var displayed_size: Vector2 = sprite.texture.get_size() * sprite.scale
+        if sprite.scale != Vector2.ONE:
+            return false
         if displayed_size.x > LIVE_PROP_MAX_WIDTH_PX + 1.0:
             return false
         if displayed_size.y > LIVE_PROP_TARGET_HEIGHT_PX + 1.0:
