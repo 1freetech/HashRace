@@ -7,49 +7,16 @@ class_name HashRaceArchiveSpriteLayoutTuner
 # functional campus service zones, and rebuilds navigation from the final ground
 # contacts. The source PNGs and archive-sprite renderer remain untouched.
 
-# Two deliberate service verges use the negative space between the authored
-# building rows and roads. Equipment is grouped by function, with small y offsets
-# so the campus reads as operating infrastructure rather than a sprite lineup.
-const POSITION_BY_NODE := {
-    # Upper service verge: keep ground contacts north of the building roof line
-    # so these later-added child sprites never paint over the root-drawn buildings.
-    "ArchiveProp_Ats": Vector2(245, 572),
-    "ArchiveProp_Handhole": Vector2(318, 588),
-    "ArchiveProp_Bollards": Vector2(392, 566),
-    "ArchiveProp_CoolingUnit": Vector2(510, 576),
-    "ArchiveProp_ElectricalUnit": Vector2(592, 562),
-    "ArchiveProp_EnergyUnit": Vector2(676, 586),
-    "ArchiveProp_HarmonicFilter": Vector2(790, 570),
-    "ArchiveProp_Bench": Vector2(870, 590),
-    "ArchiveProp_LightningProtection": Vector2(958, 562),
-    "ArchiveProp_LoadBank": Vector2(1085, 582),
-    "ArchiveProp_Eyewash": Vector2(1170, 565),
-    "ArchiveProp_CableReel": Vector2(1252, 590),
-    "ArchiveProp_MvEquipment": Vector2(1390, 568),
-    "ArchiveProp_Hydrant": Vector2(1470, 590),
-    "ArchiveProp_TruckScale": Vector2(1572, 560),
-    "ArchiveProp_Telecom": Vector2(1660, 586),
-
-    # Lower service verge: move off the roadway into the grass/service strip
-    # between the road and the next building row.
-    "ArchiveProp_MvTermination": Vector2(245, 1038),
-    "ArchiveProp_DiagnosticStation": Vector2(325, 1062),
-    "ArchiveProp_WeatherStation": Vector2(407, 1030),
-    "ArchiveProp_PowerService": Vector2(515, 1052),
-    "ArchiveProp_CoolingService": Vector2(600, 1030),
-    "ArchiveProp_WashdownStation": Vector2(687, 1064),
-    "ArchiveProp_Pump": Vector2(810, 1038),
-    "ArchiveProp_SaltStorage": Vector2(895, 1062),
-    "ArchiveProp_Trench": Vector2(982, 1030),
-    "ArchiveProp_SecurityFirewall": Vector2(1095, 1056),
-    "ArchiveProp_Cctv": Vector2(1175, 1030),
-    "ArchiveProp_OilWaterSeparator": Vector2(1260, 1066),
-    "ArchiveProp_Statcom": Vector2(1385, 1036),
-    "ArchiveProp_FiberPedestal": Vector2(1465, 1062),
-    "ArchiveProp_GateControl": Vector2(1548, 1030),
-    "ArchiveProp_CompressedAir": Vector2(1640, 1060),
-    "ArchiveProp_Drain": Vector2(1710, 1030),
-}
+# Two service verges flank the road. Each original three-cell sheet is now a
+# compact functional equipment station, with clear grass gaps between stations
+# instead of 33 evenly spaced props reading as an inventory strip.
+const UPPER_CLUSTER_COUNT := 5
+const LOWER_CLUSTER_COUNT := 6
+const UPPER_GROUND_Y := 572.0
+const LOWER_GROUND_Y := 1048.0
+const CLUSTER_ITEM_GAP := 18.0
+const CLUSTER_STATION_GAP := 36.0
+const WORLD_LAYOUT_WIDTH := 1800.0
 
 # The archive renderer deliberately gives every crop enough pixels to be legible.
 # These multipliers then restore relative real-world hierarchy: access/safety
@@ -72,6 +39,7 @@ const SCALE_BY_NODE := {
     "ArchiveProp_CompressedAir": 0.94,
     "ArchiveProp_Telecom": 0.94,
 }
+const LAYOUT_PIXEL_GRID_REVISION := 3
 
 const NONBLOCKING_NODES := {
     "ArchiveProp_Handhole": true,
@@ -83,21 +51,12 @@ const NONBLOCKING_NODES := {
     "ArchiveProp_Drain": true,
 }
 
+var service_pad_rects: Array[Rect2] = []
+
 # Small semi-transparent gravel/concrete islands keep equipment grounded without
 # reading like giant proof rectangles or visually painting over nearby buildings.
 # Gaps preserve the authored grass texture and make the infrastructure feel placed
 # into the campus rather than laid on top of it.
-const SERVICE_PADS := [
-    Rect2(500, 544, 190, 48),
-    Rect2(785, 544, 190, 48),
-    Rect2(1080, 544, 190, 48),
-    Rect2(1380, 544, 200, 48),
-    Rect2(500, 1016, 190, 48),
-    Rect2(800, 1016, 190, 48),
-    Rect2(1080, 1016, 190, 48),
-    Rect2(1375, 1016, 190, 48),
-]
-
 func _ready() -> void:
     # Keep the pads at normal canvas depth. ArchiveSpriteProps is created after
     # the root world draw, and its y-sorted children then render equipment over
@@ -107,9 +66,9 @@ func _ready() -> void:
     queue_redraw()
 
 func _draw() -> void:
-    for pad in SERVICE_PADS:
-        draw_rect(pad, Color("66746070"))
-        draw_rect(pad, Color("8a968188"), false, 1.0)
+    for rect in service_pad_rects:
+        draw_rect(rect, Color("66746070"))
+        draw_rect(rect, Color("8a968188"), false, 1.0)
 
 func _apply_layout() -> void:
     var props := get_parent()
@@ -122,19 +81,124 @@ func _apply_layout() -> void:
     if sprites.is_empty():
         return
 
+    var groups: Array[Array] = []
+    groups.resize(11)
+    for index in range(groups.size()):
+        groups[index] = []
+
     for item in sprites:
         var sprite := item as Sprite2D
         if sprite == null:
             continue
         var node_name := String(sprite.name)
-        if POSITION_BY_NODE.has(node_name):
-            sprite.position = POSITION_BY_NODE[node_name]
         var scale_multiplier := float(SCALE_BY_NODE.get(node_name, 1.0))
-        sprite.scale *= scale_multiplier
+        if not is_equal_approx(scale_multiplier, 1.0):
+            _resize_sprite_nearest(sprite, scale_multiplier)
+        sprite.scale = Vector2.ONE
         sprite.set_meta("hashrace_layout_scale_multiplier", scale_multiplier)
         sprite.set_meta("hashrace_layout_tuned", true)
+        sprite.set_meta("hashrace_layout_pixel_grid_revision", LAYOUT_PIXEL_GRID_REVISION)
+        var sheet_index := int(sprite.get_meta("hashrace_archive_sheet_index", -1))
+        if sheet_index >= 0 and sheet_index < groups.size():
+            groups[sheet_index].append(sprite)
+
+    service_pad_rects.clear()
+    _position_cluster_row(groups, 0, UPPER_CLUSTER_COUNT, UPPER_GROUND_Y)
+    _position_cluster_row(groups, UPPER_CLUSTER_COUNT, LOWER_CLUSTER_COUNT, LOWER_GROUND_Y)
+    queue_redraw()
 
     _rebuild_collision_footprints(props, sprites)
+
+func _position_cluster_row(groups: Array, first_index: int, count: int, ground_y: float) -> void:
+    var widths: Array[float] = []
+    var widths_total := 0.0
+    for offset in range(count):
+        var width := _functional_cluster_width(groups[first_index + offset])
+        widths.append(width)
+        widths_total += width
+    var station_gap := CLUSTER_STATION_GAP
+    if count > 1 and widths_total + station_gap * float(count - 1) > WORLD_LAYOUT_WIDTH - 96.0:
+        station_gap = maxf(10.0, (WORLD_LAYOUT_WIDTH - 96.0 - widths_total) / float(count - 1))
+    var row_width := widths_total + station_gap * float(maxi(0, count - 1))
+    var cursor_x := (WORLD_LAYOUT_WIDTH - row_width) * 0.5
+    for offset in range(count):
+        var group_width: float = widths[offset]
+        var center_x := cursor_x + group_width * 0.5
+        _position_functional_cluster(groups[first_index + offset], center_x, ground_y)
+        service_pad_rects.append(Rect2(cursor_x - 8.0, ground_y - 27.0, group_width + 16.0, 42.0))
+        cursor_x += group_width + station_gap
+
+func _functional_cluster_width(group: Array) -> float:
+    var width := 0.0
+    for item in group:
+        var sprite := item as Sprite2D
+        if sprite != null and sprite.texture != null:
+            width += float(sprite.texture.get_width())
+    return width + CLUSTER_ITEM_GAP * float(maxi(0, group.size() - 1))
+
+func _position_functional_cluster(group: Array, center_x: float, ground_y: float) -> void:
+    var total_width := _functional_cluster_width(group)
+    var cursor_x := center_x - total_width * 0.5
+    for item in group:
+        var sprite := item as Sprite2D
+        if sprite == null or sprite.texture == null:
+            continue
+        var width := float(sprite.texture.get_width())
+        sprite.position = Vector2(roundf(cursor_x + width * 0.5), ground_y)
+        cursor_x += width + CLUSTER_ITEM_GAP
+
+func _resize_sprite_nearest(sprite: Sprite2D, scale_multiplier: float) -> void:
+    if sprite.texture == null or scale_multiplier <= 0.0:
+        return
+    var source: Image = sprite.texture.get_image()
+    if source == null or source.is_empty():
+        return
+    var target := Vector2i(
+        maxi(1, roundi(float(source.get_width()) * scale_multiplier)),
+        maxi(1, roundi(float(source.get_height()) * scale_multiplier))
+    )
+    source.resize(target.x, target.y, Image.INTERPOLATE_NEAREST)
+    sprite.texture = ImageTexture.create_from_image(source)
+    # Every layout scale is applied around the existing foot anchor.
+    sprite.offset = Vector2(0.0, -float(target.y) * 0.5)
+    sprite.set_meta("hashrace_pixel_grid_size", target)
+    sprite.set_meta("hashrace_live_display_height_px", float(target.y))
+
+func debug_ready() -> bool:
+    var props := get_parent()
+    if props == null:
+        return false
+    var sprites_value: Variant = props.get("live_sprites")
+    if not sprites_value is Array or sprites_value.size() != 33:
+        return false
+    var sprites: Array = sprites_value
+    for index in range(sprites.size()):
+        var a := sprites[index] as Sprite2D
+        if a == null or a.texture == null or a.scale != Vector2.ONE:
+            return false
+        if a.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
+            return false
+        if int(a.get_meta("hashrace_layout_pixel_grid_revision", 0)) != LAYOUT_PIXEL_GRID_REVISION:
+            return false
+        var bounds_a := Rect2(
+            a.position.x - float(a.texture.get_width()) * 0.5,
+            a.position.y - float(a.texture.get_height()),
+            float(a.texture.get_width()),
+            float(a.texture.get_height())
+        )
+        for other_index in range(index + 1, sprites.size()):
+            var b := sprites[other_index] as Sprite2D
+            if b == null or b.texture == null:
+                return false
+            var bounds_b := Rect2(
+                b.position.x - float(b.texture.get_width()) * 0.5,
+                b.position.y - float(b.texture.get_height()),
+                float(b.texture.get_width()),
+                float(b.texture.get_height())
+            )
+            if bounds_a.intersects(bounds_b, true):
+                return false
+    return true
 
 func _rebuild_collision_footprints(props: Node, sprites: Array) -> void:
     var footprints: Array[Rect2] = []
