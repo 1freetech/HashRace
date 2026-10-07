@@ -1,0 +1,51 @@
+name: Physical campus collision proof
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [automation/physical-campus-collision-20261006]
+
+jobs:
+  physical-campus-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Assert exact head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate physical campus source contracts
+        run: |
+          python tools/test_v160_transformer_sprite.py
+          python tools/test_energy_visual_contract.py
+      - name: Install Godot 4.7.2
+        run: |
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+      - name: Fresh import
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          cd Godot
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/physical-campus-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/physical-campus-import.log; then exit 1; fi
+      - name: Exercise capacity collision and render campus
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+          mkdir -p visual-proof
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_physical_campus.gd 2>&1 | tee /tmp/physical-campus-proof.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|PHYSICAL CAMPUS PROOF FAIL" /tmp/physical-campus-proof.log; then exit 1; fi
+          grep -q "PHYSICAL CAMPUS PROOF PASS" /tmp/physical-campus-proof.log
+          test -s visual-proof/physical-campus-collision.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-physical-campus-proof
+          path: visual-proof/physical-campus-collision.png
+          if-no-files-found: error
