@@ -149,8 +149,8 @@ func _v160_cells_for_rect(rect: Rect2) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
     if grid_nav == null or rect.size == Vector2.ZERO:
         return result
-    var min_cell := grid_nav.world_to_cell(rect.position)
-    var max_cell := grid_nav.world_to_cell(rect.end - Vector2.ONE)
+    var min_cell: Vector2i = grid_nav.world_to_cell(rect.position)
+    var max_cell: Vector2i = grid_nav.world_to_cell(rect.end - Vector2.ONE)
     for y in range(min_cell.y, max_cell.y + 1):
         for x in range(min_cell.x, max_cell.x + 1):
             result.append(Vector2i(x, y))
