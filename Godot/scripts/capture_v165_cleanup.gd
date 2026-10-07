@@ -9,6 +9,24 @@ func _fail(message: String) -> void:
     push_error("V165 CLEANUP PROOF FAIL: " + message)
     quit(1)
 
+func _cells_all_blocked(grid_nav, cells: Array) -> bool:
+    if grid_nav == null or cells.is_empty():
+        return false
+    for raw_cell in cells:
+        var cell: Vector2i = raw_cell
+        if bool(grid_nav.call("is_walkable", cell)):
+            return false
+    return true
+
+func _cells_all_walkable(grid_nav, cells: Array) -> bool:
+    if grid_nav == null or cells.is_empty():
+        return false
+    for raw_cell in cells:
+        var cell: Vector2i = raw_cell
+        if not bool(grid_nav.call("is_walkable", cell)):
+            return false
+    return true
+
 func _capture() -> void:
     var packed := load("res://scenes/world.tscn") as PackedScene
     if packed == null:
@@ -30,12 +48,67 @@ func _capture() -> void:
         _fail("distinct NPC identity contract is not ready")
         return
 
+    # Exercise the gameplay-side stale-collision repair before taking the visual
+    # proof. Solar and wind must each own only cells that were open beforehand,
+    # then release those exact cells when that source is undeployed.
+    var inventory = scene.get("infrastructure_inventory")
+    var company_value = scene.get("player")
+    var grid_nav = scene.get("grid_nav")
+    if inventory == null or not company_value is Dictionary or grid_nav == null:
+        _fail("live inventory/company/navigation missing")
+        return
+    var company: Dictionary = company_value
+
+    if not inventory.add("solar_array", 1) or not inventory.deploy("solar_array", company, 1):
+        _fail("could not deploy solar for collision cleanup proof")
+        return
+    scene.set("player", company)
+    scene.queue_redraw()
+    for _frame in range(6):
+        await process_frame
+    var solar_cells: Array = Array(scene.get("v165_legacy_energy_owned_blocked_cells")).duplicate()
+    if not _cells_all_blocked(grid_nav, solar_cells):
+        _fail("solar did not register an owned blocked footprint")
+        return
+    if not inventory.undeploy("solar_array", company, 1):
+        _fail("could not undeploy solar")
+        return
+    scene.set("player", company)
+    scene.queue_redraw()
+    for _frame in range(6):
+        await process_frame
+    if not _cells_all_walkable(grid_nav, solar_cells):
+        _fail("solar undeploy left stale navigation cells blocked")
+        return
+
+    if not inventory.add("wind_farm", 1) or not inventory.deploy("wind_farm", company, 1):
+        _fail("could not deploy wind for collision cleanup proof")
+        return
+    scene.set("player", company)
+    scene.queue_redraw()
+    for _frame in range(6):
+        await process_frame
+    var wind_cells: Array = Array(scene.get("v165_legacy_energy_owned_blocked_cells")).duplicate()
+    if not _cells_all_blocked(grid_nav, wind_cells):
+        _fail("wind did not register an owned blocked footprint")
+        return
+    if not inventory.undeploy("wind_farm", company, 1):
+        _fail("could not undeploy wind")
+        return
+    scene.set("player", company)
+    scene.queue_redraw()
+    for _frame in range(6):
+        await process_frame
+    if not _cells_all_walkable(grid_nav, wind_cells):
+        _fail("wind undeploy left stale navigation cells blocked")
+        return
+
     var entities: Array = scene.get("entities")
     var rep_idx := -1
     var rep_entity: Dictionary = {}
     for i in range(entities.size()):
         var entity: Dictionary = entities[i]
-        var kind := String(entity.get("kind", ""))
+        var kind := str(entity.get("kind", ""))
         if kind == "partner_rep" or kind == "rival_rep":
             rep_idx = i
             rep_entity = entity
@@ -74,5 +147,5 @@ func _capture() -> void:
         _fail("could not save visual proof")
         return
 
-    print("V165 CLEANUP PROOF PASS: approved player sprite remains live beside a distinct named NPC renderer; " + ProjectSettings.globalize_path(OUTPUT))
+    print("V165 CLEANUP PROOF PASS: solar/wind owned collision clears after undeploy; approved player sprite remains live beside a distinct named NPC renderer; " + ProjectSettings.globalize_path(OUTPUT))
     quit(0)
