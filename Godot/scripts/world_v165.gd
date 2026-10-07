@@ -248,7 +248,8 @@ func _open_rival_rep(entity: Dictionary) -> void:
         return
     var relationship := _v165_rival_relationship(rival_idx)
     super._open_rival_rep(entity)
-    var contract_count := _v165_rival_contract_count(rival_idx)\n    dialog_text.text += "\n\nRELATIONSHIP %d/100 • ACTIVE CONTRACTS %d\nBetter history improves deal leverage and merger positioning. Choose the resource you actually need." % [relationship, contract_count]
+    var contract_count := _v165_rival_contract_count(rival_idx)
+    dialog_text.text += "\n\nRELATIONSHIP %d/100 • ACTIVE CONTRACTS %d\nBetter history improves deal leverage and merger positioning. Choose the resource you actually need." % [relationship, contract_count]
     var actions: Array = [
         {"label":"HOSTING CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "hosting")},
         {"label":"POWER CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "power")},
