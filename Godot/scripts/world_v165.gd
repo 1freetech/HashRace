@@ -8,6 +8,7 @@ const V165_DIESEL_ASSET_ID := "diesel_generator"
 const V165_DIESEL_REVISION := 2
 const V165_CLEANUP_REVISION := 1
 const V165_NPC_LABEL_DISTANCE := 300.0
+const V165_RIVAL_RELATIONSHIP_REVISION := 1
 
 var v165_diesel_drawn := false
 var v165_diesel_rect := Rect2()
@@ -224,6 +225,152 @@ func _draw_neon_character_name(pos: Vector2, character_name: String) -> void:
     draw_string(ThemeDB.fallback_font, base + Vector2(1.0, 1.0), character_name, HORIZONTAL_ALIGNMENT_CENTER, width, 12, Color("020609"))
     draw_string(ThemeDB.fallback_font, base, character_name, HORIZONTAL_ALIGNMENT_CENTER, width, 12, Color("eaffef"))
 
+# Rival representatives now maintain campaign relationship history and expose
+# economically distinct negotiations instead of routing every meeting to MW access.
+func _v165_rival_relationship(rival_idx: int) -> int:
+    var relationships: Dictionary = player.get("rival_relationships", {})
+    return clampi(int(relationships.get(str(rival_idx), 50)), 0, 100)
+
+func _v165_set_rival_relationship(rival_idx: int, value: int) -> void:
+    var relationships: Dictionary = player.get("rival_relationships", {}).duplicate(true)
+    relationships[str(rival_idx)] = clampi(value, 0, 100)
+    player["rival_relationships"] = relationships
+
+func _open_rival_rep(entity: Dictionary) -> void:
+    var rival_idx := int(entity.get("rival_idx", -1))
+    if rival_idx < 0 or rival_idx >= rivals.size():
+        super._open_rival_rep(entity)
+        return
+    var rival: Dictionary = rivals[rival_idx]
+    if bool(rival.get("merged", false)):
+        super._open_rival_rep(entity)
+        return
+    var relationship := _v165_rival_relationship(rival_idx)
+    super._open_rival_rep(entity)
+    dialog_text.text += "\n\nRELATIONSHIP %d/100 • Better history improves deal leverage and merger positioning. Choose the resource you actually need." % relationship
+    var actions: Array = [
+        {"label":"HOSTING CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "hosting")},
+        {"label":"POWER CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "power")},
+        {"label":"BUY ASIC LOT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "asics")},
+        {"label":"CAPACITY SWAP", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "capacity")},
+        {"label":"VIEW COMPANY", "call":Callable(self, "_open_rival").bind(entity)}
+    ]
+    if not merger_used:
+        actions.append({"label":"PROPOSE MERGER", "call":Callable(self, "_merge_rival").bind(rival_idx)})
+    _set_actions(actions)
+
+func _v165_start_rival_deal(rival_idx: int, deal_type: String) -> Node:
+    if rival_idx < 0 or rival_idx >= rivals.size():
+        return null
+    if not is_instance_valid(negotiation_manager):
+        _install_negotiation_manager()
+    if not is_instance_valid(negotiation_manager) or _negotiation_is_active():
+        return null
+    var rival: Dictionary = rivals[rival_idx]
+    if bool(rival.get("merged", false)):
+        return null
+    var personality: Dictionary = rival.get("personality", {}) if rival.get("personality", {}) is Dictionary else {}
+    var profile := _player_offer_profile()
+    var relationship := _v165_rival_relationship(rival_idx)
+    var leverage := clampi(int(profile["leverage"]) + int(roundf((relationship - 50) * 0.40)), 0, 100)
+    var tech := maxi(0, int(rival.get("tech_level", 0)))
+    var rival_cash := maxf(0.0, float(rival.get("cash", 0.0)))
+    var context := {
+        "deal_type":"rival_" + deal_type,
+        "source_kind":"rival_rep",
+        "rival_idx":rival_idx,
+        "opponent_name":String(rival.get("name", "Rival Miner")),
+        "opponent_company":String(rival.get("name", "Rival Mining Co.")),
+        "player_company":String(player.get("name", "Player Mining Co.")),
+        "opponent_power":clampi(int(personality.get("operations", 50)), 0, 100),
+        "opponent_greed":clampi(int(personality.get("aggression", 50)), 0, 100),
+        "player_reputation":int(profile["reputation"]),
+        "player_leverage":leverage,
+        "player_cash_usd":maxf(0.0, float(player.get("cash", 0.0))),
+        "reward_mw":0.0,
+        "reward_machines":0,
+        "deal_label":"RIVAL CONTRACT",
+        "target_asset_label":"RESOURCE ACCESS"
+    }
+    match deal_type:
+        "hosting":
+            var machines := clampi(6 + tech * 2, 6, 16)
+            context["deal_value_usd"] = clampf(7000.0 + rival_cash * 0.008, 7000.0, 18000.0)
+            context["reward_machines"] = machines
+            context["deal_label"] = "HOSTING CONTRACT"
+            context["target_asset_label"] = "%d HOSTED ASIC SLOTS" % machines
+        "power":
+            var mw := clampf(0.04 + tech * 0.01, 0.04, 0.09)
+            context["deal_value_usd"] = clampf(5500.0 + rival_cash * 0.006, 5500.0, 15000.0)
+            context["reward_mw"] = mw
+            context["deal_label"] = "POWER PURCHASE AGREEMENT"
+            context["target_asset_label"] = "%.2f MW CONTRACT POWER" % mw
+        "asics":
+            var machines := clampi(4 + tech * 2, 4, 12)
+            context["deal_value_usd"] = clampf(float(machines) * 1150.0, 4600.0, 13800.0)
+            context["reward_machines"] = machines
+            context["deal_label"] = "ASIC LOT PURCHASE"
+            context["target_asset_label"] = "%d RIVAL ASICs" % machines
+        _:
+            var mw := clampf(0.03 + tech * 0.008, 0.03, 0.07)
+            context["deal_value_usd"] = clampf(4000.0 + rival_cash * 0.004, 4000.0, 11000.0)
+            context["reward_mw"] = mw
+            context["deal_label"] = "CAPACITY SWAP"
+            context["target_asset_label"] = "%.2f MW FLEX CAPACITY" % mw
+    company_news = "%s opened %s talks. Relationship %d/100." % [String(rival.get("name", "Rival")), String(context["deal_label"]), relationship]
+    _feedback(company_news)
+    return negotiation_manager.call("launch", self, context) as Node
+
+func _on_negotiation_resolved(result: Dictionary) -> void:
+    var deal_type := String(result.get("deal_type", ""))
+    if not deal_type.begins_with("rival_"):
+        super._on_negotiation_resolved(result)
+        return
+    negotiation_last_result = result.duplicate(true)
+    var rival_idx := int(result.get("rival_idx", -1))
+    if rival_idx < 0 or rival_idx >= rivals.size():
+        return
+    var relationship := _v165_rival_relationship(rival_idx)
+    if not bool(result.get("success", false)):
+        if String(result.get("outcome", "")) != "walked_away":
+            _v165_set_rival_relationship(rival_idx, relationship - 3)
+        company_news = "Talks with %s ended without a deal. Relationship %d/100." % [String(rivals[rival_idx].get("name", "rival")), _v165_rival_relationship(rival_idx)]
+        _feedback(company_news)
+        _refresh_ui()
+        return
+    var cost := maxf(0.0, float(result.get("final_cost_usd", 0.0)))
+    if float(player.get("cash", 0.0)) < cost:
+        _feedback("Agreed rival terms exceed available cash.")
+        return
+    var reward_mw := maxf(0.0, float(result.get("reward_mw", 0.0)))
+    var reward_machines := maxi(0, int(result.get("reward_machines", 0)))
+    player["cash"] = float(player.get("cash", 0.0)) - cost
+    player["mw"] = float(player.get("mw", 0.0)) + reward_mw
+    player["machines"] = int(player.get("machines", 0)) + reward_machines
+    var rival: Dictionary = rivals[rival_idx]
+    rival["cash"] = float(rival.get("cash", 0.0)) + cost
+    if deal_type == "rival_asics" and reward_machines > 0:
+        rival["machines"] = maxi(0, int(rival.get("machines", 0)) - reward_machines)
+    rivals[rival_idx] = rival
+    _v165_set_rival_relationship(rival_idx, relationship + 7)
+    company_news = "DEAL CLOSED with %s: %s for $%d • relationship %d/100." % [String(rival.get("name", "rival")), String(result.get("target_asset_label", "contract")), int(roundf(cost)), _v165_rival_relationship(rival_idx)]
+    _feedback(company_news)
+    _refresh_ui()
+
+func _merger_acceptance_chance(rival: Dictionary, offer_price: float) -> float:
+    var base := super._merger_acceptance_chance(rival, offer_price)
+    var rival_idx := rivals.find(rival)
+    if rival_idx < 0:
+        return base
+    var relationship := _v165_rival_relationship(rival_idx)
+    return clampf(base + (float(relationship) - 50.0) * 0.20, 1.0, 99.0)
+
+func debug_v165_rival_relationship_ready() -> bool:
+    return V165_RIVAL_RELATIONSHIP_REVISION == 1 \
+        and has_method("_v165_start_rival_deal") \
+        and has_method("_v165_rival_relationship") \
+        and is_instance_valid(negotiation_manager)
+
 # Equipment reliability is authored by the live ArchiveSpriteProps interaction
 # layer through player["equipment_uptime_penalty"]. Applying it here means the
 # existing v0.090 turn/dispatch economics automatically reduce mined BTC and
@@ -268,6 +415,7 @@ func debug_v165_runtime_state() -> Dictionary:
         "wind_asset": V164Wind.debug_ready(),
         "v164_cleanup": bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)),
         "npc_identity": debug_v165_npc_identity_ready(),
+        "rival_relationships": debug_v165_rival_relationship_ready(),
         "clean_equipment_uptime": _equipment_uptime_penalty() == 0.0,
     }
 
