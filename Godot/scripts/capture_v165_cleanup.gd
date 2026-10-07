@@ -130,7 +130,7 @@ func _capture() -> void:
         return
     camera.position_smoothing_enabled = false
     camera.position = (npc_pos + player_pos) * 0.5 + Vector2(0.0, -10.0)
-    camera.zoom = Vector2(1.8, 1.8)
+    camera.zoom = Vector2(1.35, 1.35)
     camera.force_update_scroll()
     scene.queue_redraw()
     for _frame in range(12):
