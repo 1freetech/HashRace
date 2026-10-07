@@ -29,12 +29,25 @@ func _v122_draw_interaction_target() -> void:
     var entity: Dictionary = entities[idx]
     var target := Vector2(entity.get("pos", rep_pos))
     var pulse := (sin(Time.get_ticks_msec() * 0.006) + 1.0) * 0.5
-    var radius := V122_MARKER_RADIUS + pulse * V122_MARKER_PULSE
+    var radius := V122_MARKER_RADIUS * 0.70 + pulse * V122_MARKER_PULSE * 0.35
     var marker := Color("8affbd")
-    marker.a = 0.42 + pulse * 0.20
-    draw_arc(target, radius, 0.0, TAU, 32, marker, 3.0, true)
-    draw_line(target + Vector2(-10.0, -radius - 8.0), target + Vector2(10.0, -radius - 8.0), marker, 3.0, true)
-    draw_line(target + Vector2(0.0, -radius - 18.0), target + Vector2(0.0, -radius + 2.0), marker, 3.0, true)
+    marker.a = 0.34 + pulse * 0.14
+    var kind := String(entity.get("kind", ""))
+    if WorldScale.is_building_kind(kind):
+        # Anchor building focus to its service apron. The old upright reticle
+        # crossed roofs and doors, competing with the sprite art and interaction.
+        var size := WorldScale.size_for_kind(kind)
+        var center := target + Vector2(0.0, size.y * 0.38 + 13.0)
+        var radius_x := size.x * 0.47
+        var radius_y := 8.0 + pulse * 1.5
+        var points := PackedVector2Array()
+        for step in range(33):
+            var angle := TAU * float(step) / 32.0
+            points.append(center + Vector2(cos(angle) * radius_x, sin(angle) * radius_y))
+        draw_polyline(points, marker, 2.0, true)
+    else:
+        # Keep a compact foot ring for people and non-building interaction targets.
+        draw_arc(target + Vector2(0.0, 38.0), radius, 0.0, TAU, 28, marker, 2.0, true)
 
 func debug_v122_ready() -> bool:
     return V122_INTERACTION_MARKER_REVISION == 1 and V122_MARKER_RADIUS > 0.0 and debug_v121_ready()
