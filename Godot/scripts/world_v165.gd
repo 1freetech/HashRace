@@ -245,8 +245,8 @@ func debug_v165_npc_identity_ready() -> bool:
         var kind := String(entity.get("kind", ""))
         if kind != "partner_rep" and kind != "rival_rep":
             continue
-        names[String(entity.get("name", ""))] = true
-        accents[String(entity.get("accent", Color.WHITE))] = true
+        names[str(entity.get("name", ""))] = true
+        accents[str(entity.get("accent", Color.WHITE))] = true
     return bool(get_meta("hashrace_v165_distinct_npc_renderer", false)) \
         and names.size() >= 2 \
         and accents.size() >= 2
