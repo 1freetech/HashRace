@@ -8,6 +8,7 @@ const V165_DIESEL_ASSET_ID := "diesel_generator"
 const V165_DIESEL_REVISION := 2
 const V165_CLEANUP_REVISION := 1
 const V165_NPC_LABEL_DISTANCE := 300.0
+const V165_NPC_CONTRACT_REVISION := 1
 
 var v165_diesel_drawn := false
 var v165_diesel_rect := Rect2()
@@ -224,6 +225,130 @@ func _draw_neon_character_name(pos: Vector2, character_name: String) -> void:
     draw_string(ThemeDB.fallback_font, base + Vector2(1.0, 1.0), character_name, HORIZONTAL_ALIGNMENT_CENTER, width, 12, Color("020609"))
     draw_string(ThemeDB.fallback_font, base, character_name, HORIZONTAL_ALIGNMENT_CENTER, width, 12, Color("eaffef"))
 
+# Partner representatives now use the same live negotiation economy as rival and
+# computer-company deals. Relationship persists on the player company and feeds
+# leverage, so repeated NPC encounters create progression rather than one-click buys.
+func _v165_partner_relationship(partner_id: String) -> int:
+    var relationships: Dictionary = player.get("partner_relationships", {})
+    return clampi(int(relationships.get(partner_id, 50)), 0, 100)
+
+func _v165_set_partner_relationship(partner_id: String, value: int) -> void:
+    var relationships: Dictionary = player.get("partner_relationships", {}).duplicate(true)
+    relationships[partner_id] = clampi(value, 0, 100)
+    player["partner_relationships"] = relationships
+
+func _open_partner_rep(entity: Dictionary) -> void:
+    var partner_idx := int(entity.get("partner_idx", -1))
+    if partner_idx < 0 or partner_idx >= PARTNERS.size():
+        super._open_partner_rep(entity)
+        return
+    var partner: Dictionary = PARTNERS[partner_idx]
+    var rep: Dictionary = PARTNER_REPS[partner_idx]
+    var partner_id := String(partner["id"])
+    var signed := signed_partners.has(partner_id)
+    var relationship := _v165_partner_relationship(partner_id)
+    dialog_title.text = "%s // %s" % [String(rep["name"]), String(partner["name"])]
+    dialog_text.text = "%s represents %s. Contract: %s. Listed value $%d. Relationship %d/100. Status: %s." % [
+        String(rep["name"]), String(partner["sector"]), String(partner["boost"]), int(partner["cost"]),
+        relationship, "SIGNED" if signed else "AVAILABLE"
+    ]
+    if signed:
+        dialog_text.text += "\n\nThis representative is now an active operating partner. The contract bonus is already feeding your company simulation."
+        _set_actions([])
+    else:
+        dialog_text.text += "\n\nNegotiate price and terms. Reputation plus this representative relationship improve your leverage."
+        _set_actions([{"label":"NEGOTIATE CONTRACT", "call":Callable(self, "_v165_start_partner_negotiation").bind(partner_idx)}])
+
+func _v165_start_partner_negotiation(partner_idx: int) -> Node:
+    if partner_idx < 0 or partner_idx >= PARTNERS.size():
+        return null
+    if not is_instance_valid(negotiation_manager):
+        _install_negotiation_manager()
+    if not is_instance_valid(negotiation_manager) or _negotiation_is_active():
+        return null
+    var partner: Dictionary = PARTNERS[partner_idx]
+    var rep: Dictionary = PARTNER_REPS[partner_idx]
+    var partner_id := String(partner["id"])
+    if signed_partners.has(partner_id):
+        _feedback("That partnership is already active.")
+        return null
+    var profile := _player_offer_profile()
+    var relationship := _v165_partner_relationship(partner_id)
+    var relationship_leverage := clampi(int(roundf((float(relationship) - 50.0) * 0.45)), -22, 22)
+    var effective_cost := float(partner["cost"]) * _partner_cost_multiplier()
+    var context := {
+        "deal_type":"partner_contract",
+        "source_kind":"partner_rep",
+        "partner_idx":partner_idx,
+        "partner_id":partner_id,
+        "opponent_name":String(rep["name"]),
+        "opponent_company":String(partner["name"]),
+        "player_company":String(player.get("name", "Player Mining Co.")),
+        "opponent_power":clampi(42 + partner_idx * 5, 35, 82),
+        "opponent_greed":clampi(36 + partner_idx * 4, 30, 78),
+        "player_reputation":int(profile["reputation"]),
+        "player_leverage":clampi(int(profile["leverage"]) + relationship_leverage, 0, 100),
+        "deal_value_usd":maxf(1.0, effective_cost),
+        "player_cash_usd":maxf(0.0, float(player.get("cash", 0.0))),
+        "reward_mw":0.0,
+        "deal_label":"STRATEGIC PARTNER CONTRACT",
+        "target_asset_label":String(partner["boost"])
+    }
+    company_news = "%s opened contract talks with your company." % String(rep["name"])
+    _feedback(company_news)
+    return negotiation_manager.call("launch", self, context) as Node
+
+func _on_negotiation_resolved(result: Dictionary) -> void:
+    if String(result.get("deal_type", "")) != "partner_contract":
+        super._on_negotiation_resolved(result)
+        return
+    negotiation_last_result = result.duplicate(true)
+    var partner_idx := int(result.get("partner_idx", -1))
+    # NegotiationScene preserves generic reward fields, so recover the partner
+    # identity from the active manager context for this contract type.
+    if partner_idx < 0 and is_instance_valid(negotiation_manager):
+        var active_context: Dictionary = negotiation_manager.get("active_context")
+        partner_idx = int(active_context.get("partner_idx", -1))
+    if partner_idx < 0 or partner_idx >= PARTNERS.size():
+        _feedback("Partner contract result could not be resolved.")
+        return
+    var partner: Dictionary = PARTNERS[partner_idx]
+    var partner_id := String(partner["id"])
+    var relationship := _v165_partner_relationship(partner_id)
+    if not bool(result.get("success", false)):
+        if String(result.get("outcome", "")) != "walked_away":
+            _v165_set_partner_relationship(partner_id, relationship - 2)
+        company_news = "Contract talks with %s ended without a deal." % String(partner["name"])
+        _feedback(company_news)
+        _refresh_ui()
+        return
+    var final_cost := maxf(0.0, float(result.get("final_cost_usd", 0.0)))
+    if float(player.get("cash", 0.0)) < final_cost:
+        _feedback("Terms were accepted, but available cash is no longer sufficient.")
+        return
+    # Reuse the inherited partner activation path so every established sector
+    # bonus remains intact; neutralize its normal price and apply negotiated cost.
+    var activation_cost := float(partner["cost"]) * _partner_cost_multiplier()
+    player["cash"] = float(player.get("cash", 0.0)) + activation_cost
+    var before := signed_partners.size()
+    _sign_partner(partner_idx)
+    if signed_partners.size() <= before:
+        player["cash"] = float(player.get("cash", 0.0)) - activation_cost
+        return
+    player["cash"] = float(player.get("cash", 0.0)) - final_cost
+    _v165_set_partner_relationship(partner_id, relationship + 8)
+    company_news = "CONTRACT CLOSED with %s for $%d • relationship %d/100 • %s" % [
+        String(partner["name"]), int(roundf(final_cost)), _v165_partner_relationship(partner_id), String(partner["boost"])
+    ]
+    _feedback(company_news)
+    _refresh_ui()
+
+func debug_v165_npc_contract_ready() -> bool:
+    return V165_NPC_CONTRACT_REVISION == 1 \
+        and has_method("_v165_start_partner_negotiation") \
+        and has_method("_v165_partner_relationship") \
+        and is_instance_valid(negotiation_manager)
+
 # Equipment reliability is authored by the live ArchiveSpriteProps interaction
 # layer through player["equipment_uptime_penalty"]. Applying it here means the
 # existing v0.090 turn/dispatch economics automatically reduce mined BTC and
@@ -268,6 +393,7 @@ func debug_v165_runtime_state() -> Dictionary:
         "wind_asset": V164Wind.debug_ready(),
         "v164_cleanup": bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false)),
         "npc_identity": debug_v165_npc_identity_ready(),
+        "npc_contracts": debug_v165_npc_contract_ready(),
         "clean_equipment_uptime": _equipment_uptime_penalty() == 0.0,
     }
 
