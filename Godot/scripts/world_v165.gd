@@ -9,6 +9,7 @@ const V165_DIESEL_REVISION := 2
 const V165_CLEANUP_REVISION := 1
 const V165_NPC_LABEL_DISTANCE := 300.0
 const V165_RIVAL_RELATIONSHIP_REVISION := 1
+const V165_RIVAL_CONTRACT_REVISION := 1
 
 var v165_diesel_drawn := false
 var v165_diesel_rect := Rect2()
@@ -247,7 +248,8 @@ func _open_rival_rep(entity: Dictionary) -> void:
         return
     var relationship := _v165_rival_relationship(rival_idx)
     super._open_rival_rep(entity)
-    dialog_text.text += "\n\nRELATIONSHIP %d/100 • Better history improves deal leverage and merger positioning. Choose the resource you actually need." % relationship
+    var contract_count := _v165_rival_contract_count(rival_idx)
+    dialog_text.text += "\n\nRELATIONSHIP %d/100 • ACTIVE CONTRACTS %d\nBetter history improves deal leverage and merger positioning. Choose the resource you actually need." % [relationship, contract_count]
     var actions: Array = [
         {"label":"HOSTING CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "hosting")},
         {"label":"POWER CONTRACT", "call":Callable(self, "_v165_start_rival_deal").bind(rival_idx, "power")},
@@ -258,6 +260,27 @@ func _open_rival_rep(entity: Dictionary) -> void:
     if not merger_used:
         actions.append({"label":"PROPOSE MERGER", "call":Callable(self, "_merge_rival").bind(rival_idx)})
     _set_actions(actions)
+
+func _v165_rival_contract_count(rival_idx: int) -> int:
+    var count := 0
+    var contracts: Array = player.get("rival_contracts", [])
+    for raw_contract in contracts:
+        var contract: Dictionary = raw_contract
+        if int(contract.get("rival_idx", -1)) == rival_idx:
+            count += 1
+    return count
+
+func _v165_record_rival_contract(result: Dictionary) -> void:
+    if String(result.get("deal_type", "")) == "rival_asics":
+        return
+    var contracts: Array = player.get("rival_contracts", []).duplicate(true)
+    contracts.append({
+        "rival_idx": int(result.get("rival_idx", -1)),
+        "deal_type": String(result.get("deal_type", "")),
+        "label": String(result.get("deal_label", "RIVAL CONTRACT")),
+        "term_months": 24 if String(result.get("deal_type", "")) == "rival_power" else 12
+    })
+    player["rival_contracts"] = contracts
 
 func _v165_start_rival_deal(rival_idx: int, deal_type: String) -> Node:
     if rival_idx < 0 or rival_idx >= rivals.size():
@@ -353,6 +376,7 @@ func _on_negotiation_resolved(result: Dictionary) -> void:
         rival["machines"] = maxi(0, int(rival.get("machines", 0)) - reward_machines)
     rivals[rival_idx] = rival
     _v165_set_rival_relationship(rival_idx, relationship + 7)
+    _v165_record_rival_contract(result)
     company_news = "DEAL CLOSED with %s: %s for $%d • relationship %d/100." % [String(rival.get("name", "rival")), String(result.get("target_asset_label", "contract")), int(roundf(cost)), _v165_rival_relationship(rival_idx)]
     _feedback(company_news)
     _refresh_ui()
