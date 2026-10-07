@@ -35,6 +35,12 @@ jobs:
           cd Godot
           timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/physical-campus-import.log
           if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/physical-campus-import.log; then exit 1; fi
+      - name: Probe live world inheritance chain
+        run: |
+          set -euo pipefail
+          timeout 60s godot --headless --path Godot --script res://scripts/probe_world_chain.gd 2>&1 | tee /tmp/world-chain-probe.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|WORLD CHAIN PROBE FAIL" /tmp/world-chain-probe.log; then exit 1; fi
+          grep -q "WORLD CHAIN PROBE PASS: res://scripts/world_v165.gd" /tmp/world-chain-probe.log
       - name: Exercise capacity collision and render campus
         run: |
           set -euo pipefail
