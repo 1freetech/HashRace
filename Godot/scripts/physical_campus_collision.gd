@@ -17,6 +17,8 @@ var command_rect := Rect2()
 var container_owned_cells: Array[Vector2i] = []
 var command_owned_cells: Array[Vector2i] = []
 var last_capacity_tiles := -1
+var campus_origin := Vector2.ZERO
+var campus_origin_cached := false
 
 func _ready() -> void:
     world = get_parent()
@@ -28,6 +30,9 @@ func _exit_tree() -> void:
     _clear_owned(command_owned_cells)
 
 func _process(_delta: float) -> void:
+    # The campus location is static after world generation. Recheck only the
+    # inexpensive capacity tier each frame; the expensive placement search is
+    # cached once and footprints rebuild only when that tier changes.
     _sync_collision()
 
 func _sync_collision() -> void:
@@ -44,19 +49,28 @@ func _sync_collision() -> void:
         or not world.has_method("_v128_container_size"):
         return
 
-    var origin: Vector2 = world.call("_energy_campus_origin")
     var hq_center: Vector2 = world.call("_player_hq_center")
     var capacity_mw: float = float(world.call("_v114_capacity_mw_for_site", hq_center))
     var capacity_tiles: int = int(world.call("_v114_footprint_tiles", capacity_mw))
+    if campus_origin_cached \
+        and capacity_tiles == last_capacity_tiles \
+        and container_rect.size != Vector2.ZERO \
+        and command_rect.size != Vector2.ZERO:
+        return
+
+    if not campus_origin_cached:
+        campus_origin = world.call("_energy_campus_origin")
+        campus_origin_cached = true
+
     var size_value: Vector2 = world.call("_v128_container_size", capacity_mw)
-    var container_center := origin + CONTAINER_OFFSET
+    var container_center := campus_origin + CONTAINER_OFFSET
     var container_dest := Rect2(container_center - size_value * Vector2(0.5, 0.55), size_value)
     var new_container_rect := Rect2(
         container_dest.position + Vector2(container_dest.size.x * 0.10, container_dest.size.y * 0.68),
         Vector2(container_dest.size.x * 0.80, container_dest.size.y * 0.23)
     )
 
-    var command_center := origin + COMMAND_OFFSET
+    var command_center := campus_origin + COMMAND_OFFSET
     var command_body := Rect2(command_center - Vector2(56.0, 39.6), Vector2(112.0, 72.0))
     var new_command_rect := Rect2(
         Vector2(command_body.position.x + 10.0, command_body.end.y - 18.0),
@@ -73,6 +87,7 @@ func _sync_collision() -> void:
     set_meta("hashrace_container_collision_rect", container_rect)
     set_meta("hashrace_command_collision_rect", command_rect)
     set_meta("hashrace_capacity_collision_tiles", last_capacity_tiles)
+    set_meta("hashrace_campus_origin_cached", campus_origin_cached)
 
 func _sync_owned_rect(next_rect: Rect2, current_rect: Rect2, owned_cells: Array[Vector2i]) -> void:
     if next_rect.size == Vector2.ZERO or grid_nav == null:
@@ -105,6 +120,7 @@ func _cells_for_rect(rect: Rect2) -> Array[Vector2i]:
 func debug_ready() -> bool:
     return COLLISION_REVISION == 1 \
         and grid_nav != null \
+        and campus_origin_cached \
         and container_rect.size.x > 0.0 \
         and command_rect.size.x > 0.0 \
         and not container_owned_cells.is_empty() \
@@ -119,4 +135,6 @@ func debug_snapshot() -> Dictionary:
         "container_cells": container_owned_cells.duplicate(),
         "command_cells": command_owned_cells.duplicate(),
         "capacity_tiles": last_capacity_tiles,
+        "campus_origin": campus_origin,
+        "campus_origin_cached": campus_origin_cached,
     }
