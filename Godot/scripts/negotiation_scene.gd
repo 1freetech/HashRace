@@ -250,6 +250,7 @@ func _resolve(success: bool, outcome: String, final_cost_usd: float, reputation_
         "deal_type": String(_context.get("deal_type", "rival_capacity")),
         "source_kind": String(_context.get("source_kind", "mining_company")),
         "computer_company_id": String(_context.get("computer_company_id", "")),
+        "reward_machines": int(_context.get("reward_machines", 0)),
         "deal_label": deal_label,
         "target_asset_label": target_asset_label,
         "rival_idx": rival_idx,
