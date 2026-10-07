@@ -102,7 +102,7 @@ func _install_controls() -> void:
     auto_fund_button.position = Vector2(16.0, 234.0)
     auto_fund_button.size = Vector2(355.0, 46.0)
     auto_fund_button.text = "AUTO-FUND SAFE TURN"
-    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to target $10,000 cash after the projected turn."
+    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to cover the operating reserve plus any active equipment repair."
     auto_fund_button.pressed.connect(auto_fund_safe_quarter)
     panel.add_child(auto_fund_button)
     _refresh_status()
@@ -244,3 +244,7 @@ func debug_fault_indicator_ready() -> bool:
     if penalty <= 0.0001:
         return "Reliability: NOMINAL" in status_label.text
     return "Reliability: FAULT" in status_label.text and "uptime" in status_label.text and "repair $" in status_label.text
+
+
+func debug_safe_liquidity_target() -> float:
+    return _safe_liquidity_target()
