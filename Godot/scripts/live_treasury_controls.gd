@@ -166,12 +166,17 @@ func sell_quarter_treasury() -> void:
     _feedback("Treasury sale raised $%d by selling %d sats. %d sats remain." % [int(raised), int(sats_to_sell), int(player["sats"])])
     _refresh_status()
 
+func _safe_liquidity_target(player: Dictionary) -> float:
+    var repair_cost := maxf(0.0, float(player.get("equipment_fault_repair_cost", 0.0)))
+    return OPERATING_RESERVE + repair_cost
+
 func auto_fund_safe_quarter() -> void:
     var player := _player()
     var projected_end := _projected_end_cash()
-    var cash_needed := OPERATING_RESERVE - projected_end
+    var liquidity_target := _safe_liquidity_target(player)
+    var cash_needed := liquidity_target - projected_end
     if cash_needed <= 0.0:
-        _feedback("No treasury sale needed. Projected turn-end cash already exceeds the $10,000 reserve target.")
+        _feedback("No treasury sale needed. Projected turn-end cash already covers the $%d safe-liquidity target." % int(liquidity_target))
         _refresh_status()
         return
     var held_sats := float(player.get("sats", 0.0))
@@ -184,10 +189,10 @@ func auto_fund_safe_quarter() -> void:
     var new_end := _projected_end_cash()
     if new_end < 0.0:
         _feedback("Sold all available %d sats for $%d, but projected turn-end cash is still $%d. Financing or cost cuts are still required." % [int(sats_to_sell), int(raised), int(new_end)])
-    elif new_end < OPERATING_RESERVE:
-        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is only $%d, below the $%d reserve target. Seek financing, cut costs, or improve mining economics before advancing." % [int(sats_to_sell), int(raised), int(new_end), int(OPERATING_RESERVE)])
+    elif new_end < liquidity_target:
+        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is only $%d, below the $%d safe-liquidity target. Seek financing, cut costs, or improve repair economics before advancing." % [int(sats_to_sell), int(raised), int(new_end), int(liquidity_target)])
     else:
-        _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end)])
+        _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d against a $%d safe-liquidity target; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end), int(liquidity_target)])
     _refresh_status()
 
 func _reset_turn_preview() -> void:
@@ -247,4 +252,4 @@ func debug_fault_indicator_ready() -> bool:
 
 
 func debug_safe_liquidity_target() -> float:
-    return _safe_liquidity_target()
+    return _safe_liquidity_target(_player())
