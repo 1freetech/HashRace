@@ -9,12 +9,11 @@ func _fail(message: String) -> void:
     push_error("PHYSICAL CAMPUS PROOF FAIL: " + message)
     quit(1)
 
-func _cells_outside_rect(cells: Array, rect: Rect2, grid_nav) -> Array[Vector2i]:
+func _released_cells(previous_cells: Array, current_cells: Array) -> Array[Vector2i]:
     var result: Array[Vector2i] = []
-    for raw_cell in cells:
+    for raw_cell in previous_cells:
         var cell: Vector2i = raw_cell
-        var center: Vector2 = grid_nav.cell_to_world(cell)
-        if not rect.has_point(center):
+        if not current_cells.has(cell):
             result.append(cell)
     return result
 
@@ -90,7 +89,9 @@ func _capture() -> void:
         _fail("grown campus footprint is not blocked")
         return
 
-    # Shrink back and prove cells owned only by the larger tier are released.
+    # Shrink back and compare the exact owner sets. Every cell present only in
+    # the large tier must become walkable; cells retained by the small tier are
+    # intentionally still blocked and must never be misclassified as stale.
     player["mw"] = original_mw
     scene.set("player", player)
     scene.queue_redraw()
@@ -98,18 +99,18 @@ func _capture() -> void:
         await process_frame
 
     var restored_snapshot: Dictionary = physical.call("debug_snapshot")
-    var restored_container: Rect2 = restored_snapshot.get("container_rect", Rect2())
-    var restored_transformer: Rect2 = scene.get("v160_transformer_collision_rect")
-    var container_extra := _cells_outside_rect(large_container_cells, restored_container, grid_nav)
-    var transformer_extra := _cells_outside_rect(large_transformer_cells, restored_transformer, grid_nav)
-    if container_extra.is_empty() or transformer_extra.is_empty():
+    var restored_container_cells: Array = Array(restored_snapshot.get("container_cells", [])).duplicate()
+    var restored_transformer_cells: Array = Array(scene.get("v160_transformer_owned_cells")).duplicate()
+    var container_released := _released_cells(large_container_cells, restored_container_cells)
+    var transformer_released := _released_cells(large_transformer_cells, restored_transformer_cells)
+    if container_released.is_empty() or transformer_released.is_empty():
         _fail("capacity tiers did not produce distinct owned collision cells")
         return
-    if not _all_walkable(container_extra, grid_nav):
-        _fail("container shrink left stale blocked cells")
+    if not _all_walkable(container_released, grid_nav):
+        _fail("container shrink left genuinely released cells blocked")
         return
-    if not _all_walkable(transformer_extra, grid_nav):
-        _fail("transformer shrink left stale blocked cells")
+    if not _all_walkable(transformer_released, grid_nav):
+        _fail("transformer shrink left genuinely released cells blocked")
         return
     if bool(grid_nav.world_is_walkable(command_rect.get_center())):
         _fail("Command Center lost physical collision during capacity change")
