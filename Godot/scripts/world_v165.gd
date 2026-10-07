@@ -173,30 +173,56 @@ func _draw_tech_rep(pos: Vector2, accent: Color, scanner: String, is_player: boo
     _v165_draw_npc_rep(pos, accent, scanner)
 
 func _v165_draw_npc_rep(pos: Vector2, accent: Color, scanner: String) -> void:
+    # Compact pixel-art field rep: readable at gameplay zoom without competing
+    # with the approved player sprite. Feet remain anchored to the entity pos.
     var seed := absi(int(pos.x) * 17 + int(pos.y) * 31)
     var skins: Array[Color] = [Color("6f432d"), Color("9b6547"), Color("c48a65"), Color("e2b18a")]
     var skin := skins[seed % skins.size()]
-    var jacket := accent.darkened(0.45)
-    var panel := accent.lightened(0.12)
+    var skin_shadow := skin.darkened(0.22)
+    var jacket := accent.darkened(0.52)
+    var jacket_mid := accent.darkened(0.24)
+    var safety := accent.lightened(0.16)
+    var pants := Color("18232c")
+    var boot := Color("090d11")
     var foot := VisualStack.snap_to_pixel(pos + Vector2(0.0, 43.0))
 
-    draw_ellipse_shadow(foot + Vector2(0.0, 1.0), 18.0, 6.0)
-    draw_rect(Rect2(foot + Vector2(-12.0, -21.0), Vector2(9.0, 22.0)), Color("111821"), true)
-    draw_rect(Rect2(foot + Vector2(3.0, -21.0), Vector2(9.0, 22.0)), Color("111821"), true)
-    draw_rect(Rect2(foot + Vector2(-15.0, -2.0), Vector2(13.0, 5.0)), jacket, true)
-    draw_rect(Rect2(foot + Vector2(2.0, -2.0), Vector2(13.0, 5.0)), jacket, true)
-    draw_rect(Rect2(foot + Vector2(-17.0, -55.0), Vector2(34.0, 35.0)), jacket, true)
-    draw_rect(Rect2(foot + Vector2(-12.0, -49.0), Vector2(24.0, 12.0)), panel, true)
-    draw_rect(Rect2(foot + Vector2(-22.0, -49.0), Vector2(7.0, 26.0)), jacket.darkened(0.10), true)
-    draw_rect(Rect2(foot + Vector2(15.0, -49.0), Vector2(7.0, 26.0)), jacket.darkened(0.10), true)
-    draw_rect(Rect2(foot + Vector2(-10.0, -73.0), Vector2(20.0, 18.0)), skin, true)
-    draw_rect(Rect2(foot + Vector2(-12.0, -77.0), Vector2(24.0, 7.0)), Color("15181b"), true)
+    draw_ellipse_shadow(foot + Vector2(0.0, 2.0), 17.0, 5.0)
 
+    # Boots/legs: separated silhouettes make the NPC read as a character.
+    draw_rect(Rect2(foot + Vector2(-11.0, -20.0), Vector2(8.0, 18.0)), pants, true)
+    draw_rect(Rect2(foot + Vector2(3.0, -20.0), Vector2(8.0, 18.0)), pants.lightened(0.05), true)
+    draw_rect(Rect2(foot + Vector2(-13.0, -4.0), Vector2(11.0, 6.0)), boot, true)
+    draw_rect(Rect2(foot + Vector2(2.0, -4.0), Vector2(12.0, 6.0)), boot, true)
+
+    # Jacket, safety vest and arms.
+    draw_rect(Rect2(foot + Vector2(-16.0, -53.0), Vector2(32.0, 34.0)), Color("0a0f13"), true)
+    draw_rect(Rect2(foot + Vector2(-14.0, -51.0), Vector2(28.0, 30.0)), jacket, true)
+    draw_rect(Rect2(foot + Vector2(-9.0, -49.0), Vector2(18.0, 25.0)), jacket_mid, true)
+    draw_rect(Rect2(foot + Vector2(-9.0, -47.0), Vector2(4.0, 22.0)), safety, true)
+    draw_rect(Rect2(foot + Vector2(5.0, -47.0), Vector2(4.0, 22.0)), safety, true)
+    draw_rect(Rect2(foot + Vector2(-9.0, -37.0), Vector2(18.0, 3.0)), safety, true)
+    draw_rect(Rect2(foot + Vector2(-21.0, -48.0), Vector2(7.0, 23.0)), jacket_mid, true)
+    draw_rect(Rect2(foot + Vector2(14.0, -48.0), Vector2(7.0, 23.0)), jacket_mid, true)
+    draw_rect(Rect2(foot + Vector2(-22.0, -27.0), Vector2(8.0, 7.0)), skin, true)
+    draw_rect(Rect2(foot + Vector2(14.0, -27.0), Vector2(8.0, 7.0)), skin, true)
+
+    # Neck/head/hair with face pixels; deliberately more character-like than
+    # the previous block mannequin while remaining deterministic and logo-free.
+    draw_rect(Rect2(foot + Vector2(-5.0, -58.0), Vector2(10.0, 8.0)), skin_shadow, true)
+    draw_rect(Rect2(foot + Vector2(-11.0, -76.0), Vector2(22.0, 20.0)), Color("080b0e"), true)
+    draw_rect(Rect2(foot + Vector2(-9.0, -74.0), Vector2(18.0, 17.0)), skin, true)
+    draw_rect(Rect2(foot + Vector2(-9.0, -74.0), Vector2(18.0, 5.0)), Color("111317"), true)
+    draw_rect(Rect2(foot + Vector2(-7.0, -66.0), Vector2(3.0, 3.0)), Color("101317"), true)
+    draw_rect(Rect2(foot + Vector2(4.0, -66.0), Vector2(3.0, 3.0)), Color("101317"), true)
+    draw_rect(Rect2(foot + Vector2(-2.0, -59.0), Vector2(5.0, 2.0)), skin_shadow, true)
+
+    # Scanner/tablet gives every rep a clear gameplay role.
     var lens_x := -10.0 if scanner == "left" else 2.0
-    var temple_x := -14.0 if scanner == "left" else 11.0
-    draw_rect(Rect2(foot + Vector2(lens_x, -69.0), Vector2(9.0, 7.0)), Color(accent.r, accent.g, accent.b, 0.92), true)
-    draw_rect(Rect2(foot + Vector2(temple_x, -71.0), Vector2(4.0, 12.0)), accent.darkened(0.18), true)
-    draw_rect(Rect2(foot + Vector2(-3.0, -34.0), Vector2(6.0, 8.0)), accent, true)
+    var temple_x := -13.0 if scanner == "left" else 10.0
+    draw_rect(Rect2(foot + Vector2(lens_x, -68.0), Vector2(8.0, 6.0)), Color(accent.r, accent.g, accent.b, 0.95), true)
+    draw_rect(Rect2(foot + Vector2(temple_x, -69.0), Vector2(3.0, 9.0)), accent, true)
+    draw_rect(Rect2(foot + Vector2(15.0, -42.0), Vector2(9.0, 12.0)), Color("0d171c"), true)
+    draw_rect(Rect2(foot + Vector2(17.0, -40.0), Vector2(5.0, 7.0)), safety, true)
 
 func _draw_neon_character_name(pos: Vector2, character_name: String) -> void:
     # The player already has a dedicated HUD identity. Show NPC names only when
