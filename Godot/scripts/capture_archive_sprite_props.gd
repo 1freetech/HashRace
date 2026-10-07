@@ -47,6 +47,9 @@ func _capture() -> void:
         _fail("treasury did not start with nominal equipment reliability")
         return
     var projected_profit_before: float = float(treasury.call("debug_projected_turn_profit"))
+    if not treasury.has_method("debug_safe_liquidity_target") or absf(float(treasury.call("debug_safe_liquidity_target")) - 10000.0) > 0.01:
+        _fail("nominal treasury safe-liquidity target is not the $10,000 operating reserve")
+        return
 
     scene.set("rep_pos", PROOF_CENTER)
     var player_sprite := scene.get("player_sprite") as AnimatedSprite2D
@@ -104,6 +107,11 @@ func _capture() -> void:
         _fail("treasury fault line is missing the live major-fault uptime or repair consequence")
         return
     var projected_profit_fault: float = float(treasury.call("debug_projected_turn_profit"))
+    var repair_liquidity_target: float = float(treasury.call("debug_safe_liquidity_target"))
+    var live_repair_cost: float = float((scene.get("player") as Dictionary).get("equipment_fault_repair_cost", 0.0))
+    if live_repair_cost <= 0.0 or absf(repair_liquidity_target - (10000.0 + live_repair_cost)) > 0.01:
+        _fail("active equipment repair cost is not reserved in the treasury safe-liquidity target")
+        return
     if projected_profit_fault >= projected_profit_before - 1.0:
         _fail("treasury projected turn profit did not fall after the live equipment uptime fault")
         return
@@ -126,7 +134,7 @@ func _capture() -> void:
     if treasury_status_label == null or not treasury_status_label.is_visible_in_tree():
         _fail("treasury reliability status is not visibly rendered in the opened module")
         return
-    if "Reliability: FAULT" not in treasury_status_label.text or "-3.5% uptime" not in treasury_status_label.text:
+    if "Reliability: FAULT" not in treasury_status_label.text or "-3.5% uptime" not in treasury_status_label.text or "safe liquidity $%d" % int(repair_liquidity_target) not in treasury_status_label.text:
         _fail("visible treasury module does not show the active reliability penalty")
         return
 
@@ -199,6 +207,9 @@ func _capture() -> void:
         _fail("treasury did not return to nominal reliability after the on-site repair")
         return
     var projected_profit_restored: float = float(treasury.call("debug_projected_turn_profit"))
+    if absf(float(treasury.call("debug_safe_liquidity_target")) - 10000.0) > 0.01:
+        _fail("treasury safe-liquidity target did not release the repair reserve after repair")
+        return
     if projected_profit_restored < projected_profit_before - 1.0:
         _fail("treasury turn projection did not recover after equipment repair")
         return

@@ -66,21 +66,21 @@ func _install_controls() -> void:
     status_label = Label.new()
     status_label.name = "TreasuryStatus"
     status_label.position = Vector2(16.0, 42.0)
-    status_label.size = Vector2(355.0, 64.0)
+    status_label.size = Vector2(355.0, 72.0)
     status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     status_label.add_theme_font_size_override("font_size", 11)
     status_label.add_theme_color_override("font_color", Color("d7eef3"))
     panel.add_child(status_label)
 
     hold_policy_label = Label.new()
-    hold_policy_label.position = Vector2(16.0, 110.0)
+    hold_policy_label.position = Vector2(16.0, 118.0)
     hold_policy_label.size = Vector2(355.0, 24.0)
     hold_policy_label.add_theme_font_size_override("font_size", 12)
     hold_policy_label.add_theme_color_override("font_color", Color("c5b8ff"))
     panel.add_child(hold_policy_label)
 
     hold_policy_slider = HSlider.new()
-    hold_policy_slider.position = Vector2(16.0, 134.0)
+    hold_policy_slider.position = Vector2(16.0, 142.0)
     hold_policy_slider.size = Vector2(355.0, 34.0)
     hold_policy_slider.min_value = 0.0
     hold_policy_slider.max_value = 100.0
@@ -91,7 +91,7 @@ func _install_controls() -> void:
     panel.add_child(hold_policy_slider)
 
     sell_button = Button.new()
-    sell_button.position = Vector2(16.0, 178.0)
+    sell_button.position = Vector2(16.0, 186.0)
     sell_button.size = Vector2(355.0, 46.0)
     sell_button.text = "SELL 25% BTC TREASURY"
     sell_button.tooltip_text = "Sell one quarter of held sats at the current simulated Bitcoin price."
@@ -99,10 +99,10 @@ func _install_controls() -> void:
     panel.add_child(sell_button)
 
     auto_fund_button = Button.new()
-    auto_fund_button.position = Vector2(16.0, 234.0)
+    auto_fund_button.position = Vector2(16.0, 242.0)
     auto_fund_button.size = Vector2(355.0, 46.0)
     auto_fund_button.text = "AUTO-FUND SAFE TURN"
-    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to target $10,000 cash after the projected turn."
+    auto_fund_button.tooltip_text = "Sell only enough held Bitcoin to cover the operating reserve plus any active equipment repair."
     auto_fund_button.pressed.connect(auto_fund_safe_quarter)
     panel.add_child(auto_fund_button)
     _refresh_status()
@@ -166,12 +166,17 @@ func sell_quarter_treasury() -> void:
     _feedback("Treasury sale raised $%d by selling %d sats. %d sats remain." % [int(raised), int(sats_to_sell), int(player["sats"])])
     _refresh_status()
 
+func _safe_liquidity_target(player: Dictionary) -> float:
+    var repair_cost := maxf(0.0, float(player.get("equipment_fault_repair_cost", 0.0)))
+    return OPERATING_RESERVE + repair_cost
+
 func auto_fund_safe_quarter() -> void:
     var player := _player()
     var projected_end := _projected_end_cash()
-    var cash_needed := OPERATING_RESERVE - projected_end
+    var liquidity_target := _safe_liquidity_target(player)
+    var cash_needed := liquidity_target - projected_end
     if cash_needed <= 0.0:
-        _feedback("No treasury sale needed. Projected turn-end cash already exceeds the $10,000 reserve target.")
+        _feedback("No treasury sale needed. Projected turn-end cash already covers the $%d safe-liquidity target." % int(liquidity_target))
         _refresh_status()
         return
     var held_sats := float(player.get("sats", 0.0))
@@ -184,10 +189,10 @@ func auto_fund_safe_quarter() -> void:
     var new_end := _projected_end_cash()
     if new_end < 0.0:
         _feedback("Sold all available %d sats for $%d, but projected turn-end cash is still $%d. Financing or cost cuts are still required." % [int(sats_to_sell), int(raised), int(new_end)])
-    elif new_end < OPERATING_RESERVE:
-        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is only $%d, below the $%d reserve target. Seek financing, cut costs, or improve mining economics before advancing." % [int(sats_to_sell), int(raised), int(new_end), int(OPERATING_RESERVE)])
+    elif new_end < liquidity_target:
+        _feedback("Sold all available %d sats for $%d, but projected turn-end cash is only $%d, below the $%d safe-liquidity target. Seek financing, cut costs, or improve repair economics before advancing." % [int(sats_to_sell), int(raised), int(new_end), int(liquidity_target)])
     else:
-        _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end)])
+        _feedback("Auto-fund sold only %d sats for $%d. Projected turn-end cash is now $%d against a $%d safe-liquidity target; the remaining BTC stays in treasury." % [int(sats_to_sell), int(raised), int(new_end), int(liquidity_target)])
     _refresh_status()
 
 func _reset_turn_preview() -> void:
@@ -221,17 +226,21 @@ func _refresh_status() -> void:
     var hold_percent: int = clampi(int(round(float(player.get("treasury_hold", 0.30)) * 100.0)), 0, 100)
     var projected_profit := _projected_turn_profit()
     var projected_end := float(player.get("cash", 0.0)) + projected_profit
+    var liquidity_target := _safe_liquidity_target(player)
     var risk := _projected_risk(projected_profit, projected_end)
+    if liquidity_target > OPERATING_RESERVE and projected_end < liquidity_target and projected_end >= 0.0:
+        risk = "CRITICAL: REPAIR LIQUIDITY"
     if is_instance_valid(hold_policy_label):
         hold_policy_label.text = "BTC HOLD POLICY: %d / 100" % hold_percent
-    status_label.text = "Held: %d sats  •  BTC $%d  •  %s\nProjected turn-end cash: $%d  •  reserve $%d\n%s" % [
-        int(held_sats), int(_btc_price()), risk, int(projected_end), int(OPERATING_RESERVE), _reliability_status(player)
+    status_label.text = "Held: %d sats  •  BTC $%d  •  %s\nProjected turn-end cash: $%d  •  safe liquidity $%d\n%s" % [
+        int(held_sats), int(_btc_price()), risk, int(projected_end), int(liquidity_target), _reliability_status(player)
     ]
 
 func debug_live_treasury_ready() -> bool:
     return is_instance_valid(hold_policy_slider) and is_instance_valid(sell_button) and is_instance_valid(auto_fund_button) and is_instance_valid(status_label)
 
 func debug_live_treasury_status() -> String:
+    _refresh_status()
     return status_label.text if is_instance_valid(status_label) else ""
 
 func debug_projected_turn_profit() -> float:
@@ -240,7 +249,11 @@ func debug_projected_turn_profit() -> float:
 func debug_fault_indicator_ready() -> bool:
     if not is_instance_valid(status_label):
         return false
+    _refresh_status()
     var penalty := float(_player().get("equipment_uptime_penalty", 0.0))
     if penalty <= 0.0001:
         return "Reliability: NOMINAL" in status_label.text
     return "Reliability: FAULT" in status_label.text and "uptime" in status_label.text and "repair $" in status_label.text
+
+func debug_safe_liquidity_target() -> float:
+    return _safe_liquidity_target(_player())
