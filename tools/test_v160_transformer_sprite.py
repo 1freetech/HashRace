@@ -41,12 +41,17 @@ def check_png() -> None:
 def check_runtime() -> None:
     world = WORLD.read_text(encoding="utf-8")
     catalog = CATALOG.read_text(encoding="utf-8")
+    scene = SCENE.read_text(encoding="utf-8")
     assert "res://scripts/world_v160.gd" in active_world_scripts(), "v0.160 transformer layer must remain live"
-    assert 'res://scripts/world_v165.gd' in SCENE.read_text(encoding="utf-8")
+    assert 'res://scripts/world_v165.gd' in scene
+    assert 'res://scripts/physical_campus_collision.gd' in scene
     assert "func _v114_draw_transformer(" in world
     assert "V160SubstationSprite.texture()" in world
     assert "_v160_register_transformer_footprint" in world
-    assert "grid_nav.block_rect(foot)" in world
+    assert "func _v160_sync_transformer_footprint" in world
+    assert "v160_transformer_owned_cells" in world
+    assert "grid_nav.set_blocked(cell, true)" in world
+    assert "grid_nav.set_blocked(cell, false)" in world
     assert "func _draw_rep()" in world
     assert "draw_texture_rect(v160_transformer_texture" in world
     assert "substation_transformer_rear.png" in catalog
@@ -56,4 +61,4 @@ def check_runtime() -> None:
 if __name__ == "__main__":
     check_png()
     check_runtime()
-    print("v0.160 transformer PNG integrity and restored full-chain runtime wiring passed")
+    print("v0.160 transformer PNG integrity and capacity-aware owned collision wiring passed")

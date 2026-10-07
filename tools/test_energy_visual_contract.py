@@ -11,9 +11,11 @@ world_v160 = (ROOT / "Godot/scripts/world_v160.gd").read_text(encoding="utf-8")
 world_v161 = (ROOT / "Godot/scripts/world_v161.gd").read_text(encoding="utf-8")
 world_v164 = (ROOT / "Godot/scripts/world_v164.gd").read_text(encoding="utf-8")
 world_v165 = (ROOT / "Godot/scripts/world_v165.gd").read_text(encoding="utf-8")
+physical_collision = (ROOT / "Godot/scripts/physical_campus_collision.gd").read_text(encoding="utf-8")
 live_scripts = active_world_scripts()
 
 assert 'res://scripts/world_v165.gd' in scene, "Live scene must use the restored full gameplay chain"
+assert 'res://scripts/physical_campus_collision.gd' in scene, "Physical campus collision must be live"
 for required in [
     "res://scripts/world_v127.gd",
     "res://scripts/world_v128.gd",
@@ -59,13 +61,33 @@ for texture_path in [
 ]:
     assert (ROOT / texture_path).is_file(), f"Live imported texture missing: {texture_path}"
 
-assert 'V160SubstationSprite' in world_v160 and 'grid_nav.block_rect(foot)' in world_v160
+assert 'V160SubstationSprite' in world_v160
+for marker in [
+    'func _v160_sync_transformer_footprint',
+    'v160_transformer_owned_cells',
+    'grid_nav.set_blocked(cell, true)',
+    'grid_nav.set_blocked(cell, false)',
+]:
+    assert marker in world_v160, f"Transformer ownership contract missing: {marker}"
+
 assert 'V161Solar' in world_v161 and 'asset_id != "solar_array"' in world_v161 and 'grid_nav.block_rect(foot)' in world_v161
 assert 'V164Wind' in world_v164 and 'asset_id != "wind_farm"' in world_v164 and 'grid_nav.block_rect(foot)' in world_v164
 
-# v0.165 diesel is dynamic inventory-backed infrastructure, so it must own and
-# release only the navigation cells it introduced. Requiring the old raw
-# block_rect() call here would reintroduce the invisible-obstacle undeploy bug.
+for marker in [
+    'const COLLISION_REVISION := 1',
+    'CONTAINER_OFFSET := Vector2(-170.0, -165.0)',
+    'COMMAND_OFFSET := Vector2(-205.0, 215.0)',
+    'container_owned_cells',
+    'command_owned_cells',
+    'func _sync_owned_rect',
+    'grid_nav.set_blocked(cell, true)',
+    'grid_nav.set_blocked(cell, false)',
+    'func debug_ready() -> bool:',
+]:
+    assert marker in physical_collision, f"Physical campus collision marker missing: {marker}"
+
+# v0.165 dynamic energy sources own and release only navigation cells they
+# introduced so source changes and undeploys never leave invisible obstacles.
 for marker in [
     'V165_DIESEL_ASSET_ID := "diesel_generator"',
     'infrastructure_inventory.deployed_quantity(V165_DIESEL_ASSET_ID)',
@@ -73,12 +95,11 @@ for marker in [
     'var v165_diesel_owned_blocked_cells: Array[Vector2i] = []',
     'func _v165_block_diesel_collision(foot: Rect2) -> void:',
     'func _v165_clear_diesel_collision() -> void:',
-    'if grid_nav.is_walkable(cell):',
-    'grid_nav.set_blocked(cell, true)',
-    'grid_nav.set_blocked(cell, false)',
+    'v165_legacy_energy_owned_blocked_cells',
+    'func _v165_clear_legacy_energy_collision() -> void:',
     'func debug_v165_runtime_state() -> Dictionary:',
     'func debug_v165_diesel_ready() -> bool:',
 ]:
-    assert marker in world_v165, f"v0.165 dynamic diesel contract missing: {marker}"
+    assert marker in world_v165, f"v0.165 dynamic energy contract missing: {marker}"
 
-print("Hash Race full gameplay energy/deployment contract passed with ownership-safe diesel collision cleanup.")
+print("Hash Race energy/deployment contract passed with physical campus and ownership-safe dynamic collision.")
