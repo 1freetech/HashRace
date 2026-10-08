@@ -7,7 +7,8 @@ class_name HashRaceGameplayVisualPolish
 const WorldScale = preload("res://scripts/world_scale_rules.gd")
 const ROAD_TILE := 3
 const TILE_SIZE := 48.0
-const POLISH_REVISION := 1
+const POLISH_REVISION := 2
+const INTERACT_DISTANCE := 145.0
 const ROAD_EDGE := Color("3b4143")
 const ROAD_GLEAM := Color("a3aaa5")
 const ROAD_REFLECTOR := Color("e7c65b")
@@ -145,20 +146,25 @@ func _draw_service_lights(rect: Rect2, accent: Color) -> void:
         draw_circle(Vector2(x, y), 2.0, accent.lightened(0.35))
 
 func _draw_interaction_feedback(world: Node) -> void:
-    var idx := int(world.get("selected_entity_idx"))
-    var entities_value: Variant = world.get("entities")
-    if not entities_value is Array:
+    var value: Variant = world.get("entities")
+    if not value is Array:
         return
-    var entities: Array = entities_value
-    if idx < 0 or idx >= entities.size():
+    var entities: Array = value
+    var player_pos := Vector2(world.get("rep_pos"))
+    var idx := -1
+    var nearest := INTERACT_DISTANCE
+    # Match the real E-key target selection, not the previously selected entity.
+    for i in range(entities.size()):
+        var candidate: Dictionary = entities[i]
+        var distance := player_pos.distance_to(Vector2(candidate.get("pos", Vector2.ZERO)))
+        if distance < nearest:
+            nearest = distance
+            idx = i
+    if idx < 0:
         return
     var entity: Dictionary = entities[idx]
     var kind := String(entity.get("kind", ""))
     var pos := Vector2(entity.get("pos", Vector2.ZERO))
-    var player_pos := Vector2(world.get("rep_pos"))
-    if player_pos.distance_to(pos) > 210.0:
-        return
-
     var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 180.0)
     var arrow_y := pos.y - 118.0
     if WorldScale.is_building_kind(kind):
@@ -169,14 +175,23 @@ func _draw_interaction_feedback(world: Node) -> void:
         Vector2(pos.x, arrow_y + 10.0),
     ])
     draw_colored_polygon(arrow, PROMPT_GREEN.lerp(Color.WHITE, pulse * 0.25))
-
-    var action := "TALK" if kind.ends_with("_rep") else "INTERACT"
-    var label := "[E]  %s" % action
-    var width := 92.0
-    var plate := Rect2(Vector2(pos.x - width * 0.5, arrow_y - 28.0), Vector2(width, 20.0))
+    var label := "[E]  " + _action_for_kind(kind)
+    var width := maxf(108.0, float(label.length()) * 8.0 + 14.0)
+    var plate := Rect2(Vector2(pos.x - width * 0.5, arrow_y - 29.0), Vector2(width, 21.0))
     draw_rect(plate, Color("03080be8"), true)
     draw_rect(plate, PROMPT_GREEN.darkened(0.35), false, 1.0)
     draw_string(ThemeDB.fallback_font, plate.position + Vector2(0.0, 14.0), label, HORIZONTAL_ALIGNMENT_CENTER, width, 11, PROMPT_GREEN)
+
+func _action_for_kind(kind: String) -> String:
+    match kind:
+        "hq": return "MANAGE"
+        "machines": return "BUY MINERS"
+        "power": return "POWER"
+        "bank": return "FINANCE"
+        "land": return "LAND"
+        "partner": return "PARTNER"
+        "rival": return "NEGOTIATE"
+    return "TALK" if kind.ends_with("_rep") else "INTERACT"
 
 func _draw_click_target(world: Node) -> void:
     if not bool(world.get("has_click_target")):
