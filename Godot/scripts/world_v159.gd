@@ -64,20 +64,22 @@ func _v158_draw_facility(entity: Dictionary, idx: int, accent: Color) -> void:
         Vector2(round(width), round(height))
     )
 
-    # A compact service slab grounds the sprite without recreating a fake
-    # building rectangle. It sits only under the bottom portion of the artwork.
+    # Ground the authored sprite with a compact service slab and soft foot shadow.
+    # Do not reuse the inherited oversized polygon shadow/foundation: that visual
+    # belonged to the old procedural rectangles and made the sprites look pasted
+    # onto giant blocks.
+    draw_ellipse_shadow(VisualStack.snap_to_pixel(Vector2(pos.x, ground_y + 2.0)), dest.size.x * 0.43, 7.0)
+    var pad_width := dest.size.x * 0.88
     var pad := Rect2(
-        Vector2(dest.position.x - 9.0, ground_y - height * 0.18),
-        Vector2(dest.size.x + 18.0, height * 0.24 + 13.0)
+        VisualStack.snap_to_pixel(Vector2(pos.x - pad_width * 0.5, ground_y - 9.0)),
+        Vector2(round(pad_width), 16.0)
     )
-    draw_rect(pad, Color("424b43b8"), true)
-    draw_rect(pad, Color("74807178"), false, 1.0)
-    for i in range(7):
-        var px := pad.position.x + 10.0 + float(i) * maxf(12.0, (pad.size.x - 20.0) / 7.0)
-        var py := pad.end.y - 5.0 + float((i * 3) % 3)
-        draw_rect(Rect2(Vector2(px, py), Vector2(3.0, 2.0)), Color("27342c99"), true)
+    draw_rect(pad, Color("465047b0"), true)
+    draw_rect(Rect2(pad.position, Vector2(pad.size.x, 2.0)), Color("7a877b72"), true)
+    for i in range(6):
+        var px := pad.position.x + 8.0 + float(i) * maxf(10.0, (pad.size.x - 16.0) / 6.0)
+        draw_rect(Rect2(Vector2(px, pad.end.y - 4.0), Vector2(3.0, 2.0)), Color("27342c88"), true)
 
-    _v103_draw_building_shadow(pos, Vector2(dest.size.x, minf(dest.size.y, footprint.y)))
     draw_texture_rect_region(V166_FACILITY_SHEET, dest, source)
 
     # Keep company identity without tinting or stretching the authored sprite.
