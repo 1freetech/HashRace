@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 ; Live campaign uses the full v0.165 gameplay inheritance chain.
 [ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"]
@@ -7,12 +7,16 @@
 [ext_resource path="res://scripts/archive_sprite_layout_tuner.gd" type="Script" id="4_archive_layout"]
 [ext_resource path="res://scripts/archive_sprite_interaction.gd" type="Script" id="5_archive_interaction"]
 [ext_resource path="res://scripts/gameplay_visual_polish.gd" type="Script" id="6_gameplay_polish"]
+[ext_resource path="res://scripts/campus_identity.gd" type="Script" id="7_campus_identity"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
 script = ExtResource("1_world")
 
 [node name="GameplayVisualPolish" type="Node2D" parent="."]
 script = ExtResource("6_gameplay_polish")
+
+[node name="CampusIdentity" type="Node2D" parent="."]
+script = ExtResource("7_campus_identity")
 
 [node name="ArchiveSpriteProps" type="Node2D" parent="."]
 script = ExtResource("3_archive_props")
