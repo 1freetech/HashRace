@@ -3,6 +3,7 @@ extends Node2D
 const Profiles = preload("res://scripts/company_profiles.gd")
 const WORLD_SIZE: Vector2 = Vector2(3000.0, 1900.0)
 const WALK_SPEED: float = 144.0
+const SPRINT_MULTIPLIER: float = 1.45
 const INTERACT_DISTANCE: float = 145.0
 const SATS_PER_BTC: float = 100000000.0
 const QUARTER_DAYS: float = 91.25
@@ -88,13 +89,19 @@ var action_row: HBoxContainer
 var quarter_button: Button
 
 func _ready() -> void:
+    # One shared input action supports keyboard play and deterministic runtime tests.
+    if not InputMap.has_action("hashrace_sprint"):
+        InputMap.add_action("hashrace_sprint")
+        var shift_key := InputEventKey.new()
+        shift_key.keycode = KEY_SHIFT
+        InputMap.action_add_event("hashrace_sprint", shift_key)
     _read_campaign_selection()
     _initialize_player()
     _initialize_rivals()
     _build_entities()
     _build_camera()
     _build_ui()
-    _open_message("WELCOME TO THE TECH DISTRICT", "You are the company representative. Walk with WASD or arrow keys. Click a building or walk close and press E/Enter to talk. Strategic actions happen inside companies; use the current Day, Month, or Year turn control to advance the economy.")
+    _open_message("WELCOME TO THE TECH DISTRICT", "You are the company representative. Walk with WASD or arrow keys, hold Shift to sprint. Click a building or walk close and press E/Enter to talk. Strategic actions happen inside companies; use the current Day, Month, or Year turn control to advance the economy.")
     _refresh_ui()
     queue_redraw()
 
@@ -236,7 +243,7 @@ func _build_ui() -> void:
     quarter_button.add_theme_font_size_override("font_size", 15)
     quarter_button.pressed.connect(_end_quarter)
     side.add_child(quarter_button)
-    var help: Label = _label("MOVE: WASD / ARROWS   TALK: E / ENTER\nClick buildings to open them. Economy moves only when END QUARTER is pressed.", Vector2(16.0, 458.0), Vector2(355.0, 60.0), 11, Color("a9ccd7"))
+    var help: Label = _label("MOVE: WASD / ARROWS   SPRINT: SHIFT   TALK: E\nClick buildings to open them. Economy moves only when END QUARTER is pressed.", Vector2(16.0, 458.0), Vector2(355.0, 60.0), 11, Color("a9ccd7"))
     help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     side.add_child(help)
 
@@ -290,6 +297,12 @@ func _label(text_value: String, pos: Vector2, size_value: Vector2, font_size: in
     label.add_theme_color_override("font_color", color)
     return label
 
+func _sprint_requested() -> bool:
+    return Input.is_key_pressed(KEY_SHIFT) or (InputMap.has_action("hashrace_sprint") and Input.is_action_pressed("hashrace_sprint"))
+
+func _movement_speed() -> float:
+    return WALK_SPEED * (SPRINT_MULTIPLIER if _sprint_requested() else 1.0)
+
 func _process(delta: float) -> void:
     var motion: Vector2 = Vector2.ZERO
     if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
@@ -302,9 +315,9 @@ func _process(delta: float) -> void:
         motion.x += 1.0
     if motion.length() > 0.0:
         has_click_target = false
-        rep_pos += motion.normalized() * WALK_SPEED * delta
+        rep_pos += motion.normalized() * _movement_speed() * delta
     elif has_click_target:
-        rep_pos = rep_pos.move_toward(click_target, WALK_SPEED * delta)
+        rep_pos = rep_pos.move_toward(click_target, _movement_speed() * delta)
         if rep_pos.distance_to(click_target) < 8.0:
             has_click_target = false
     rep_pos.x = clampf(rep_pos.x, 70.0, WORLD_SIZE.x - 70.0)
