@@ -6,7 +6,7 @@
 [ext_resource path="res://scripts/archive_sprite_props.gd" type="Script" id="3_archive_props"]
 [ext_resource path="res://scripts/archive_sprite_layout_tuner.gd" type="Script" id="4_archive_layout"]
 [ext_resource path="res://scripts/archive_sprite_interaction.gd" type="Script" id="5_archive_interaction"]
-[ext_resource path="res://scripts/gameplay_visual_polish.gd" type="Script" id="6_gameplay_polish"]
+[ext_resource path="res://scripts/gameplay_visual_polish_sprites.gd" type="Script" id="6_gameplay_polish"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
 script = ExtResource("1_world")
