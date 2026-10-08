@@ -3,6 +3,7 @@ extends Node2D
 const Profiles = preload("res://scripts/company_profiles.gd")
 const WORLD_SIZE: Vector2 = Vector2(3000.0, 1900.0)
 const WALK_SPEED: float = 144.0
+const SPRINT_MULTIPLIER: float = 1.45
 const INTERACT_DISTANCE: float = 145.0
 const SATS_PER_BTC: float = 100000000.0
 const QUARTER_DAYS: float = 91.25
@@ -302,7 +303,7 @@ func _process(delta: float) -> void:
         motion.x += 1.0
     if motion.length() > 0.0:
         has_click_target = false
-        rep_pos += motion.normalized() * WALK_SPEED * delta
+        rep_pos += motion.normalized() * WALK_SPEED * (SPRINT_MULTIPLIER if Input.is_key_pressed(KEY_SHIFT) else 1.0) * delta
     elif has_click_target:
         rep_pos = rep_pos.move_toward(click_target, WALK_SPEED * delta)
         if rep_pos.distance_to(click_target) < 8.0:
