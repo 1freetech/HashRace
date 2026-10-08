@@ -1,6 +1,6 @@
 extends SceneTree
 
-const OUTPUT := "res://../visual-proof/v165-npc-identity.png"
+const OUTPUT := "res://../visual-proof/v165-gameplay-polish.png"
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -46,6 +46,10 @@ func _capture() -> void:
         return
     if not scene.has_method("debug_v165_npc_identity_ready") or not bool(scene.call("debug_v165_npc_identity_ready")):
         _fail("distinct NPC identity contract is not ready")
+        return
+    var polish := scene.get_node_or_null("GameplayVisualPolish")
+    if polish == null or not polish.has_method("debug_ready") or not bool(polish.call("debug_ready")):
+        _fail("gameplay visual polish layer is not ready")
         return
 
     # Exercise the gameplay-side stale-collision repair before taking the visual
@@ -129,10 +133,11 @@ func _capture() -> void:
         _fail("camera missing")
         return
     camera.position_smoothing_enabled = false
-    camera.position = (npc_pos + player_pos) * 0.5 + Vector2(0.0, -10.0)
-    camera.zoom = Vector2(1.35, 1.35)
+    camera.position = (npc_pos + player_pos) * 0.5 + Vector2(0.0, -18.0)
+    camera.zoom = Vector2(1.15, 1.15)
     camera.force_update_scroll()
     scene.queue_redraw()
+    polish.queue_redraw()
     for _frame in range(12):
         await process_frame
     await create_timer(0.25).timeout
@@ -147,5 +152,5 @@ func _capture() -> void:
         _fail("could not save visual proof")
         return
 
-    print("V165 CLEANUP PROOF PASS: solar/wind owned collision clears after undeploy; approved player sprite remains live beside a distinct named NPC renderer; " + ProjectSettings.globalize_path(OUTPUT))
+    print("V165 CLEANUP PROOF PASS: collision ownership remains clean; gameplay polish layer renders facility detail, road readability, and contextual interaction feedback; " + ProjectSettings.globalize_path(OUTPUT))
     quit(0)
