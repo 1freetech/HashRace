@@ -1,4 +1,4 @@
-extends "res://scripts/world_v158.gd"
+extends "res://scripts/world_v158_sprite_buildings.gd"
 
 # Hash Race v0.159: promote the previously unused cable-tray cell from the
 # electrical distribution source sheet into a real stationary live-world PNG.
