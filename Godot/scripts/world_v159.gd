@@ -8,7 +8,7 @@ const V159_CABLE_TRAY_REVISION := 2
 const V159_CABLE_TRAY_PATH := "res://art/electrical/cable_tray.png"
 const V159_CABLE_TRAY_SHA256 := "e9cdcb9d3254793f8c299b75526441a90401eb30051ed67d8408048e1d8f9a96"
 const FacilityBuildingSheet = preload("res://scripts/facility_building_sheet.gd")
-const V166_FACILITY_SHEET: Texture2D = preload("res://art/buildings/facility_buildings_sheet.png")
+const V166_FACILITY_SHEET: Texture2D = preload("res://art/buildings/facility_buildings_sheet.svg")
 const V166_SPRITE_BUILDING_REVISION := 1
 var v159_cable_tray_texture: Texture2D
 
