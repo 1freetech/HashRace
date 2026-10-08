@@ -4,7 +4,7 @@ class_name HashRaceFacilityBuildingSheet
 # Authored 3x3 facility sprite sheet. Every frame is 160x128 pixels and shares
 # one ground baseline so the live world can preserve the existing collision,
 # doorway, navigation, and interaction contracts while replacing procedural art.
-const TEXTURE_PATH := "res://art/buildings/facility_buildings_sheet.png"
+const TEXTURE_PATH := "res://art/buildings/facility_buildings_sheet.svg"
 const FRAME_SIZE := Vector2i(160, 128)
 const COLUMNS := 3
 const ROWS := 3
