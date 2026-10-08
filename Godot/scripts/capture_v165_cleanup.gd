@@ -1,6 +1,6 @@
 extends SceneTree
 
-const OUTPUT := "res://../visual-proof/v165-gameplay-polish.png"
+const OUTPUT := "res://../visual-proof/v165-npc-identity.png"
 
 func _initialize() -> void:
     call_deferred("_capture")
