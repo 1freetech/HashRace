@@ -125,7 +125,6 @@ func _position_cluster_row(groups: Array, first_index: int, count: int, ground_y
         var group_width: float = widths[offset]
         var center_x := cursor_x + group_width * 0.5
         _position_functional_cluster(groups[first_index + offset], center_x, ground_y)
-        service_pad_rects.append(Rect2(cursor_x - 8.0, ground_y - 27.0, group_width + 16.0, 42.0))
         cursor_x += group_width + station_gap
 
 func _functional_cluster_width(group: Array) -> float:
