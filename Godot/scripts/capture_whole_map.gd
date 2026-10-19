@@ -62,6 +62,12 @@ func _capture() -> void:
     if fit_zoom <= 0.0:
         _fail("whole-map camera zoom was invalid")
         return
+    # v0.080's live camera deliberately follows the player during normal play.
+    # Mark this short proof pass so the active world preserves the intentional
+    # overview framing across the render frames below.
+    scene.set_meta("hashrace_whole_map_capture_camera", true)
+    scene.set_meta("hashrace_whole_map_camera_target", PLAYABLE_WORLD_SIZE * 0.5)
+    scene.set_meta("hashrace_whole_map_camera_zoom", Vector2.ONE * fit_zoom)
     camera.position_smoothing_enabled = false
     camera.position = PLAYABLE_WORLD_SIZE * 0.5
     camera.zoom = Vector2.ONE * fit_zoom
@@ -71,6 +77,9 @@ func _capture() -> void:
     for _frame in range(12):
         await process_frame
     await create_timer(0.20).timeout
+    if camera.position.distance_to(PLAYABLE_WORLD_SIZE * 0.5) > 1.0:
+        _fail("overview camera was overridden before the whole-map capture")
+        return
 
     var image: Image = root.get_texture().get_image()
     if image == null or image.is_empty():
@@ -94,6 +103,16 @@ func _capture() -> void:
             var key := image.get_pixel(x, y).to_html(false)
             sampled_colors[key] = int(sampled_colors.get(key, 0)) + 1
             sampled += 1
+    var terrain_count := 0
+    for color_key in sampled_colors.keys():
+        var color := Color("#" + String(color_key))
+        if color.g > color.r * 1.16 and color.g > color.b * 1.10 and color.g > 0.24:
+            terrain_count += int(sampled_colors[color_key])
+    var terrain_ratio := float(terrain_count) / maxf(1.0, float(sampled))
+    if terrain_ratio < 0.60:
+        _fail("whole-map terrain does not fill enough of the frame: %.1f%%" % (terrain_ratio * 100.0))
+        return
+
     var dominant_count := 0
     for count in sampled_colors.values():
         dominant_count = maxi(dominant_count, int(count))
