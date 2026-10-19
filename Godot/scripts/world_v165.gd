@@ -11,6 +11,14 @@ const V165_NPC_LABEL_DISTANCE := 300.0
 const V165_RIVAL_RELATIONSHIP_REVISION := 1
 const V165_RIVAL_CONTRACT_REVISION := 1
 
+# Whole-map proof needs camera-aware terrain culling, and this is the first
+# authored NPC sheet used by the live campaign rather than a procedural stand-in.
+const V165_WHOLE_MAP_RENDER_REVISION := 1
+const V165_FIELD_OPERATOR_SHEET: Texture2D = preload("res://art/sprites/hashrace_field_operator_16frame.png")
+const V165_FIELD_OPERATOR_COLUMNS := 4
+const V165_FIELD_OPERATOR_ROWS := 4
+const V165_FIELD_OPERATOR_PARTNER_IDX := 0
+
 var v165_diesel_drawn := false
 var v165_diesel_rect := Rect2()
 var v165_diesel_footprint := Rect2()
@@ -34,6 +42,9 @@ func _ready() -> void:
     _v165_sync_diesel_state()
     set_meta("hashrace_v165_cleanup_revision", V165_CLEANUP_REVISION)
     set_meta("hashrace_v165_distinct_npc_renderer", true)
+    texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    set_meta("hashrace_v165_whole_map_camera_aware", true)
+    set_meta("hashrace_v165_field_operator_sheet", V165_FIELD_OPERATOR_SHEET != null)
 
 func _v165_on_deployment_changed() -> void:
     _v165_sync_diesel_state()
@@ -467,6 +478,7 @@ func debug_v165_runtime_state() -> Dictionary:
         "npc_identity": debug_v165_npc_identity_ready(),
         "rival_relationships": debug_v165_rival_relationship_ready(),
         "clean_equipment_uptime": _equipment_uptime_penalty() == 0.0,
+        "field_operator": debug_v165_field_operator_ready(),
     }
 
 func debug_v165_runtime_ready() -> bool:
@@ -489,3 +501,86 @@ func debug_v165_diesel_ready() -> bool:
         and not grid_nav.world_is_walkable(v165_diesel_footprint.get_center()) \
         and V164Wind.debug_ready() \
         and bool(get_meta("hashrace_v164_player_underfoot_decor_removed", false))
+
+
+# Whole-map proof must render the terrain that the zoomed-out camera can actually
+# see. The old cull was sized from screen pixels alone, so the map proof was a
+# small local patch surrounded by default canvas gray.
+func _process(delta: float) -> void:
+    super._process(delta)
+    if not bool(get_meta("hashrace_whole_map_capture_camera", false)):
+        return
+    if not is_instance_valid(camera):
+        return
+    var target_value: Variant = get_meta("hashrace_whole_map_camera_target", Vector2.ZERO)
+    var zoom_value: Variant = get_meta("hashrace_whole_map_camera_zoom", Vector2.ONE)
+    if target_value is Vector2:
+        camera.position = VisualStack.snap_to_pixel(target_value)
+    if zoom_value is Vector2:
+        camera.zoom = zoom_value
+    camera.force_update_scroll()
+
+func _draw_pixel_tile_world() -> void:
+    if not gbc_map_ready:
+        draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), GBC_GRASS_1, true)
+        return
+
+    var focus: Vector2 = rep_pos
+    var zoom_value: Vector2 = Vector2.ONE
+    if is_instance_valid(camera):
+        focus = camera.global_position
+        zoom_value = camera.zoom
+
+    var safe_zoom := Vector2(maxf(zoom_value.x, 0.01), maxf(zoom_value.y, 0.01))
+    var viewport_size := get_viewport_rect().size
+    var visible_world := Vector2(
+        viewport_size.x / safe_zoom.x,
+        viewport_size.y / safe_zoom.y
+    )
+    var padded_half_extent := visible_world * 0.5 + Vector2(ART_TILE_SIZE * 2.0, ART_TILE_SIZE * 2.0)
+    var left := clampi(int(floor((focus.x - padded_half_extent.x) / ART_TILE_SIZE)), 0, art_columns - 1)
+    var right := clampi(int(ceil((focus.x + padded_half_extent.x) / ART_TILE_SIZE)), 0, art_columns - 1)
+    var top := clampi(int(floor((focus.y - padded_half_extent.y) / ART_TILE_SIZE)), 0, art_rows - 1)
+    var bottom := clampi(int(ceil((focus.y + padded_half_extent.y) / ART_TILE_SIZE)), 0, art_rows - 1)
+
+    for y in range(top, bottom + 1):
+        for x in range(left, right + 1):
+            _draw_art_tile(Vector2i(x, y), int(art_cells.get(Vector2i(x, y), TILE_GRASS)))
+
+func _draw_stationary_rep(entity: Dictionary) -> void:
+    # Give the lead infrastructure partner an authored, directionally readable
+    # field operator. Other representatives retain their existing distinct
+    # procedural silhouettes until they receive their own role-specific sheets.
+    if String(entity.get("kind", "")) == "partner_rep"         and int(entity.get("partner_idx", -1)) == V165_FIELD_OPERATOR_PARTNER_IDX:
+        var pos: Vector2 = entity.get("pos", Vector2.ZERO)
+        var scanner := String(entity.get("scanner", "left"))
+        var accent: Color = entity.get("accent", CYAN)
+        _v165_draw_field_operator(pos, scanner)
+        draw_string(ThemeDB.fallback_font, pos + Vector2(-80.0, 50.0), String(entity.get("name", "Field Operator")), HORIZONTAL_ALIGNMENT_CENTER, 160.0, 11, WHITE)
+        draw_string(ThemeDB.fallback_font, pos + Vector2(-90.0, 66.0), String(entity.get("subtitle", "INFRASTRUCTURE REP")), HORIZONTAL_ALIGNMENT_CENTER, 180.0, 9, accent)
+        return
+    super._draw_stationary_rep(entity)
+
+func _v165_draw_field_operator(pos: Vector2, scanner: String) -> void:
+    if V165_FIELD_OPERATOR_SHEET == null:
+        return
+    var frame_size := Vector2(
+        float(V165_FIELD_OPERATOR_SHEET.get_width()) / float(V165_FIELD_OPERATOR_COLUMNS),
+        float(V165_FIELD_OPERATOR_SHEET.get_height()) / float(V165_FIELD_OPERATOR_ROWS)
+    )
+    if frame_size.x <= 0.0 or frame_size.y <= 0.0:
+        return
+    # Sheet rows are down, left, right, up. Reps keep their established scanner
+    # direction, while the idle column prevents a stationary character from
+    # appearing to walk in place.
+    var direction_row := 1 if scanner == "left" else 2
+    var source := Rect2(Vector2(0.0, frame_size.y * float(direction_row)), frame_size)
+    var destination := Rect2(
+        VisualStack.snap_to_pixel(pos + Vector2(-40.0, -37.0)),
+        Vector2(80.0, 80.0)
+    )
+    draw_ellipse_shadow(pos + Vector2(0.0, 44.0), 18.0, 5.0)
+    draw_texture_rect_region(V165_FIELD_OPERATOR_SHEET, destination, source, Color.WHITE, false, true)
+
+func debug_v165_field_operator_ready() -> bool:
+    return V165_WHOLE_MAP_RENDER_REVISION == 1         and V165_FIELD_OPERATOR_SHEET != null         and V165_FIELD_OPERATOR_SHEET.get_width() == 256         and V165_FIELD_OPERATOR_SHEET.get_height() == 256         and bool(get_meta("hashrace_v165_whole_map_camera_aware", false))         and bool(get_meta("hashrace_v165_field_operator_sheet", false))
