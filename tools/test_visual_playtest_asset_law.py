@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LAW = ROOT / "docs" / "HASHRACE_VISUAL_PLAYTEST_ASSET_LAW.md"
 CAPTURE = ROOT / "Godot" / "scripts" / "capture_whole_map.gd"
 WORKFLOW = ROOT / ".github" / "workflows" / "smoke-test.yml"
+HOURLY_WORKFLOW = ROOT / ".github" / "workflows" / "hourly-whole-map-proof.yml"
 
 
 def require(text: str, markers: list[str], label: str) -> None:
@@ -19,6 +20,8 @@ def main() -> None:
     law = LAW.read_text(encoding="utf-8")
     capture = CAPTURE.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert HOURLY_WORKFLOW.is_file(), "hourly whole-map proof workflow is missing"
+    hourly = HOURLY_WORKFLOW.read_text(encoding="utf-8")
 
     require(
         law,
@@ -55,6 +58,16 @@ def main() -> None:
             "test_visual_playtest_asset_law.py",
         ],
         "CI visual-playtest gate",
+    )
+    require(
+        hourly,
+        [
+            'cron: "0 * * * *"',
+            "ref: main",
+            "capture_whole_map.gd",
+            "hashrace-hourly-whole-map-proof",
+        ],
+        "Hourly whole-map proof gate",
     )
     print("HashRace whole-map visual playtest law contract passed.")
 
