@@ -1,0 +1,50 @@
+name: Hash Race hourly whole-map visual evidence
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  whole-map-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: false
+      - name: Fresh-import current runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot --headless --path Godot --editor --import 2>&1 | tee /tmp/hashrace-hourly-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/hashrace-hourly-import.log; then exit 1; fi
+      - name: Install virtual display
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+      - name: Capture current whole playable world
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_whole_map.gd 2>&1 | tee /tmp/hashrace-hourly-whole-map.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|WHOLE MAP PROOF FAIL" /tmp/hashrace-hourly-whole-map.log; then exit 1; fi
+          grep -q "HASH RACE WHOLE MAP PROOF PASS" /tmp/hashrace-hourly-whole-map.log
+          test -s visual-proof/hashrace-whole-map.png
+      - name: Upload hourly whole-map visual proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-hourly-whole-map-proof
+          path: visual-proof/hashrace-whole-map.png
+          if-no-files-found: error
+          retention-days: 14
