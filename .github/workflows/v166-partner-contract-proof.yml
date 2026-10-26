@@ -1,0 +1,57 @@
+name: v0.166 partner contract proof
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [npc-contract-depth-v166]
+
+jobs:
+  partner-contract-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert exact proposed head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Install Godot 4.7.2
+        run: |
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          sudo mv Godot_v4.7.2-stable_linux.x86_64 /usr/local/bin/godot
+
+      - name: Fresh import with strict script-error gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf Godot/.godot
+          cd Godot
+          timeout 120s godot --headless --editor --path . --import 2>&1 | tee /tmp/v166-partner-import.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:" /tmp/v166-partner-import.log; then exit 1; fi
+
+      - name: Exercise live partner contracts and capture proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y xvfb; fi
+          mkdir -p visual-proof
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_v166_partner_contract.gd 2>&1 | tee /tmp/v166-partner-contract-proof.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:|V166 PARTNER CONTRACT PROOF FAIL" /tmp/v166-partner-contract-proof.log; then exit 1; fi
+          grep -q "V166 PARTNER CONTRACT PROOF PASS" /tmp/v166-partner-contract-proof.log
+          test -s visual-proof/v166-partner-representative.png
+          test -s visual-proof/v166-partner-negotiation-open.png
+          test -s visual-proof/v166-partner-contract-stalled.png
+          test -s visual-proof/v166-partner-contract-open.png
+          test -s visual-proof/v166-partner-contract-closed.png
+          test -s visual-proof/v166-partner-contract-signed.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-v166-partner-contract-proof
+          path: visual-proof/v166-partner-*.png
+          if-no-files-found: error
