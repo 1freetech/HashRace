@@ -100,6 +100,11 @@ func _run() -> void:
     var first_context: Dictionary = negotiation_manager.get("active_context")
     if not _require(String(first_context.get("deal_type", "")) == "partner_contract" and String(first_context.get("partner_id", "")) == "utility", "partner identity was not preserved in negotiation context"):
         return
+    if not _require(String(first_context.get("counterparty_role", "")) == "PARTNER REPRESENTATIVE", "partner negotiation role was not preserved in context"):
+        return
+    var opponent_tag := first_scene.get_node_or_null("OpponentCard/Margin/VBox/OpponentTag") as Label
+    if not _require(opponent_tag != null and opponent_tag.text == "COUNTERPARTY // PARTNER REPRESENTATIVE", "partner representative is mislabeled as a rival miner"):
+        return
     if not _require(int(first_context.get("player_leverage", -1)) == 100, "stored relationship did not contribute to initial leverage"):
         return
     await create_timer(0.9).timeout

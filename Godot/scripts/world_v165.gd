@@ -282,6 +282,7 @@ func _v165_start_partner_negotiation(partner_idx: int) -> Node:
         "partner_idx":partner_idx,
         "partner_id":partner_id,
         "opponent_name":String(rep["name"]),
+        "counterparty_role":"PARTNER REPRESENTATIVE",
         "opponent_company":String(partner["name"]),
         "player_company":String(player.get("name", "Player Mining Co.")),
         "opponent_power":clampi(42 + partner_idx * 5, 35, 82),

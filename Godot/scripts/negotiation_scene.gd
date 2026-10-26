@@ -33,6 +33,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 @onready var opponent_card: PanelContainer = $OpponentCard
 @onready var player_name_label: Label = $PlayerCard/Margin/VBox/PlayerName
 @onready var player_stat_label: Label = $PlayerCard/Margin/VBox/PlayerStat
+@onready var opponent_tag_label: Label = $OpponentCard/Margin/VBox/OpponentTag
 @onready var opponent_name_label: Label = $OpponentCard/Margin/VBox/OpponentName
 @onready var opponent_stat_label: Label = $OpponentCard/Margin/VBox/OpponentStat
 @onready var negotiation_panel: PanelContainer = $NegotiationPanel
@@ -78,6 +79,8 @@ func _connect_buttons() -> void:
 func _apply_context_to_ui() -> void:
     player_name_label.text = player_company
     player_stat_label.text = "REP %d  //  LEVERAGE %d" % [player_reputation, player_leverage]
+    var counterparty_role := String(_context.get("counterparty_role", "RIVAL MINER"))
+    opponent_tag_label.text = "COUNTERPARTY // %s" % counterparty_role
     opponent_name_label.text = opponent_name
     opponent_stat_label.text = "%s  //  POWER %d  //  GREED %d" % [opponent_company, opponent_power, opponent_greed]
     deal_label_node.text = deal_label
