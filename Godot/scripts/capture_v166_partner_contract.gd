@@ -51,14 +51,16 @@ func _run() -> void:
 
     var entities: Array = world.get("entities")
     var partner_idx := -1
+    var representative_index := -1
     var representative: Dictionary = {}
-    for raw_entity in entities:
-        var entity: Dictionary = raw_entity
+    for entity_index in range(entities.size()):
+        var entity: Dictionary = entities[entity_index]
         if String(entity.get("kind", "")) == "partner_rep" and int(entity.get("partner_idx", -1)) == 0:
             partner_idx = 0
+            representative_index = entity_index
             representative = entity
             break
-    if not _require(partner_idx == 0, "utility partner representative is missing"):
+    if not _require(partner_idx == 0 and representative_index >= 0, "utility partner representative is missing"):
         return
 
     var player: Dictionary = world.get("player")
@@ -77,7 +79,7 @@ func _run() -> void:
         "reputation": 86
     })
 
-    world.call("_open_partner_rep", representative)
+    world.call("_open_entity", representative_index)
     await _wait_frames(2)
     var dialog_text := world.get("dialog_text") as Label
     var dialog_title := world.get("dialog_title") as Label
@@ -131,7 +133,7 @@ func _run() -> void:
     player = world.get("player")
     player["cash"] = 2000000.0
     world.set("player", player)
-    world.call("_open_partner_rep", representative)
+    world.call("_open_entity", representative_index)
     await _wait_frames(2)
     if not _require(dialog_text.text.contains("Relationship 78/100") and dialog_text.text.contains("AVAILABLE"), "updated relationship did not persist into the next representative encounter"):
         return
@@ -182,7 +184,7 @@ func _run() -> void:
 
     negotiation_manager.call("close_active")
     await _wait_frames(3)
-    world.call("_open_partner_rep", representative)
+    world.call("_open_entity", representative_index)
     await _wait_frames(2)
     if not _require(dialog_text.text.contains("Relationship 86/100") and dialog_text.text.contains("SIGNED"), "signed state and improved relationship did not persist in the live representative interaction"):
         return
