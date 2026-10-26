@@ -18,6 +18,14 @@ func _wait_frames(count: int) -> void:
     for _frame in range(count):
         await process_frame
 
+func _wait_for_negotiation_open(scene: Node) -> bool:
+    for _frame in range(180):
+        if bool(scene.get("negotiation_active")):
+            await _wait_frames(2)
+            return true
+        await process_frame
+    return _require(false, "normal negotiation intro did not open")
+
 func _capture(filename: String) -> bool:
     var viewport_image := root.get_texture().get_image()
     if viewport_image == null or viewport_image.is_empty():
@@ -107,9 +115,12 @@ func _run() -> void:
         return
     if not _require(int(first_context.get("player_leverage", -1)) == 100, "stored relationship did not contribute to initial leverage"):
         return
-    await create_timer(0.9).timeout
-    first_scene.call("debug_force_open")
-    await _wait_frames(2)
+    var first_opened := await _wait_for_negotiation_open(first_scene)
+    if not first_opened:
+        return
+    var opening_dialogue := first_scene.get("dialogue") as RichTextLabel
+    if not _require(opening_dialogue != null and opening_dialogue.text.contains("NEGOTIATION OPEN") and not opening_dialogue.text.contains("DEBUG"), "opening capture did not use the normal negotiation dialogue"):
+        return
     if not _capture("v166-partner-negotiation-open.png"):
         return
 
@@ -151,9 +162,9 @@ func _run() -> void:
     var second_context: Dictionary = negotiation_manager.get("active_context")
     if not _require(int(second_context.get("player_leverage", -1)) == 99, "reduced relationship was not reflected in the next negotiation's leverage"):
         return
-    await create_timer(0.9).timeout
-    second_scene.call("debug_force_open")
-    await _wait_frames(2)
+    var second_opened := await _wait_for_negotiation_open(second_scene)
+    if not second_opened:
+        return
     if not _capture("v166-partner-contract-open.png"):
         return
 
