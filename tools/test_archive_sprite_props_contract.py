@@ -8,6 +8,8 @@ ART = ROOT / "Godot" / "art" / "props" / "hr_sprite_sheets"
 SCRIPT = (ROOT / "Godot" / "scripts" / "archive_sprite_props.gd").read_text()
 INTERACTION = (ROOT / "Godot" / "scripts" / "archive_sprite_interaction.gd").read_text()
 SCENE = (ROOT / "Godot" / "scenes" / "world.tscn").read_text()
+LAYOUT = (ROOT / "Godot" / "scripts" / "archive_sprite_layout_tuner.gd").read_text()
+CAPTURE = (ROOT / "Godot" / "scripts" / "capture_archive_sprite_props.gd").read_text()
 WORLD_V165 = ROOT / "Godot" / "scripts" / "world_v165.gd"
 WORLD_V165_TEXT = WORLD_V165.read_text()
 
@@ -90,9 +92,24 @@ for marker in [
     "const LIVE_PROP_TARGET_HEIGHT_PX := 72.0",
     "const LIVE_PROP_MAX_WIDTH_PX := 96.0",
     "const LIVE_PROP_MIN_WIDTH_PX := 42.0",
-    "sprite.offset = Vector2(0.0, -float(prepared.get_height()) * 0.5)",
+    "_resize_nearest_for_world(prepared, scale_factor)",
+    "result.resize(target.x, target.y, Image.INTERPOLATE_NEAREST)",
+    "sprite.offset = Vector2(0.0, -float(pixel_art.get_height()) * 0.5)",
+    "if sprite.scale != Vector2.ONE:",
 ]:
     assert marker in SCRIPT, marker
+
+for marker in [
+    "const UPPER_CLUSTER_COUNT := 5",
+    "const LOWER_CLUSTER_COUNT := 6",
+    "_position_cluster_row",
+    "_position_functional_cluster",
+    "Image.INTERPOLATE_NEAREST",
+    "func debug_ready() -> bool:",
+    "bounds_a.intersects(bounds_b, true)",
+]:
+    assert marker in LAYOUT, marker
+assert "layout.call(\"debug_ready\")" in CAPTURE
 
 # Promoted props are gameplay objects: survey progress, deterministic turn-scaled
 # reliability events, on-site R repairs, real cash costs, and persistent fault state.
