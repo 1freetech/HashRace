@@ -185,6 +185,12 @@ func _run() -> void:
     if not await _save_frame("equipment-inspected"):
         _fail("could not save equipment inspection screenshot")
         return
+    # The inspection prompt sits above the unit and can obscure the player's
+    # head. Hide only that prompt for the two depth-comparison screenshots.
+    survey.set_process(false)
+    var inspect_prompt := survey.get_node_or_null("EquipmentInspectPrompt") as Control
+    if inspect_prompt != null:
+        inspect_prompt.visible = false
     var chosen_cell: Vector2i = nav.call("world_to_cell", blocked_position)
     for side in ["behind", "front"]:
         var y := float(chosen_cell.y) * 48.0 - 1.0 if side == "behind" else float(chosen_cell.y + 1) * 48.0 + 1.0
@@ -195,3 +201,4 @@ func _run() -> void:
             return
     print("EQUIPMENT ROAD PROOF PASS: both live road routes traversed; %d equipment footprints blocked; movement stopped and F inspected %s" % [footprints.size(), chosen.name])
     quit(0)
+
