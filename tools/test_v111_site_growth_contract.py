@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v111_site_growth_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.111"
+    assert_live_world_layer(111)
 
     script = (ROOT / "Godot/scripts/world_v111.gd").read_text()
     assert 'extends "res://scripts/world_v110.gd"' in script
@@ -54,7 +56,6 @@ def test_v111_site_growth_contract():
     assert "for key in occupied.keys()" in placement
 
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert 'res://scripts/world_v111.gd' in scene
 
 
 if __name__ == "__main__":
