@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = ROOT / "Godot" / "scripts" / "world_v122.gd"
 SCENE = ROOT / "Godot" / "scenes" / "world.tscn"
@@ -16,8 +18,7 @@ def test_v122_interaction_marker_contract() -> None:
     assert "_v122_draw_interaction_target" in source
     assert "draw_arc(target" in source
     assert "debug_v121_ready()" in source
-    assert 'res://scripts/world_v122.gd' in scene
-    assert VERSION.read_text(encoding="utf-8").strip() == "v0.122"
+    assert_live_world_layer(122)
 
 
 if __name__ == "__main__":

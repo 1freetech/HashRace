@@ -11,7 +11,9 @@ on:
       - 'Godot/scripts/archive_sprite_interaction.gd'
       - 'Godot/scripts/live_treasury_controls.gd'
       - 'Godot/scripts/capture_archive_sprite_props.gd'
+      - 'Godot/scripts/capture_equipment_road_crossings.gd'
       - 'Godot/scripts/world_v165.gd'
+      - 'Godot/scripts/world_v080.gd'
       - 'Godot/scenes/world.tscn'
       - 'tools/test_archive_sprite_props_contract.py'
   pull_request:
@@ -24,7 +26,9 @@ on:
       - 'Godot/scripts/archive_sprite_interaction.gd'
       - 'Godot/scripts/live_treasury_controls.gd'
       - 'Godot/scripts/capture_archive_sprite_props.gd'
+      - 'Godot/scripts/capture_equipment_road_crossings.gd'
       - 'Godot/scripts/world_v165.gd'
+      - 'Godot/scripts/world_v080.gd'
       - 'Godot/scenes/world.tscn'
       - 'tools/test_archive_sprite_props_contract.py'
   workflow_dispatch:
@@ -96,4 +100,24 @@ jobs:
           name: hashrace-archive-sprite-live-proof-${{ github.event.pull_request.head.sha || github.sha }}
           path: visual-proof/hashrace-archive-sprite-props.png
           if-no-files-found: error
+          retention-days: 90
+
+      - name: Exercise and capture clear equipment-road crossings
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_equipment_road_crossings.gd 2>&1 | tee /tmp/hashrace-equipment-road-proof.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:|EQUIPMENT ROAD PROOF FAIL" /tmp/hashrace-equipment-road-proof.log; then exit 1; fi
+          grep -q "EQUIPMENT ROAD PROOF PASS" /tmp/hashrace-equipment-road-proof.log
+          for image in upper-crossing upper-cleared lower-crossing lower-cleared equipment-collision equipment-inspected equipment-behind equipment-front; do
+            test -s "visual-proof/equipment-road-crossings/${image}.png"
+          done
+
+      - name: Upload equipment-road runtime proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-equipment-road-crossings-${{ github.event.pull_request.head.sha || github.sha }}
+          path: visual-proof/equipment-road-crossings/*.png
+          if-no-files-found: warn
           retention-days: 90

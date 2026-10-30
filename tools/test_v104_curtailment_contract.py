@@ -1,12 +1,13 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 world = (ROOT / "Godot/scripts/world_v104.gd").read_text(encoding="utf-8")
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
-assert version == "v0.104", version
-assert "world_v104.gd" in scene
+assert_live_world_layer(104)
 assert 'extends "res://scripts/world_v103.gd"' in world
 assert "func _curtailed_hashrate_th_for" in world
 assert "func _format_hashrate_loss" in world

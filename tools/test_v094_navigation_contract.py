@@ -1,14 +1,15 @@
 """v0.094 navigation / HUD declutter regression contract."""
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
 release = (ROOT / "Godot/scripts/world_v094.gd").read_text(encoding="utf-8")
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
-assert version == "v0.094", version
-assert "world_v094.gd" in scene
+assert_live_world_layer(94)
 assert 'navigation_layer.name = "NavigationShell"' in release
 assert 'navigation_button.text = "NAV • WORLD"' in release
 assert '"MINING OPS", "ops"' in release
@@ -30,6 +31,6 @@ assert "func _open_life_overview()" in release
 assert "func _show_toast(" in release
 assert "TOAST_SECONDS" in release
 assert "func debug_v094_navigation_ready()" in release
-assert "current development build is **v0.094**" in readme
+assert version in readme
 
 print("v0.094 one-panel navigation / clean-world HUD contract PASS")
