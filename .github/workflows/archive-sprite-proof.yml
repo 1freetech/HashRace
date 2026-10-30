@@ -107,7 +107,7 @@ jobs:
           timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --rendering-method gl_compatibility --script res://scripts/capture_equipment_road_crossings.gd 2>&1 | tee /tmp/hashrace-equipment-road-proof.log
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:|EQUIPMENT ROAD PROOF FAIL" /tmp/hashrace-equipment-road-proof.log; then exit 1; fi
           grep -q "EQUIPMENT ROAD PROOF PASS" /tmp/hashrace-equipment-road-proof.log
-          for image in upper-crossing upper-cleared lower-crossing lower-cleared equipment-collision equipment-inspected; do
+          for image in upper-crossing upper-cleared lower-crossing lower-cleared equipment-collision equipment-inspected equipment-behind equipment-front; do
             test -s "visual-proof/equipment-road-crossings/${image}.png"
           done
 

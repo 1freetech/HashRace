@@ -4,6 +4,7 @@ extends SceneTree
 # interaction. The images are captured from the live gameplay viewport.
 const OUTPUT_DIR := "res://../visual-proof/equipment-road-crossings"
 const ROAD_X := 1416.0 # center of the column-29 road, in 48 px cells
+const EAST_ROAD_SHOULDER_END := 1488.0
 const CROSSINGS := [
     {"name": "upper", "start": Vector2(ROAD_X, 456.0), "end": Vector2(ROAD_X, 696.0), "middle": 572.0},
     {"name": "lower", "start": Vector2(ROAD_X, 984.0), "end": Vector2(ROAD_X, 1128.0), "middle": 1048.0},
@@ -25,6 +26,9 @@ func _save_frame(name: String) -> bool:
     var folder := ProjectSettings.globalize_path(OUTPUT_DIR)
     DirAccess.make_dir_recursive_absolute(folder)
     return image.save_png(folder.path_join(name + ".png")) == OK
+
+func _nearer_road(a: Rect2, b: Rect2) -> bool:
+    return a.get_center().x < b.get_center().x
 
 func _run() -> void:
     var packed := load("res://scenes/world.tscn") as PackedScene
@@ -95,20 +99,30 @@ func _run() -> void:
             _fail("could not save completed crossing screenshot")
             return
 
-    # Find a real blocking sprite with an open adjacent cell and no competing
-    # entity interaction. Drive the live movement toward its blocked cell, then
-    # inspect it with the game's F key path rather than calling _inspect directly.
+    # Start with a station moved to the east of the road. Find a real blocking
+    # sprite with an open approach and no competing entity interaction, drive
+    # toward its blocked cell, then use the game's F key path to inspect it.
     var sprites: Array = props.get("live_sprites")
+    var east_footprints := footprints.duplicate()
+    east_footprints.sort_custom(_nearer_road)
     var chosen: Sprite2D = null
     var start_position := Vector2.ZERO
     var blocked_position := Vector2.ZERO
-    for item in footprints:
+    for item in east_footprints:
         var foot: Rect2 = item
+        if foot.position.x < EAST_ROAD_SHOULDER_END:
+            continue
         var cell: Vector2i = nav.call("world_to_cell", foot.get_center())
         for raw_sprite in sprites:
             var sprite := raw_sprite as Sprite2D
             if sprite == null or absf(sprite.position.x - foot.get_center().x) > 1.0 \
                 or absf(sprite.position.y - foot.end.y) > 1.0:
+                continue
+            # Keep both sides accessible so the screenshots can expose actual
+            # player/prop depth ordering as well as the collision boundary.
+            var north := Vector2(sprite.position.x, float(cell.y) * 48.0 - 1.0)
+            var south := Vector2(sprite.position.x, float(cell.y + 1) * 48.0 + 1.0)
+            if not bool(nav.call("world_is_walkable", north)) or not bool(nav.call("world_is_walkable", south)):
                 continue
             for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
                 var neighbor: Vector2i = cell + direction
@@ -171,5 +185,13 @@ func _run() -> void:
     if not await _save_frame("equipment-inspected"):
         _fail("could not save equipment inspection screenshot")
         return
+    var chosen_cell: Vector2i = nav.call("world_to_cell", blocked_position)
+    for side in ["behind", "front"]:
+        var y := float(chosen_cell.y) * 48.0 - 1.0 if side == "behind" else float(chosen_cell.y + 1) * 48.0 + 1.0
+        scene.set("rep_pos", Vector2(chosen.position.x, y))
+        scene.queue_redraw()
+        if not await _save_frame("equipment-" + side):
+            _fail("could not save equipment depth screenshot")
+            return
     print("EQUIPMENT ROAD PROOF PASS: both live road routes traversed; %d equipment footprints blocked; movement stopped and F inspected %s" % [footprints.size(), chosen.name])
     quit(0)
