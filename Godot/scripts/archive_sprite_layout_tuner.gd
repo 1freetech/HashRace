@@ -17,6 +17,10 @@ const LOWER_GROUND_Y := 1048.0
 const CLUSTER_ITEM_GAP := 18.0
 const CLUSTER_STATION_GAP := 36.0
 const WORLD_LAYOUT_WIDTH := 1800.0
+# world_v158 paints the north-south road in tile column 29 (48 px tiles).
+# Leave one full tile on either side as a readable and walkable crossing.
+const NORTH_SOUTH_ROAD_CLEAR_LEFT := 28.0 * 48.0
+const NORTH_SOUTH_ROAD_CLEAR_RIGHT := 31.0 * 48.0
 
 # The archive renderer deliberately gives every crop enough pixels to be legible.
 # These multipliers then restore relative real-world hierarchy: access/safety
@@ -123,6 +127,11 @@ func _position_cluster_row(groups: Array, first_index: int, count: int, ground_y
     var cursor_x := (WORLD_LAYOUT_WIDTH - row_width) * 0.5
     for offset in range(count):
         var group_width: float = widths[offset]
+        # Move a whole station, preserving its sprite spacing and relative order,
+        # whenever it would straddle the road or its one-tile shoulder. All
+        # later stations follow it; collision is rebuilt from the final positions.
+        if cursor_x < NORTH_SOUTH_ROAD_CLEAR_RIGHT and cursor_x + group_width > NORTH_SOUTH_ROAD_CLEAR_LEFT:
+            cursor_x = NORTH_SOUTH_ROAD_CLEAR_RIGHT
         var center_x := cursor_x + group_width * 0.5
         _position_functional_cluster(groups[first_index + offset], center_x, ground_y)
         cursor_x += group_width + station_gap
@@ -185,6 +194,8 @@ func debug_ready() -> bool:
             float(a.texture.get_width()),
             float(a.texture.get_height())
         )
+        if bounds_a.position.x < NORTH_SOUTH_ROAD_CLEAR_RIGHT and bounds_a.end.x > NORTH_SOUTH_ROAD_CLEAR_LEFT:
+            return false
         for other_index in range(index + 1, sprites.size()):
             var b := sprites[other_index] as Sprite2D
             if b == null or b.texture == null:
