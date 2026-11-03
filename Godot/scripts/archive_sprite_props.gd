@@ -96,6 +96,13 @@ func _build_props() -> void:
             sprite.set_meta("hashrace_prepared_size", prepared.get_size())
             sprite.set_meta("hashrace_pixel_grid_size", pixel_art.get_size())
             sprite.set_meta("hashrace_live_display_height_px", float(pixel_art.get_height()))
+            # The live world's painter interleaves equipment with player and
+            # facility feet. Keep the node for interactions/tint/placement, but
+            # do not also draw its child canvas on top of the entire world.
+            var host := get_parent()
+            if host != null and host.has_method("_v080_draw_archive_prop"):
+                sprite.set_meta("hashrace_world_depth_drawn", true)
+                sprite.visible = false
             add_child(sprite)
             live_sprites.append(sprite)
 

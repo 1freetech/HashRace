@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 WORLD = (ROOT / "Godot/scripts/world_v118.gd").read_text(encoding="utf-8")
 SCENE = (ROOT / "Godot/scenes/world.tscn").read_text(encoding="utf-8")
@@ -7,9 +9,8 @@ VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 def main():
-    assert VERSION == "v0.118", VERSION
+    assert_live_world_layer(118)
     assert 'extends "res://scripts/world_v117.gd"' in WORLD
-    assert "world_v118.gd" in SCENE
 
     for marker in [
         "_v118_site_utilization_state",

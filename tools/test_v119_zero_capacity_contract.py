@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v119_zero_capacity_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.119"
+    assert_live_world_layer(119)
 
     script = (ROOT / "Godot/scripts/world_v119.gd").read_text()
     assert 'extends "res://scripts/world_v118.gd"' in script
@@ -15,7 +17,6 @@ def test_v119_zero_capacity_contract():
     assert "debug_v118_ready()" in script
 
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert 'res://scripts/world_v119.gd' in scene
 
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
     assert 'res://scripts/world_v118.gd' in validator

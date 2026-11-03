@@ -59,11 +59,30 @@ func _draw() -> void:
         "index": -1,
         "depth": rep_pos.y + V080_PLAYER_FOOT_OFFSET
     })
+    # Archive equipment is a child canvas, while the player and facilities are
+    # drawn by this world canvas. Child-only Y-sort cannot interleave those
+    # canvases, so include the promoted sprites in the same ground-depth pass.
+    var archive_props := get_node_or_null("ArchiveSpriteProps")
+    if archive_props != null:
+        var archive_items: Variant = archive_props.get("live_sprites")
+        if archive_items is Array:
+            for i in range(archive_items.size()):
+                var sprite := archive_items[i] as Sprite2D
+                if sprite == null or not bool(sprite.get_meta("hashrace_world_depth_drawn", false)):
+                    continue
+                depth_items.append({
+                    "kind": "archive_prop",
+                    "index": entities.size() + i,
+                    "depth": to_local(sprite.global_position).y,
+                    "sprite": sprite
+                })
     depth_items.sort_custom(Callable(self, "_v080_depth_less"))
 
     for item in depth_items:
         if String(item["kind"]) == "player":
             _draw_rep()
+        elif String(item["kind"]) == "archive_prop":
+            _v080_draw_archive_prop(item["sprite"] as Sprite2D)
         else:
             var idx: int = int(item["index"])
             _draw_entity(entities[idx], idx)
@@ -72,6 +91,15 @@ func _draw() -> void:
         _draw_scanner_overlay()
     _draw_clean_navigation_path()
     _draw_direction_state()
+
+func _v080_draw_archive_prop(sprite: Sprite2D) -> void:
+    if not is_instance_valid(sprite) or sprite.texture == null:
+        return
+    var size := sprite.texture.get_size() * sprite.scale
+    var origin := to_local(sprite.global_position) + sprite.offset * sprite.scale
+    if sprite.centered:
+        origin -= size * 0.5
+    draw_texture_rect(sprite.texture, Rect2(origin.round(), size), false, sprite.modulate * sprite.self_modulate)
 
 func _v080_entity_depth(entity: Dictionary) -> float:
     var pos: Vector2 = entity.get("pos", Vector2.ZERO)

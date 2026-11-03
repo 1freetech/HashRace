@@ -2,14 +2,15 @@
 """Regression contract for Hash Race v0.092 route/input/readability pass."""
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 version = (ROOT / "VERSION").read_text().strip()
 scene = (ROOT / "Godot/scenes/world.tscn").read_text()
 quality = (ROOT / "Godot/scripts/world_v092.gd").read_text()
 previous = (ROOT / "Godot/scripts/world_v091.gd").read_text()
 
-assert version == "v0.092", version
-assert "world_v092.gd" in scene
+assert_live_world_layer(92)
 assert 'extends "res://scripts/world_v091.gd"' in quality
 assert "V091_INTERACTION_REVISION" in previous
 
