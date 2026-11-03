@@ -178,6 +178,11 @@ func _capture() -> void:
     if probe_nav.blocked_count() != 0:
         _fail("empty-grid teardown leaked owned collision cells")
         return
+    # This isolated Node2D/RefCounted pair is not in the scene tree; explicitly
+    # release it so the Godot strict error gate also passes at engine shutdown.
+    probe.set("grid_nav", null)
+    probe.free()
+    probe_nav = null
     print("PHYSICAL CAPACITY OWNERSHIP PASS: live container/transformer footprints blocked; isolated growth/shrink released %d container and %d transformer cells" % [isolated_container_released.size(), isolated_transformer_released.size()])
     if bool(grid_nav.world_is_walkable(command_rect.get_center())):
         _fail("Command Center lost physical collision during capacity change")
