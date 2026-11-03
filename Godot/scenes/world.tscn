@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 ; Live campaign uses the full v0.165 gameplay inheritance chain.
 [ext_resource path="res://scripts/world_v165.gd" type="Script" id="1_world"]
@@ -6,10 +6,14 @@
 [ext_resource path="res://scripts/archive_sprite_props.gd" type="Script" id="3_archive_props"]
 [ext_resource path="res://scripts/archive_sprite_layout_tuner.gd" type="Script" id="4_archive_layout"]
 [ext_resource path="res://scripts/archive_sprite_interaction.gd" type="Script" id="5_archive_interaction"]
-[ext_resource path="res://scripts/physical_campus_collision.gd" type="Script" id="6_physical_collision"]
+[ext_resource path="res://scripts/gameplay_visual_polish_sprites.gd" type="Script" id="6_gameplay_polish"]
+[ext_resource path="res://scripts/physical_campus_collision.gd" type="Script" id="7_physical_collision"]
 
 [node name="HashRaceRPGStrategyWorld" type="Node2D"]
 script = ExtResource("1_world")
+
+[node name="GameplayVisualPolish" type="Node2D" parent="."]
+script = ExtResource("6_gameplay_polish")
 
 [node name="ArchiveSpriteProps" type="Node2D" parent="."]
 script = ExtResource("3_archive_props")
@@ -21,7 +25,7 @@ script = ExtResource("4_archive_layout")
 script = ExtResource("5_archive_interaction")
 
 [node name="PhysicalCampusCollision" type="Node2D" parent="."]
-script = ExtResource("6_physical_collision")
+script = ExtResource("7_physical_collision")
 
 [node name="LiveTreasuryControls" type="Control" parent="."]
 layout_mode = 3

@@ -103,6 +103,7 @@ func _capture() -> void:
     var restored_transformer_cells: Array = Array(scene.get("v160_transformer_owned_cells")).duplicate()
     var container_released := _released_cells(large_container_cells, restored_container_cells)
     var transformer_released := _released_cells(large_transformer_cells, restored_transformer_cells)
+    print("PHYSICAL CAPACITY DEBUG: original MW=%.1f; small container=%s; large container=%s; restored container=%s; large owned container=%d restored=%d released=%d; small transformer=%s large transformer=%s; large transformer owned=%d restored=%d released=%d" % [original_mw, small_container, large_container, restored_snapshot.get("container_rect", Rect2()), large_container_cells.size(), restored_container_cells.size(), container_released.size(), small_transformer, large_transformer, large_transformer_cells.size(), restored_transformer_cells.size(), transformer_released.size()])
     if container_released.is_empty() or transformer_released.is_empty():
         _fail("capacity tiers did not produce distinct owned collision cells")
         return

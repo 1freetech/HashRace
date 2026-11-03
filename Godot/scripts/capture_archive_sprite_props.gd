@@ -34,6 +34,10 @@ func _capture() -> void:
     if int(props.call("live_sheet_count")) != 11 or int(props.call("live_sprite_count")) != 33:
         _fail("expected 11 live sheets and 33 live atlas sprites")
         return
+    var layout := props.get_node_or_null("LayoutTuner")
+    if layout == null or not layout.has_method("debug_ready") or not bool(layout.call("debug_ready")):
+        _fail("promoted props are not on the nearest-pixel grid or an object overlaps another")
+        return
     var survey: Node = props.get_node_or_null("EquipmentSurvey")
     if survey == null or not survey.has_method("debug_ready") or not bool(survey.call("debug_ready")):
         _fail("live equipment survey/reliability gameplay is missing or invalid")
