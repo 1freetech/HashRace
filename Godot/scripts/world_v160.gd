@@ -1,8 +1,9 @@
 extends "res://scripts/world_v159.gd"
 
 # Hash Race v0.160: live-world visual clutter contract.
-# Visual-only overrides: no simulation state is changed.
-const V160_VISUAL_CLUTTER_REVISION := 1
+# The authored transformer now owns a capacity-aware navigation footprint so
+# sprite scale and physical collision stay synchronized as a mining site grows.
+const V160_VISUAL_CLUTTER_REVISION := 2
 const V160_TILE := 48.0
 const V160_ROAD_CLEARANCE := 48.0
 const V160_CLUSTER_CLEARANCE := 96.0
@@ -11,6 +12,8 @@ const V160SubstationSprite = preload("res://scripts/substation_transformer_sprit
 var v160_transformer_texture: Texture2D
 var v160_late_transformer_rect: Rect2 = Rect2()
 var v160_transformer_late: bool = false
+var v160_transformer_collision_rect: Rect2 = Rect2()
+var v160_transformer_owned_cells: Array[Vector2i] = []
 
 func _ready() -> void:
     # Load before inherited _ready: image decoding must precede the world draw.
@@ -26,6 +29,7 @@ func _ready() -> void:
     set_meta("hashrace_v160_shadow_direction", "lower_right")
     set_meta("hashrace_v160_v103_transition_band", true)
     set_meta("hashrace_v160_compact_hud_nav_only", true)
+    set_meta("hashrace_v160_transformer_collision_owned", true)
     queue_redraw()
 
 # v0.158 already collapses legacy roads/lots/plazas before painting the canonical
@@ -69,11 +73,11 @@ func _v160_nearest_interactive_index() -> int:
     return best_idx
 
 func debug_v160_ready() -> bool:
-    return V160_VISUAL_CLUTTER_REVISION == 1 \
+    return V160_VISUAL_CLUTTER_REVISION == 2 \
         and V160_ROAD_CLEARANCE == V160_TILE \
         and V160_CLUSTER_CLEARANCE == V160_TILE * 2.0 \
+        and bool(get_meta("hashrace_v160_transformer_collision_owned", false)) \
         and debug_v159_ready()
-
 
 # Replace the inherited v0.114 procedural transformer, not its simulation or
 # the v0.114 capacity-tier mapping. One 80x72 transparent PNG comes from the
@@ -84,6 +88,7 @@ func _v114_draw_transformer(pos: Vector2, capacity_mw: float) -> void:
         return
     var destination := V160SubstationSprite.destination(pos, _v114_footprint_tiles(capacity_mw))
     var foot := V160SubstationSprite.ground_contact(destination)
+    _v160_sync_transformer_footprint(foot)
     # Top-left light -> one lower-right ground shadow. Draw it only here,
     # regardless of whether the visible sprite is deferred for character sorting.
     draw_ellipse_shadow(foot.get_center() + Vector2(0.0, 3.0), foot.size.x * 0.49, maxf(5.0, foot.size.y * 0.34))
@@ -110,22 +115,54 @@ func _draw_rep() -> void:
         draw_texture_rect(v160_transformer_texture, v160_late_transformer_rect, false)
 
 func _v160_register_transformer_footprint() -> void:
-    # Navigation collision covers just the base, not the full tall sprite.
-    # The core mining simulation and capacity-tier contract remain unchanged.
+    # Navigation collision covers just the equipment base. Unlike the historical
+    # one-time block_rect(), ownership lets capacity-tier changes release the old
+    # footprint before registering the new, visually scaled transformer base.
     var site_origin := _energy_campus_origin()
     var capacity_mw := _v114_capacity_mw_for_site(_player_hq_center())
     var destination := V160SubstationSprite.destination(site_origin + Vector2(205.0, 215.0), _v114_footprint_tiles(capacity_mw))
     var foot := V160SubstationSprite.ground_contact(destination)
+    _v160_sync_transformer_footprint(foot)
+
+func _v160_sync_transformer_footprint(foot: Rect2) -> void:
+    if grid_nav == null or foot.size == Vector2.ZERO:
+        return
     set_meta("hashrace_v160_transformer_footprint", foot)
-    set_meta("hashrace_v160_transformer_sort_y", V160SubstationSprite.sort_y(destination))
+    set_meta("hashrace_v160_transformer_sort_y", foot.end.y)
+    if foot == v160_transformer_collision_rect and not v160_transformer_owned_cells.is_empty():
+        return
+    _v160_clear_transformer_footprint()
+    v160_transformer_collision_rect = foot
+    for cell in _v160_cells_for_rect(foot):
+        if grid_nav.is_walkable(cell):
+            v160_transformer_owned_cells.append(cell)
+            grid_nav.set_blocked(cell, true)
+
+func _v160_clear_transformer_footprint() -> void:
     if grid_nav != null:
-        grid_nav.block_rect(foot)
+        for cell in v160_transformer_owned_cells:
+            grid_nav.set_blocked(cell, false)
+    v160_transformer_owned_cells.clear()
+    v160_transformer_collision_rect = Rect2()
+
+func _v160_cells_for_rect(rect: Rect2) -> Array[Vector2i]:
+    var result: Array[Vector2i] = []
+    if grid_nav == null or rect.size == Vector2.ZERO:
+        return result
+    var min_cell: Vector2i = grid_nav.world_to_cell(rect.position)
+    var max_cell: Vector2i = grid_nav.world_to_cell(rect.end - Vector2.ONE)
+    for y in range(min_cell.y, max_cell.y + 1):
+        for x in range(min_cell.x, max_cell.x + 1):
+            result.append(Vector2i(x, y))
+    return result
 
 func debug_v160_transformer_ready() -> bool:
     var foot: Rect2 = get_meta("hashrace_v160_transformer_footprint", Rect2())
     return V160SubstationSprite.valid_texture(v160_transformer_texture) \
         and V160SubstationSprite.debug_ready() \
         and foot.size.x > 0.0 and foot.size.y > 0.0 \
+        and not v160_transformer_owned_cells.is_empty() \
+        and v160_transformer_collision_rect == foot \
         and grid_nav != null and not grid_nav.world_is_walkable(foot.get_center()) \
         and _v114_footprint_tiles(1.0) == 2 \
         and _v114_footprint_tiles(10.0) == 4 \
