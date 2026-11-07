@@ -31,6 +31,19 @@ def assert_world_inherits(filename):
     assert "res://scripts/" + filename in active_world_scripts(), filename + " is not in the live world inheritance chain"
 
 
+def assert_live_world_layer(minor_version):
+    """Check a retained source layer and a current release at least that new.
+
+    Inheritance preserves access to the layer; later overrides can replace a
+    behavior, so runtime tests are still needed to prove live behavior.
+    """
+    version = (ROOT / "VERSION").read_text().strip()
+    match = re.fullmatch(r"v(\d+)\.(\d+)", version)
+    assert match, f"invalid VERSION: {version}"
+    assert (int(match[1]), int(match[2])) >= (0, minor_version), version
+    assert_world_inherits(f"world_v{minor_version:03}.gd")
+
+
 def assert_historical_world_inherits(filename):
     """Require preserved behavior in the explicit historical integration fixture.
 

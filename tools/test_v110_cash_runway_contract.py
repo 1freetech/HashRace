@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v110_cash_runway_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.110"
+    assert_live_world_layer(110)
 
     script = (ROOT / "Godot/scripts/world_v110.gd").read_text()
     assert 'extends "res://scripts/world_v109.gd"' in script
@@ -14,7 +16,6 @@ def test_v110_cash_runway_contract():
     assert "debug_v109_ready()" in script
 
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert 'res://scripts/world_v110.gd' in scene
 
 
 if __name__ == "__main__":

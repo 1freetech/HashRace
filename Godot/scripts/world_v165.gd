@@ -655,7 +655,9 @@ func _draw_pixel_tile_world() -> void:
     var focus: Vector2 = rep_pos
     var zoom_value: Vector2 = Vector2.ONE
     if is_instance_valid(camera):
-        focus = camera.global_position
+        # The camera node can be outside its actual screen center when limits
+        # clamp the view near a world edge. Cull against the rendered center.
+        focus = to_local(camera.get_screen_center_position())
         zoom_value = camera.zoom
 
     var safe_zoom := Vector2(maxf(zoom_value.x, 0.01), maxf(zoom_value.y, 0.01))

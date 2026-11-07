@@ -41,3 +41,17 @@ jobs:
           name: hashrace-clean-runtime-gameplay
           if-no-files-found: error
           path: visual-proof/gameplay-clean-runtime.png
+      - name: Render all four limited-camera map edges
+        run: |
+          set -euo pipefail
+          timeout 90s xvfb-run -a godot --audio-driver Dummy --path Godot --script res://scripts/capture_world_edges.gd 2>&1 | tee /tmp/hashrace-world-edges.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR:|WORLD EDGE PROOF FAIL" /tmp/hashrace-world-edges.log; then exit 1; fi
+          grep -q "WORLD EDGE PROOF PASS" /tmp/hashrace-world-edges.log
+          for edge in west east north south; do test -s "visual-proof/world-edges/${edge}.png"; done
+      - name: Upload world-edge runtime proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashrace-world-edges-${{ github.event.pull_request.head.sha || github.sha }}
+          if-no-files-found: warn
+          path: visual-proof/world-edges/*.png

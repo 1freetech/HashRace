@@ -1,10 +1,12 @@
 from pathlib import Path
 
+from world_script_contract import assert_live_world_layer
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v120_curtailment_contract():
-    assert (ROOT / "VERSION").read_text().strip() == "v0.120"
+    assert_live_world_layer(120)
 
     script = (ROOT / "Godot/scripts/world_v120.gd").read_text()
     assert 'extends "res://scripts/world_v119.gd"' in script
@@ -20,7 +22,6 @@ def test_v120_curtailment_contract():
     assert "debug_v119_ready()" in script
 
     scene = (ROOT / "Godot/scenes/world.tscn").read_text()
-    assert 'res://scripts/world_v120.gd' in scene
     assert '[node name="BootFallback" type="CanvasLayer" parent="."]' in scene
 
     validator = (ROOT / "Godot/scripts/validate_modular_scripts.gd").read_text()
