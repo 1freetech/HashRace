@@ -168,13 +168,84 @@ func _build_player_sprite() -> void:
     player_sprite.y_sort_enabled = false
     add_child(player_sprite)
 
+
+# Original pixel silhouettes, drawn on a 40x60 logical canvas and expanded to
+# the existing 160x240 frame contract. Feet remain at the shared y=232 anchor.
+func _role_frames(index: int, spec: Dictionary) -> SpriteFrames:
+    var frames := SpriteFrames.new()
+    frames.remove_animation(&"default")
+    for facing in ["down", "up", "left", "right"]:
+        for moving in [false, true]:
+            var anim := StringName(("walk_" if moving else "idle_") + facing)
+            frames.add_animation(anim)
+            frames.set_animation_speed(anim, 8.0)
+            frames.set_animation_loop(anim, true)
+            for pose in range(4 if moving else 1):
+                var img := Image.create(40, 60, false, Image.FORMAT_RGBA8)
+                var ink := Color("252936")
+                var suit: Color = spec.suit
+                var skin: Color = spec.skin
+                var width: int = [18, 22, 16, 20][index]
+                var left := 20 - int(width / 2)
+                var stride: int = [0, 3, 0, -3][pose]
+                # Boots and separate trouser legs, animated in every direction.
+                for leg in range(2):
+                    var x := 12 + leg * 9
+                    var shift := stride if leg == 0 else -stride
+                    var dy := shift if facing == "up" or facing == "down" else 0
+                    var dx := shift if facing == "left" or facing == "right" else 0
+                    img.fill_rect(Rect2i(x + dx, 39 + dy, 7, 15 - dy), ink)
+                    img.fill_rect(Rect2i(x + dx + 1, 40 + dy, 5, 12 - dy), suit.darkened(0.45))
+                    img.fill_rect(Rect2i(x + dx - 1, 53, 9, 5), ink)
+                # Role-specific torso proportions and swinging sleeves.
+                img.fill_rect(Rect2i(left - 1, 22, width + 2, 20), ink)
+                img.fill_rect(Rect2i(left, 23, width, 17), suit)
+                img.fill_rect(Rect2i(left - 5, 25 + stride, 5, 13), ink)
+                img.fill_rect(Rect2i(left + width, 25 - stride, 5, 13), ink)
+                img.fill_rect(Rect2i(left - 4, 35 + stride, 3, 3), skin)
+                img.fill_rect(Rect2i(left + width + 1, 35 - stride, 3, 3), skin)
+                img.fill_rect(Rect2i(13, 9, 14, 15), ink)
+                img.fill_rect(Rect2i(14, 11, 12, 12), skin)
+                if facing != "up":
+                    var eye_x := 16 if facing == "left" else (24 if facing == "right" else 16)
+                    img.fill_rect(Rect2i(eye_x, 16, 2, 2), ink)
+                    if facing == "down":
+                        img.fill_rect(Rect2i(23, 16, 2, 2), ink)
+                else:
+                    img.fill_rect(Rect2i(14, 11, 12, 11), ink)
+                match index:
+                    0: # Mining technician: hard hat, reflective vest.
+                        img.fill_rect(Rect2i(11, 6, 18, 6), Color("e9b53c"))
+                        img.fill_rect(Rect2i(9, 11, 22, 2), Color("f8d66a"))
+                        img.fill_rect(Rect2i(15, 24, 3, 15), Color("e9b53c"))
+                        img.fill_rect(Rect2i(23, 24, 3, 15), Color("e9b53c"))
+                    1: # Electrician: broad helmet, insulated gloves, tool belt.
+                        img.fill_rect(Rect2i(10, 5, 20, 8), Color("e6e8eb"))
+                        img.fill_rect(Rect2i(9, 12, 22, 2), ink)
+                        img.fill_rect(Rect2i(left, 37, width, 4), Color("795333"))
+                        img.fill_rect(Rect2i(left + width - 3, 39, 5, 6), Color("e5a84b"))
+                    2: # Network technician: narrow jacket, headset, equipment bag.
+                        img.fill_rect(Rect2i(13, 7, 14, 5), Color("47332d"))
+                        img.fill_rect(Rect2i(12, 12, 3, 9), ink)
+                        img.fill_rect(Rect2i(25, 12, 3, 9), ink)
+                        img.fill_rect(Rect2i(26, 27, 8, 14), Color("344c61"))
+                        img.fill_rect(Rect2i(27, 29, 6, 2), Color("9bb6c4"))
+                    3: # Site supervisor: peaked cap, collared shirt, clipboard.
+                        img.fill_rect(Rect2i(12, 7, 16, 5), Color("25384b"))
+                        img.fill_rect(Rect2i(10, 11, 20, 2), ink)
+                        img.fill_rect(Rect2i(18, 23, 4, 5), Color("e4e6df"))
+                        img.fill_rect(Rect2i(20, 28, 2, 9), ink)
+                        img.fill_rect(Rect2i(28, 29, 7, 11), Color("b88b56"))
+                        img.fill_rect(Rect2i(29, 30, 5, 8), Color("e6dfc7"))
+                img.resize(160, 240, Image.INTERPOLATE_NEAREST)
+                frames.add_frame(anim, ImageTexture.create_from_image(img))
+    return frames
+
 func _build_npc_population() -> void:
-    # Every NPC uses the exact validated player-sheet regions, but gets a
-    # deterministic palette and patrol so the campus is visibly populated by
-    # distinct people rather than uniform-grid crops of the same character.
+    # Original role silhouettes replace palette-only copies of the player.
     for index in range(NPCS.size()):
         var spec: Dictionary = NPCS[index]
-        var frames := PlayerSheet.build_customized_frames(spec.skin, spec.suit, spec.scouter)
+        var frames := _role_frames(index, spec)
         if frames == null:
             continue
         var sprite := AnimatedSprite2D.new()
