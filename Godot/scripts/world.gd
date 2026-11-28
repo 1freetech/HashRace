@@ -253,6 +253,32 @@ func _role_frames(index: int, spec: Dictionary) -> SpriteFrames:
                             img.fill_rect(Rect2i(14, 15, 12, 3), Color("9bd2dc"))
                         img.fill_rect(Rect2i(26, 29, 9, 12), ink)
                         img.fill_rect(Rect2i(27, 30, 7, 9), Color("7eb4bd"))
+                # Recompose side views around the ground anchor. Compress the
+                # frontal silhouette, mirror the complete role kit for left/right,
+                # and draw a directional nose and forward boot highlight.
+                if facing == "left" or facing == "right":
+                    var profile := Image.create(40, 60, false, Image.FORMAT_RGBA8)
+                    var profile_width: int = 28 if index == 1 or index == 4 else 24
+                    var cropped := img.get_region(Rect2i(0, 0, 40, 60))
+                    cropped.resize(profile_width, 60, Image.INTERPOLATE_NEAREST)
+                    if facing == "left":
+                        cropped.flip_x()
+                    profile.blit_rect(cropped, Rect2i(0, 0, profile_width, 60), Vector2i(int((40 - profile_width) / 2), 0))
+                    var nose_x: int = 25 if facing == "right" else 12
+                    profile.fill_rect(Rect2i(nose_x, 17, 3, 3), skin)
+                    profile.fill_rect(Rect2i(nose_x - 1 if facing == "right" else nose_x + 2, 15, 1, 2), ink)
+                    img = profile
+                elif facing == "up":
+                    # Back-facing equipment: no front-facing badges or ties.
+                    img.fill_rect(Rect2i(left, 23, width, 14), suit.darkened(0.18))
+                    img.fill_rect(Rect2i(left + 2, 24, width - 4, 2), suit.lightened(0.2))
+                    if index == 0:
+                        img.fill_rect(Rect2i(left + 1, 29, width - 2, 3), Color("e9b53c"))
+                    elif index == 2 or index == 5:
+                        img.fill_rect(Rect2i(15, 25, 10, 13), ink)
+                        img.fill_rect(Rect2i(16, 26, 8, 10), Color("536b78"))
+                    elif index == 4:
+                        img.fill_rect(Rect2i(14, 27, 12, 8), Color("202c39"))
                 img.resize(160, 240, Image.INTERPOLATE_NEAREST)
                 frames.add_frame(anim, ImageTexture.create_from_image(img))
     return frames
