@@ -47,6 +47,8 @@ const NPCS := [
     {"pos": Vector2(760, 545), "scale": 0.24, "skin": Color("c98b62"), "suit": Color("7b2d8e"), "scouter": Color("4fd7ff"), "facing": "left", "patrol": Vector2(-48, 0), "phase": 1.4},
     {"pos": Vector2(1030, 500), "scale": 0.27, "skin": Color("8b5a3c"), "suit": Color("16705a"), "scouter": Color("ffd35a"), "facing": "down", "patrol": Vector2(0, 44), "phase": 2.8},
     {"pos": Vector2(1370, 520), "scale": 0.23, "skin": Color("e0ad83"), "suit": Color("9b3b31"), "scouter": Color("b783ff"), "facing": "up", "patrol": Vector2(0, -40), "phase": 4.2},
+    {"pos": Vector2(560, 620), "scale": 0.25, "skin": Color("a76d48"), "suit": Color("344252"), "scouter": Color("c5d8eb"), "facing": "right", "patrol": Vector2(32, 0), "phase": 0.8},
+    {"pos": Vector2(1170, 620), "scale": 0.24, "skin": Color("d4a47e"), "suit": Color("687b56"), "scouter": Color("f0b25c"), "facing": "left", "patrol": Vector2(30, 0), "phase": 3.5},
 ]
 
 const CAMPUS := {
@@ -185,7 +187,7 @@ func _role_frames(index: int, spec: Dictionary) -> SpriteFrames:
                 var ink := Color("252936")
                 var suit: Color = spec.suit
                 var skin: Color = spec.skin
-                var width: int = [18, 22, 16, 20][index]
+                var width: int = [18, 22, 16, 20, 24, 17][index]
                 var left := 20 - int(width / 2)
                 var stride: int = [0, 3, 0, -3][pose]
                 # Boots and separate trouser legs, animated in every direction.
@@ -237,6 +239,20 @@ func _role_frames(index: int, spec: Dictionary) -> SpriteFrames:
                         img.fill_rect(Rect2i(20, 28, 2, 9), ink)
                         img.fill_rect(Rect2i(28, 29, 7, 11), Color("b88b56"))
                         img.fill_rect(Rect2i(29, 30, 5, 8), Color("e6dfc7"))
+                    4: # Security officer: peaked cap, broad protective vest and radio.
+                        img.fill_rect(Rect2i(11, 6, 18, 6), Color("182738"))
+                        img.fill_rect(Rect2i(9, 11, 22, 2), ink)
+                        img.fill_rect(Rect2i(11, 24, 18, 15), Color("202c39"))
+                        img.fill_rect(Rect2i(13, 26, 4, 3), Color("c5d8eb"))
+                        img.fill_rect(Rect2i(28, 24, 4, 9), ink)
+                        img.fill_rect(Rect2i(30, 20, 1, 5), ink)
+                    5: # Engineer: tied hair, safety glasses and tablet.
+                        img.fill_rect(Rect2i(12, 7, 16, 6), Color("65432e"))
+                        img.fill_rect(Rect2i(25, 10, 5, 11), Color("65432e"))
+                        if facing != "up":
+                            img.fill_rect(Rect2i(14, 15, 12, 3), Color("9bd2dc"))
+                        img.fill_rect(Rect2i(26, 29, 9, 12), ink)
+                        img.fill_rect(Rect2i(27, 30, 7, 9), Color("7eb4bd"))
                 img.resize(160, 240, Image.INTERPOLATE_NEAREST)
                 frames.add_frame(anim, ImageTexture.create_from_image(img))
     return frames
